@@ -114,7 +114,8 @@ public final class EntityDeathListener implements Listener {
     double vl = violationMap.get(killer).getViolationLevel();
     penaltyMult *= Math.max(0.05, Math.min(1, 1.5 - vl * 0.06));
 
-    double distance = event.getEntity().getLocation().distanceSquared(event.getEntity().getWorld().getSpawnLocation());
+    double distance = event.getEntity().getLocation().distanceSquared(event.getEntity().getWorld()
+        .getSpawnLocation());
 
     StrifeMob pStats = plugin.getStrifePlugin().getStrifeMobManager().getStatMob(killer);
 

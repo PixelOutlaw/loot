@@ -18,14 +18,28 @@
  */
 package info.faceland.loot.utils;
 
+import com.loohp.interactivechatdiscordsrvaddon.InteractiveChatDiscordSrvAddon;
+import com.loohp.interactivechatdiscordsrvaddon.api.events.DiscordImageEvent;
+import com.loohp.interactivechatdiscordsrvaddon.graphics.ImageGeneration;
+import com.loohp.interactivechatdiscordsrvaddon.objectholders.DiscordMessageContent;
+import com.loohp.interactivechatdiscordsrvaddon.utils.DiscordItemStackUtils;
+import com.loohp.interactivechatdiscordsrvaddon.utils.DiscordItemStackUtils.DiscordDescription;
+import com.loohp.interactivechatdiscordsrvaddon.utils.DiscordItemStackUtils.DiscordToolTip;
+import github.scarsz.discordsrv.DiscordSRV;
+import github.scarsz.discordsrv.dependencies.jda.api.entities.TextChannel;
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemStat;
 import io.pixeloutlaw.minecraft.spigot.garbage.BroadcastMessageUtil;
 import io.pixeloutlaw.minecraft.spigot.garbage.BroadcastMessageUtil.BroadcastItemVisibility;
 import io.pixeloutlaw.minecraft.spigot.garbage.BroadcastMessageUtil.BroadcastTarget;
 import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import javax.imageio.ImageIO;
 import org.apache.commons.lang.WordUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -33,25 +47,93 @@ import org.bukkit.inventory.ItemStack;
 
 public final class InventoryUtil {
 
+  private static TextChannel thechan;
+
   private InventoryUtil() {
-    // meh
+    thechan = DiscordSRV.getPlugin().getMainTextChannel();
   }
 
   public static void broadcast(Player player, ItemStack his, String format) {
     broadcast(player, his, format, true);
   }
 
-  public static void broadcast(Player player, ItemStack his, String format, boolean sendToAll) {
+  public static void broadcast(Player player, ItemStack item, String format, boolean sendToAll) {
     BroadcastTarget target = sendToAll ? BroadcastTarget.SERVER : BroadcastTarget.PLAYER;
-    BroadcastMessageUtil.INSTANCE.broadcastItem(format, player, his, target, BroadcastItemVisibility.SHOW);
+    BroadcastMessageUtil.INSTANCE
+        .broadcastItem(format, player, item, target, BroadcastItemVisibility.SHOW);
+    if (sendToAll) {
+      Bukkit.getScheduler().runTaskAsynchronously(InteractiveChatDiscordSrvAddon.plugin, () -> {
+        try {
+          List<DiscordMessageContent> contents = new ArrayList<>();
+          BufferedImage image = ImageGeneration.getItemStackImage(item, player);
+          ByteArrayOutputStream itemOs = new ByteArrayOutputStream();
+          ImageIO.write(image, "png", itemOs);
+
+          DiscordDescription description = DiscordItemStackUtils.getDiscordDescription(item);
+
+          Color color = DiscordItemStackUtils.getDiscordColor(item);
+          DiscordMessageContent content = new DiscordMessageContent(description.getName(),
+              "attachment://Item.png", color);
+          content.addAttachment("Item.png", itemOs.toByteArray());
+          contents.add(content);
+
+          DiscordToolTip discordToolTip = DiscordItemStackUtils.getToolTip(item);
+          if (!discordToolTip.isBaseItem()
+              || InteractiveChatDiscordSrvAddon.plugin.itemUseTooltipImageOnBaseItem) {
+            BufferedImage tooltip = ImageGeneration.getToolTipImage(discordToolTip.getComponents());
+            ByteArrayOutputStream tooltipOs = new ByteArrayOutputStream();
+            ImageIO.write(tooltip, "png", tooltipOs);
+            content.addAttachment("ToolTip.png", tooltipOs.toByteArray());
+            content.addImageUrl("attachment://ToolTip.png");
+          } else {
+            content.addDescription(description.getDescription().orElse(null));
+          }
+
+          broadcast("\uD83C\uDF1F **Dang Son!** " + player.getName() + " got an item!", contents);
+
+        } catch (Exception e) {
+          Bukkit.getLogger().warning("Failed to send dang son to discord");
+        }
+      });
+    }
+  }
+
+  private static void broadcast(String originalText, List<DiscordMessageContent> contents) {
+    Bukkit.getScheduler().runTaskAsynchronously(LootPlugin.getInstance(), () -> {
+
+      String text = originalText;
+
+      if (thechan == null) {
+        thechan = DiscordSRV.getPlugin().getMainTextChannel();
+        if (thechan == null) {
+          Bukkit.getLogger().warning("Could not load discord channel for dang sons");
+          return;
+        }
+      }
+
+      DiscordImageEvent discordImageEvent = new DiscordImageEvent(thechan, text, text, contents, false, true);
+      TextChannel textChannel = discordImageEvent.getChannel();
+      if (discordImageEvent.isCancelled()) {
+        String restore = discordImageEvent.getOriginalMessage();
+        textChannel.sendMessage(restore).queue();
+      } else {
+        text = discordImageEvent.getNewMessage();
+        textChannel.sendMessage(text).queue();
+        for (DiscordMessageContent content : discordImageEvent.getDiscordMessageContents()) {
+          content.toJDAMessageRestAction(textChannel).queue();
+        }
+      }
+    });
   }
 
   public static net.md_5.bungee.api.ChatColor getRollColor(ItemStat stat, double roll) {
-    return getRollColor(roll, stat.getMinHue(), stat.getMaxHue(), stat.getMinSaturation(), stat.getMaxSaturation(),
+    return getRollColor(roll, stat.getMinHue(), stat.getMaxHue(), stat.getMinSaturation(),
+        stat.getMaxSaturation(),
         stat.getMinBrightness(), stat.getMaxBrightness());
   }
 
-  public static net.md_5.bungee.api.ChatColor getRollColor(double roll, float minHue, float maxHue, float minSat,
+  public static net.md_5.bungee.api.ChatColor getRollColor(double roll, float minHue, float maxHue,
+      float minSat,
       float maxSat, float minBright, float maxBright) {
     float hue = minHue + (maxHue - minHue) * (float) roll;
     float saturation = minSat + (maxSat - minSat) * (float) roll;

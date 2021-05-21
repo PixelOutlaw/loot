@@ -47,7 +47,7 @@ public class SellIcon extends MenuItem {
     lore.add(TextUtils.color("&7Click to sell the items"));
     lore.add(TextUtils.color("&7selected above!"));
     lore.add("");
-    lore.add(TextUtils.color("&6Total: &f{total} Bits"));
+    lore.add(TextUtils.color("&6Total: &e{total}"));
   }
 
   @Override
@@ -60,9 +60,9 @@ public class SellIcon extends MenuItem {
     int modifiedTotal = getModifiedTotal(total, tradeLevel);
     String priceString;
     if (tradeLevel < 5 || modifiedTotal == total) {
-      priceString = String.valueOf(total);
+      priceString = LootPlugin.getInstance().getEconomy().format(total);
     } else {
-      priceString = TextUtils.color("&7&m" + total + "&r &f&l" + modifiedTotal);
+      priceString = TextUtils.color("&7&m" + total + "&r &e&l" + LootPlugin.getInstance().getEconomy().format(modifiedTotal));
     }
     for (String s : lore) {
       newLore.add(s.replace("{total}", priceString));
@@ -95,7 +95,7 @@ public class SellIcon extends MenuItem {
     if (total != 0) {
       LootPlugin.getInstance().getEconomy().depositPlayer(event.getPlayer(), total);
       event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.BLOCK_CHAIN_PLACE, 1.0F, 1.3F);
-      MessageUtils.sendMessage(event.getPlayer(), "&e  +" + total + " Bit(s)!");
+      MessageUtils.sendMessage(event.getPlayer(), "&e  +" + LootPlugin.getInstance().getEconomy().format(total));
     }
     if (menu.getTotal() > 0) {
       MessageUtils.sendMessage(event.getPlayer(),

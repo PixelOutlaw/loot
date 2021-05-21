@@ -63,6 +63,7 @@ import info.faceland.loot.listeners.EntityDeathListener;
 import info.faceland.loot.listeners.HeadHelmetsListener;
 import info.faceland.loot.listeners.InteractListener;
 import info.faceland.loot.listeners.ItemListListener;
+import info.faceland.loot.listeners.ItemSpawnListener;
 import info.faceland.loot.listeners.PawnMenuListener;
 import info.faceland.loot.listeners.StrifeListener;
 import info.faceland.loot.listeners.anticheat.AnticheatListener;
@@ -272,6 +273,7 @@ public final class LootPlugin extends FacePlugin {
     Bukkit.getPluginManager().registerEvents(new ItemListListener(this), this);
     Bukkit.getPluginManager().registerEvents(new HeadHelmetsListener(), this);
     Bukkit.getPluginManager().registerEvents(new PawnMenuListener(this), this);
+    Bukkit.getPluginManager().registerEvents(new ItemSpawnListener(), this);
     if (potionTriggersEnabled) {
       Bukkit.getPluginManager().registerEvents(new SocketsListener(gemCacheManager), this);
     }

@@ -34,7 +34,7 @@
   </parent>
 
   <artifactId>loot</artifactId>
-  <version>1.4.0</version>
+  <version>1.4.1</version>
   <packaging>jar</packaging>
 
   <name>loot</name>
@@ -65,6 +65,14 @@
       <id>inventive-repo</id>
       <url>https://repo.inventivetalent.org/content/groups/public/</url>
     </repository>
+    <repository>
+      <id>Scarsz-Nexus</id>
+      <url>https://nexus.scarsz.me/content/groups/public/</url>
+    </repository>
+    <repository>
+      <id>loohp-repo</id>
+      <url>https://repo.loohpjames.com/repository</url>
+    </repository>
   </repositories>
 
   <dependencies>
@@ -81,7 +89,7 @@
     <dependency>
       <groupId>io.pixeloutlaw</groupId>
       <artifactId>strife</artifactId>
-      <version>3.3.2</version>
+      <version>3.4.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -117,6 +125,18 @@
       <groupId>org.inventivetalent</groupId>
       <artifactId>glowapi</artifactId>
       <version>1.4.13-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.discordsrv</groupId>
+      <artifactId>discordsrv</artifactId>
+      <version>1.18.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.loohp</groupId>
+      <artifactId>InteractiveChatDiscordSrvAddon</artifactId>
+      <version>1.4.0.7</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.github.Mitsugaru</groupId>
