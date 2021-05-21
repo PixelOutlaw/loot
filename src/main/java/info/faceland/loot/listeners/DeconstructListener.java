@@ -177,13 +177,20 @@ public class DeconstructListener implements Listener {
       sendMessage(player, plugin.getSettings().getString("language.craft.no-materials", ""));
       return;
     }
-    int quality = 1;
+    float quality = 1;
     while (random.nextDouble() <= plugin.getSettings().getDouble("config.drops.material-quality-up", 0.1D)
         && quality < 5) {
       quality++;
     }
-    ItemStack craftMaterial = MaterialUtil.buildMaterial(material,
-        plugin.getCraftMatManager().getCraftMaterials().get(material), itemLevel, quality);
+    quality += Math.max(0, effectiveCraftLevel - itemLevel) / 100;
+    quality += (toolQuality - 1) * 0.1;
+    quality = Math.floor(quality) + Math.random() <= quality % 1 ? 1 : 0;
+
+    quality = Math.max(MaterialUtil.getItemRarity(targetItem) - 1, quality);
+    quality = Math.min(5, Math.max(1, quality));
+
+    ItemStack craftMaterial = MaterialUtil.buildMaterial(material, plugin.getCraftMatManager()
+        .getCraftMaterials().get(material), itemLevel, (int) quality);
 
     player.playSound(player.getEyeLocation(), Sound.ENTITY_ITEM_BREAK, 1F, 0.8F);
     event.setTargetItem(null);

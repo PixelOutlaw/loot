@@ -33,6 +33,7 @@ import info.faceland.loot.events.LootEnchantEvent;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.math.LootRandom;
+import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.tier.Tier;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
@@ -388,6 +389,15 @@ public final class MaterialUtil {
       MessageUtils.sendMessage(player, "&eThis item cannot be enhanced.");
       return;
     }
+
+    int itemLevel = getItemLevel(item);
+    double rawLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.ENCHANTING);
+
+    if (EnchantMenu.getEnhanceRequirement(itemLevel) > rawLevel) {
+      MessageUtils.sendMessage(player, "&eYour enchanting level is too low!");
+      return;
+    }
+
     int index = -1;
     for (int i = 0; i < ItemStackExtensionsKt.getLore(item).size(); i++) {
       String string = ItemStackExtensionsKt.getLore(item).get(i);
@@ -408,7 +418,6 @@ public final class MaterialUtil {
 
     int statValue = NumberUtils.toInt(CharMatcher.digit().or(CharMatcher.is('-')).retainFrom(enchantmentStatString));
 
-    int itemLevel = getLevelRequirement(item);
     itemLevel = Math.max(1, Math.min(100, itemLevel));
     double enchantingLevel = PlayerDataUtil.getEffectiveLifeSkill(player,
         LifeSkillType.ENCHANTING, true);
@@ -504,6 +513,7 @@ public final class MaterialUtil {
         lore.add(barString);
         continue;
       }
+      barString = barString.replace("" + ChatColor.BLUE, "");
       ChatColor incompleteBarColor;
       int index;
       if (barString.contains("" + ChatColor.DARK_RED)) {
@@ -516,17 +526,17 @@ public final class MaterialUtil {
         index = barString.indexOf("]");
         incompleteBarColor = ChatColor.BLACK;
       }
-      if (index <= 4) {
+      if (index <= 2) {
         lore.remove(lore.size() - 1);
         lore.add(ChatColor.BLUE + "(Enchantable)");
         sendMessage(player, LootPlugin.getInstance().getSettings().getString("language.enchant.degrade", ""));
         continue;
-      } else if (index <= 7) {
+      } else if (index <= 5) {
         sendMessage(player, LootPlugin.getInstance().getSettings().getString("language.enchant.bar-low", ""));
       }
       barString = barString.replace("" + incompleteBarColor, "");
       barString = new StringBuilder(barString).insert(index - 1, incompleteBarColor + "").toString();
-      barString = barString.replace("|]", "|" + ChatColor.BLUE + "]");
+      barString = barString.replace("[", ChatColor.BLUE + "[").replace("]", ChatColor.BLUE + "]");
       lore.add(barString);
     }
     ItemStackExtensionsKt.setLore(item, lore);
@@ -820,6 +830,35 @@ public final class MaterialUtil {
       strTier = LootPlugin.getInstance().getCraftBaseManager().getCraftBases().get(stack.getType());
     }
     return LootPlugin.getInstance().getTierManager().getTier(strTier);
+  }
+
+  public static int getItemRarity(ItemStack stack) {
+    if (stack.getItemMeta() == null) {
+      return 0;
+    }
+    if (ItemStackExtensionsKt.getLore(stack).size() < 2) {
+      return 0;
+    }
+    String tierString = ChatColor.stripColor(ItemStackExtensionsKt.getLore(stack).get(1));
+    if (!tierString.startsWith("Tier:")) {
+      return 0;
+    }
+    if (tierString.contains("Common")) {
+      return 1;
+    }
+    if (tierString.contains("Uncommon")) {
+      return 2;
+    }
+    if (tierString.contains("Rare")) {
+      return 3;
+    }
+    if (tierString.contains("Epic")) {
+      return 4;
+    }
+    if (tierString.contains("Unique")) {
+      return 4;
+    }
+    return 1;
   }
 
   public static int getItemLevel(ItemStack stack) {

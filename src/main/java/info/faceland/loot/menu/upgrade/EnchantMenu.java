@@ -50,9 +50,10 @@ public class EnchantMenu extends ItemMenu {
 
   private LootPlugin plugin;
 
-  private int baseEnhanceRequirement;
+  private static int baseEnhanceRequirement;
+  private static int enhanceReqPerTwenty;
+
   private int playerPointHelmetMergeCost;
-  private int enhanceReqPerTwenty;
 
   private ItemStack selectedEquipment;
   private ItemStack selectedUpgradeItem;
@@ -323,7 +324,7 @@ public class EnchantMenu extends ItemMenu {
 
       int enchantingLevel = plugin.getStrifePlugin().getChampionManager().getChampion(player)
           .getLifeSkillLevel(LifeSkillType.ENCHANTING);
-      if (enchantingLevel < getEnhanceRequirement()) {
+      if (enchantingLevel < getEnhanceRequirement(MaterialUtil.getItemLevel(selectedEquipment))) {
         confirmIcon.setDisplayName(noEnhanceLevel);
         lore.addAll(noEnhanceLevelLore);
         ItemStackExtensionsKt.setLore(confirmIcon.getIcon(), lore);
@@ -441,9 +442,9 @@ public class EnchantMenu extends ItemMenu {
     return blankItem;
   }
 
-  private int getEnhanceRequirement() {
-    int tier = (int) Math.floor(((double) MaterialUtil.getLevelRequirement(selectedEquipment)) / 10);
-    return baseEnhanceRequirement + tier * enhanceReqPerTwenty;
+  public static int getEnhanceRequirement(int itemLevel) {
+    int eLevel = itemLevel / 20;
+    return baseEnhanceRequirement + eLevel * enhanceReqPerTwenty;
   }
 
 }

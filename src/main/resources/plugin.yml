@@ -8,6 +8,7 @@ softdepend:
   - Strife
   - Vault
   - PlayerPoints
+  - InteractiveChatDiscordSrvAddon
 
 commands:
   loot:

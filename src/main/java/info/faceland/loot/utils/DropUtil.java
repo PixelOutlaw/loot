@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import land.face.strife.util.GlowUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -355,8 +356,12 @@ public class DropUtil implements Listener {
       Color glowColor) {
     Item drop = Objects.requireNonNull(loc.getWorld()).dropItemNaturally(loc, itemStack);
     if (glowColor != null) {
-      GlowAPI.setGlowing(drop, true, looter);
-      GlowAPI.setGlowing(drop, glowColor, looter);
+      if (plugin.getStrifePlugin() == null) {
+        GlowAPI.setGlowing(drop, true, looter);
+        GlowAPI.setGlowing(drop, glowColor, looter);
+      } else {
+        GlowUtil.setGlow(looter, drop, glowColor);
+      }
     }
     if (ticksLived != 0) {
       drop.setTicksLived(ticksLived);
@@ -417,7 +422,7 @@ public class DropUtil implements Listener {
     if (handItem.getType() != Material.AIR) {
       materials.add(handItem.getType());
     }
-    ItemStack offItem = player.getEquipment().getItemInMainHand();
+    ItemStack offItem = player.getEquipment().getItemInOffHand();
     if (offItem.getType() != Material.AIR) {
       materials.add(offItem.getType());
     }
