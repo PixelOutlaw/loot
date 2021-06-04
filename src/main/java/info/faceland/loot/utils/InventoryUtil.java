@@ -95,8 +95,8 @@ public final class InventoryUtil {
             content.addDescription(description.getDescription().orElse(null));
           }
 
-          String itemName = ItemStackExtensionsKt.getDisplayName(finalItem);
-          sendToDiscord("\\uD83C\\uDF1F " + finalFormat.replace("%player%",
+          String itemName = ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(finalItem));
+          sendToDiscord("\uD83C\uDF1F " + finalFormat.replace("%player%",
               player.getName()).replace("%item%", itemName), contents);
 
         } catch (Exception e) {
