@@ -23,13 +23,14 @@
 package info.faceland.loot.api.managers;
 
 import info.faceland.loot.api.items.CustomItem;
-
 import java.util.Map;
 import java.util.Set;
 
 public interface CustomItemManager {
 
     Set<CustomItem> getCustomItems();
+
+    Set<String> listCustomItems();
 
     CustomItem getCustomItem(String name);
 

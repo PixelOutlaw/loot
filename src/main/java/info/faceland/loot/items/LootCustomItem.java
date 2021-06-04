@@ -18,12 +18,16 @@
  */
 package info.faceland.loot.items;
 
+import com.destroystokyo.paper.Namespaced;
 import com.tealcube.minecraft.bukkit.TextUtils;
 import info.faceland.loot.api.items.CustomItem;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -42,6 +46,8 @@ public final class LootCustomItem implements CustomItem {
   private int customDataNumber;
   private boolean broadcast;
   private boolean quality;
+  private Set<ItemFlag> flags;
+  private Set<String> canBreak;
 
   public LootCustomItem(String name, Material material) {
     this.name = name;
@@ -95,6 +101,23 @@ public final class LootCustomItem implements CustomItem {
     }
     if (customDataNumber != -1) {
       ItemStackExtensionsKt.setCustomModelData(itemStack, customDataNumber);
+    }
+    if (!canBreak.isEmpty()) {
+      ItemMeta iMeta = itemStack.getItemMeta();
+      Set<Namespaced> breakSpaces = new HashSet<>();
+      for (String s : canBreak) {
+        breakSpaces.add(NamespacedKey.minecraft(s));
+      }
+      iMeta.setDestroyableKeys(breakSpaces);
+      iMeta.addItemFlags(ItemFlag.HIDE_DESTROYS);
+      itemStack.setItemMeta(iMeta);
+    }
+    if (!flags.isEmpty()) {
+      ItemMeta iMeta = itemStack.getItemMeta();
+      for (ItemFlag flag : flags) {
+        iMeta.addItemFlags(flag);
+      }
+      itemStack.setItemMeta(iMeta);
     }
     return itemStack;
   }
@@ -152,6 +175,22 @@ public final class LootCustomItem implements CustomItem {
   @Override
   public boolean canBeQuality() {
     return quality;
+  }
+
+  public Set<ItemFlag> getFlags() {
+    return flags;
+  }
+
+  public void setFlags(Set<ItemFlag> flags) {
+    this.flags = flags;
+  }
+
+  public Set<String> getCanBreak() {
+    return canBreak;
+  }
+
+  public void setCanBreak(Set<String> canBreak) {
+    this.canBreak = canBreak;
   }
 
   void setBroadcast(boolean broadcast) {

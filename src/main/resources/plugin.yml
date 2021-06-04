@@ -1,7 +1,7 @@
 name: Loot
 version: ${project.version}
 main: info.faceland.loot.LootPlugin
-api-version: 1.15
+api-version: 1.16
 depend:
   - Facecore
 softdepend:
@@ -15,9 +15,7 @@ commands:
     aliases: [l]
 
 permissions:
-  loot.command.spawn:
+  loot.give:
     default: op
-  loot.command.give:
-    default: op
-  loot.command.simulate:
+  loot.reward:
     default: op

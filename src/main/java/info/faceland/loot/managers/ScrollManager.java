@@ -6,6 +6,8 @@ import info.faceland.loot.math.LootRandom;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -80,6 +82,10 @@ public class ScrollManager {
       }
     }
     return null;
+  }
+
+  public Set<String> getScrollIds() {
+    return scrolls.keySet().stream().map(value -> value.replace(" ", "_")).collect(Collectors.toSet());
   }
 
   private double getTotalWeight() {

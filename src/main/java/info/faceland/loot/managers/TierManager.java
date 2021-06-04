@@ -22,23 +22,22 @@ import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.tier.Tier;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
 
 public final class TierManager {
 
-  private Set<Tier> loadedTiers;
-  private LootRandom random;
-
-  public TierManager() {
-    loadedTiers = new HashSet<>();
-    random = new LootRandom();
-  }
+  private final Set<Tier> loadedTiers = new HashSet<>();
+  private final LootRandom random = new LootRandom();
 
   public Tier getTier(String name) {
     if (StringUtils.isBlank(name)) {
       return null;
     }
     for (Tier t : getLoadedTiers()) {
+      if (name.equalsIgnoreCase(t.getName())) {
+        return t;
+      }
       if (t.getId().replace(" ", "").equalsIgnoreCase(name.replace(" ", ""))) {
         return t;
       }
@@ -77,6 +76,11 @@ public final class TierManager {
 
   public Set<Tier> getLoadedTiers() {
     return new HashSet<>(loadedTiers);
+  }
+
+  public Set<String> getTierIds() {
+    return loadedTiers.stream().map(value -> value.getId()
+        .replace(" ", "_")).collect(Collectors.toSet());
   }
 
   public double getTotalTierWeight() {

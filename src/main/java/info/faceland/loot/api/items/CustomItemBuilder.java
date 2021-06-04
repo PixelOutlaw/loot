@@ -23,6 +23,8 @@
 package info.faceland.loot.api.items;
 
 import java.util.List;
+import java.util.Set;
+import org.bukkit.inventory.ItemFlag;
 
 public interface CustomItemBuilder {
 
@@ -47,4 +49,8 @@ public interface CustomItemBuilder {
     CustomItemBuilder withBroadcast(boolean b);
 
     CustomItemBuilder withQuality(boolean b);
+
+    CustomItemBuilder withFlags(Set<ItemFlag> f);
+
+    CustomItemBuilder withCanBreak(Set<String> b);
 }

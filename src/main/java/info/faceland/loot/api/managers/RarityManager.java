@@ -24,6 +24,7 @@ package info.faceland.loot.api.managers;
 
 import info.faceland.loot.data.ItemRarity;
 import java.util.Map;
+import java.util.Set;
 
 public interface RarityManager {
 
@@ -34,6 +35,8 @@ public interface RarityManager {
     void removeRarity(String name);
 
     Map<String, ItemRarity> getLoadedRarities();
+
+    Set<String> getRarityIds();
 
     ItemRarity getRandomRarity();
 

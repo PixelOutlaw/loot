@@ -262,14 +262,14 @@ public class DeconstructListener implements Listener {
     return lvlReq - itemLevel;
   }
 
-  private boolean isValidStealColor(Color color) {
+  public static boolean isValidStealColor(Color color) {
     float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
     return hsb[0] >= 0.14 && hsb[0] <= 0.34 && hsb[1] >= 0.7 && hsb[1] <= 0.72 && hsb[2] >= 0.99 && hsb[2] <= 1.01;
   }
 
-  private final Pattern hexPattern = Pattern.compile("§x(§[A-Fa-f0-9]){6}");
+  private static final Pattern hexPattern = Pattern.compile("§x(§[A-Fa-f0-9]){6}");
 
-  public net.md_5.bungee.api.ChatColor getHexFromString(String message) {
+  public static net.md_5.bungee.api.ChatColor getHexFromString(String message) {
     Matcher matcher = hexPattern.matcher(message);
     if (matcher.find()) {
       String str = "#" + matcher.group().replace("§x", "").replace("§", "");

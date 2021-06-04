@@ -18,12 +18,11 @@
  */
 package info.faceland.loot.listeners.sockets;
 
-import static info.faceland.loot.utils.InventoryUtil.broadcast;
-
 import com.tealcube.minecraft.bukkit.TextUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.sockets.SocketGem;
+import info.faceland.loot.utils.InventoryUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
@@ -278,7 +277,7 @@ public final class CombinerListener implements Listener {
     SocketGem gem = plugin.getSocketGemManager().getRandomSocketGemByBonus();
     ItemStack gemItem = gem.toItemStack(1);
     if (gem.isBroadcast()) {
-      broadcast(player, gemItem, transmuteFormat);
+      InventoryUtil.sendToDiscord(player, gemItem, transmuteFormat);
     }
     return gemItem;
   }
@@ -298,10 +297,8 @@ public final class CombinerListener implements Listener {
     if (item == null || item.getType() != Material.EMERALD) {
       return false;
     }
-    if (!ItemStackExtensionsKt.getDisplayName(item).startsWith(ChatColor.GOLD + "Socket Gem - ")) {
-      return false;
-    }
-    return true;
+    String name = ItemStackExtensionsKt.getDisplayName(item);
+    return StringUtils.isNotBlank(name) && name.startsWith(ChatColor.GOLD + "Socket Gem - ");
   }
 
   private boolean isCombineButton(ItemStack item) {

@@ -20,9 +20,10 @@ package info.faceland.loot.managers;
 
 import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.math.LootRandom;
-
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class EnchantTomeManager {
 
@@ -61,6 +62,10 @@ public final class EnchantTomeManager {
 
   public EnchantmentTome getRandomEnchantTome() {
     return getRandomEnchantTome(1D);
+  }
+
+  public Set<String> getTomeIds() {
+    return tomeMap.keySet().stream().map(value -> value.replace(" ", "_")).collect(Collectors.toSet());
   }
 
   public EnchantmentTome getRandomEnchantTome(double bonus) {

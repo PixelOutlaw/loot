@@ -1,6 +1,5 @@
 package info.faceland.loot.utils;
 
-import static info.faceland.loot.utils.InventoryUtil.broadcast;
 import static info.faceland.loot.utils.InventoryUtil.getFirstColor;
 
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
@@ -19,6 +18,7 @@ import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.IdentityTome;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
+import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.items.prefabs.UnidentifiedItem;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.sockets.SocketGem;
@@ -59,6 +59,7 @@ public class DropUtil implements Listener {
   private static double socketDropChance;
   private static double tomeDropChance;
   private static double enhancerDropChance;
+  private static double tinkerGearDropChance;
   private static double purityDropChance;
 
   private static LootRandom random;
@@ -77,6 +78,7 @@ public class DropUtil implements Listener {
     socketDropChance = plugin.getSettings().getDouble("config.drops.socket-gem", 0D);
     tomeDropChance = plugin.getSettings().getDouble("config.drops.enchant-gem", 0D);
     enhancerDropChance = plugin.getSettings().getDouble("config.drops.arcane-enhancer", 0D);
+    tinkerGearDropChance = plugin.getSettings().getDouble("config.drops.tinker-gear", 0D);
     purityDropChance = plugin.getSettings().getDouble("config.drops.purity-scroll", 0D);
 
     random = new LootRandom();
@@ -209,6 +211,9 @@ public class DropUtil implements Listener {
       if (random.nextDouble() < dropMultiplier * purityDropChance) {
         dropItem(event.getLocation(), PurifyingScroll.get(), killer, false, null);
       }
+    }
+    if (random.nextDouble() < dropMultiplier * tinkerGearDropChance) {
+      dropItem(event.getLocation(), TinkerersGear.get(), killer, true, Color.RED);
     }
     if (random.nextDouble() < dropMultiplier * scrollDropChance) {
       UpgradeScroll us = plugin.getScrollManager().getRandomScroll();
@@ -369,7 +374,7 @@ public class DropUtil implements Listener {
     if (looter != null) {
       applyDropProtection(drop, looter.getUniqueId());
       if (broadcast) {
-        broadcast(looter, itemStack, itemFoundFormat);
+        InventoryUtil.sendToDiscord(looter, itemStack, itemFoundFormat);
       }
     }
   }

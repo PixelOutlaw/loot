@@ -5,6 +5,8 @@ import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.math.LootRandom;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class LootRarityManager implements RarityManager {
   private final Map<String, ItemRarity> itemRarities;
@@ -33,6 +35,10 @@ public class LootRarityManager implements RarityManager {
   @Override
   public Map<String, ItemRarity> getLoadedRarities() {
     return itemRarities;
+  }
+
+  public Set<String> getRarityIds() {
+    return itemRarities.keySet().stream().map(value -> value.replace(" ", "_")).collect(Collectors.toSet());
   }
 
   @Override

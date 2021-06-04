@@ -1,23 +1,26 @@
 /**
  * The MIT License Copyright (c) 2015 Teal Cube Games
  * <p>
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  * <p>
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
- * Software.
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
  * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package info.faceland.loot.listeners;
 
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
-import static info.faceland.loot.utils.InventoryUtil.broadcast;
+import static info.faceland.loot.listeners.DeconstructListener.getHexFromString;
+import static info.faceland.loot.listeners.DeconstructListener.isValidStealColor;
 import static info.faceland.loot.utils.InventoryUtil.getFirstColor;
 import static info.faceland.loot.utils.InventoryUtil.getLastColor;
 import static info.faceland.loot.utils.MaterialUtil.FAILURE_BONUS;
@@ -33,6 +36,7 @@ import info.faceland.loot.api.data.GemCacheData;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
+import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.sockets.SocketGem;
@@ -42,8 +46,10 @@ import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import land.face.strife.data.champion.LifeSkillType;
@@ -164,11 +170,14 @@ public final class InteractListener implements Listener {
 
   @EventHandler(priority = EventPriority.HIGHEST)
   public void onQuickShard(InventoryClickEvent event) {
-    if (event.getClick() != ClickType.SHIFT_RIGHT || !(event.getClickedInventory() instanceof PlayerInventory)) {
+    if (event.getClick() != ClickType.SHIFT_RIGHT || !(event
+        .getClickedInventory() instanceof PlayerInventory)) {
       return;
     }
-    if (event.getCurrentItem() == null || event.getCursor() == null || event.getCurrentItem().getType() == Material.AIR
-        || event.getCursor().getType() == Material.AIR || !(event.getWhoClicked() instanceof Player)) {
+    if (event.getCurrentItem() == null || event.getCursor() == null
+        || event.getCurrentItem().getType() == Material.AIR
+        || event.getCursor().getType() == Material.AIR || !(event
+        .getWhoClicked() instanceof Player)) {
       return;
     }
 
@@ -213,7 +222,8 @@ public final class InteractListener implements Listener {
 
   @EventHandler(priority = EventPriority.HIGHEST)
   public void onRightClickUse(InventoryClickEvent event) {
-    if (event.getClick() != ClickType.RIGHT || !(event.getClickedInventory() instanceof PlayerInventory)) {
+    if (event.getClick() != ClickType.RIGHT || !(event
+        .getClickedInventory() instanceof PlayerInventory)) {
       return;
     }
     if (event.getCurrentItem() == null || event.getCursor() == null ||
@@ -312,7 +322,7 @@ public final class InteractListener implements Listener {
           .withLevel(itemLevel)
           .build().getStack();
       if (r.isBroadcast()) {
-        broadcast(player, targetItem,
+        InventoryUtil.sendToDiscord(player, targetItem,
             plugin.getSettings().getString("language.broadcast.ided-item"));
       }
       sendMessage(player, plugin.getSettings().getString("language.identify.success", ""));
@@ -382,80 +392,138 @@ public final class InteractListener implements Listener {
       plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player,
           LifeSkillType.ENCHANTING, 22, false, false);
     } else if (cursorName.equals(ChatColor.WHITE + "Item Rename Tag")) {
-      if (ItemStackExtensionsKt.getLore(cursor).get(3).equals(ChatColor.WHITE + "none")) {
-        sendMessage(player, plugin.getSettings().getString("language.rename.notset", ""));
-        return;
-      }
-      if (isBannedMaterial(targetItem)) {
-        sendMessage(player, plugin.getSettings().getString("language.rename.invalid", ""));
-        return;
-      }
-      if (targetItem.hasItemMeta() && targetItem.getItemMeta().hasLore()) {
-        for (String s : ItemStackExtensionsKt.getLore(targetItem)) {
-          if ("[ Crafting Component ]".equals(stripColor(s))) {
-            sendMessage(player, plugin.getSettings().getString("language.rename.invalid", ""));
-            return;
-          }
-        }
-      }
-      int level = stripColor(targetItemName).startsWith("+") ?
-          MaterialUtil.getDigit(targetItemName) : 0;
-      if (level > 0) {
-        ItemStackExtensionsKt.setDisplayName(
-            targetItem, getFirstColor(targetItemName) + "+" + level + " "
-                + stripColor(ItemStackExtensionsKt.getLore(cursor).get(3)));
-      } else {
-        ItemStackExtensionsKt.setDisplayName(
-            targetItem, getFirstColor(targetItemName)
-                + stripColor(ItemStackExtensionsKt.getLore(cursor).get(3)));
-      }
-
-      sendMessage(player, plugin.getSettings().getString("language.rename.success", ""));
-      player.playSound(player.getEyeLocation(), Sound.ENTITY_BAT_TAKEOFF, 1F, 0.8F);
-      updateItem(event, targetItem);
+      doItemRenameEffects(targetItem, cursor, targetItemName, player, event);
     } else if (cursorName.startsWith(ChatColor.DARK_PURPLE + "Magic Crystal")) {
-      List<String> lore = ItemStackExtensionsKt.getLore(targetItem);
-      boolean valid = false;
-      int index = 0;
-      int addAmount = 0;
-      for (String str : ItemStackExtensionsKt.getLore(targetItem)) {
-        if (str.startsWith(ChatColor.BLUE + "[")) {
-          if (str.contains("" + ChatColor.BLACK)) {
-            valid = true;
-            int barIndex = str.indexOf("" + ChatColor.BLACK);
-            if (barIndex == str.length() - 5) {
-              sendMessage(player, plugin.getSettings().getString("language.enchant.full", ""));
-              return;
-            }
-            double enchantLevel = PlayerDataUtil
-                .getLifeSkillLevel(player, LifeSkillType.ENCHANTING);
-            double itemLevel = MaterialUtil.getLevelRequirement(targetItem);
-            addAmount =
-                2 + (int) (random.nextDouble() * (2 + Math
-                    .max(0, (enchantLevel - itemLevel) * 0.2)));
-            str = str.replace("" + ChatColor.BLACK, "");
-            str = new StringBuilder(str)
-                .insert(Math.min(str.length() - 3, barIndex + addAmount), ChatColor.BLACK + "")
-                .toString();
-            lore.set(index, str);
-          } else if (str.contains("" + ChatColor.DARK_RED)) {
-            sendMessage(player, TextUtils.color(plugin.getSettings().getString(
-                "language.enchant.no-refill-enhanced", "you cant refill this enchant")));
-            return;
-          }
+      doRechargeEffects(targetItem, player, event);
+    } else if (TinkerersGear.isSimilar(cursor)) {
+      doTinkerEffects(targetItem, player, event);
+    }
+  }
+
+  private void doItemRenameEffects(ItemStack targetItem, ItemStack cursor, String targetItemName,
+      Player player, InventoryClickEvent event) {
+    if (ItemStackExtensionsKt.getLore(cursor).get(3).equals(ChatColor.WHITE + "none")) {
+      sendMessage(player, plugin.getSettings().getString("language.rename.notset", ""));
+      return;
+    }
+    if (isBannedMaterial(targetItem)) {
+      sendMessage(player, plugin.getSettings().getString("language.rename.invalid", ""));
+      return;
+    }
+    if (targetItem.hasItemMeta() && targetItem.getItemMeta().hasLore()) {
+      for (String s : ItemStackExtensionsKt.getLore(targetItem)) {
+        if ("[ Crafting Component ]".equals(stripColor(s))) {
+          sendMessage(player, plugin.getSettings().getString("language.rename.invalid", ""));
+          return;
         }
-        index++;
-      }
-      if (valid) {
-        ItemStackExtensionsKt.setLore(targetItem, lore);
-        plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player,
-            LifeSkillType.ENCHANTING, 10f + addAmount, false, false);
-        sendMessage(player, plugin.getSettings().getString("language.enchant.refill", ""));
-        player.playSound(player.getEyeLocation(), Sound.BLOCK_GLASS_BREAK, 1F, 1.2F);
-        player.playSound(player.getEyeLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 1F, 1F);
-        updateItem(event, targetItem);
       }
     }
+    int level = stripColor(targetItemName).startsWith("+") ?
+        MaterialUtil.getDigit(targetItemName) : 0;
+    if (level > 0) {
+      ItemStackExtensionsKt.setDisplayName(
+          targetItem, getFirstColor(targetItemName) + "+" + level + " "
+              + stripColor(ItemStackExtensionsKt.getLore(cursor).get(3)));
+    } else {
+      ItemStackExtensionsKt.setDisplayName(
+          targetItem, getFirstColor(targetItemName)
+              + stripColor(ItemStackExtensionsKt.getLore(cursor).get(3)));
+    }
+
+    sendMessage(player, plugin.getSettings().getString("language.rename.success", ""));
+    player.playSound(player.getEyeLocation(), Sound.ENTITY_BAT_TAKEOFF, 1F, 0.8F);
+    updateItem(event, targetItem);
+  }
+
+  private void doRechargeEffects(ItemStack targetItem, Player player, InventoryClickEvent event) {
+    List<String> lore = ItemStackExtensionsKt.getLore(targetItem);
+    boolean valid = false;
+    int index = 0;
+    int addAmount = 0;
+    for (String str : ItemStackExtensionsKt.getLore(targetItem)) {
+      if (str.startsWith(ChatColor.BLUE + "[")) {
+        if (str.contains("" + ChatColor.BLACK)) {
+          valid = true;
+          int barIndex = str.indexOf("" + ChatColor.BLACK);
+          if (barIndex == str.length() - 5) {
+            sendMessage(player, plugin.getSettings().getString("language.enchant.full", ""));
+            return;
+          }
+          double enchantLevel = PlayerDataUtil
+              .getLifeSkillLevel(player, LifeSkillType.ENCHANTING);
+          double itemLevel = MaterialUtil.getLevelRequirement(targetItem);
+          addAmount =
+              2 + (int) (random.nextDouble() * (2 + Math
+                  .max(0, (enchantLevel - itemLevel) * 0.2)));
+          str = str.replace("" + ChatColor.BLACK, "");
+          str = new StringBuilder(str)
+              .insert(Math.min(str.length() - 3, barIndex + addAmount), ChatColor.BLACK + "")
+              .toString();
+          lore.set(index, str);
+        } else if (str.contains("" + ChatColor.DARK_RED)) {
+          sendMessage(player, TextUtils.color(plugin.getSettings().getString(
+              "language.enchant.no-refill-enhanced", "you cant refill this enchant")));
+          return;
+        }
+      }
+      index++;
+    }
+    if (valid) {
+      ItemStackExtensionsKt.setLore(targetItem, lore);
+      plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player,
+          LifeSkillType.ENCHANTING, 10f + addAmount, false, false);
+      sendMessage(player, plugin.getSettings().getString("language.enchant.refill", ""));
+      player.playSound(player.getEyeLocation(), Sound.BLOCK_GLASS_BREAK, 1F, 1.2F);
+      player.playSound(player.getEyeLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 1F, 1F);
+      updateItem(event, targetItem);
+    }
+  }
+
+  private void doTinkerEffects(ItemStack targetItem, Player player, InventoryClickEvent event) {
+    List<String> lore = ItemStackExtensionsKt.getLore(targetItem);
+    Map<Integer, String> validTargetStats = new HashMap<>();
+    int loreIndex = -1;
+    for (String str : lore) {
+      loreIndex++;
+      if (str.startsWith(ChatColor.AQUA + "")) {
+        sendMessage(player, TextUtils.color(plugin.getSettings()
+            .getString("language.tinker.only-one-crafted-stat", "Only one stat can be tinkered!")));
+        return;
+      }
+      if (!ChatColor.stripColor(str).startsWith("+")) {
+        continue;
+      }
+      net.md_5.bungee.api.ChatColor color = getHexFromString(str);
+      if (color != null) {
+        if (isValidStealColor(color.getColor())) {
+          validTargetStats.put(loreIndex, str);
+        }
+        continue;
+      }
+      if (str.startsWith(ChatColor.GREEN + "") || str.startsWith(ChatColor.YELLOW + "")) {
+        validTargetStats.put(loreIndex, str);
+      }
+    }
+
+    if (validTargetStats.isEmpty()) {
+      sendMessage(player, TextUtils.color(plugin.getSettings()
+          .getString("language.tinker.no-valid-stats", "No valid stats to be tinkered!")));
+      return;
+    }
+
+    String essenceText = StringExtensionsKt.chatColorize(
+        plugin.getSettings().getString("config.crafting.essence-text", "&b(Essence Slot)"));
+
+    List<String> itemLore = new ArrayList<>(ItemStackExtensionsKt.getLore(targetItem));
+    List<Integer> keysAsArray = new ArrayList<>(validTargetStats.keySet());
+    int selectedIndex = keysAsArray.get(random.nextInt(keysAsArray.size()));
+    itemLore.set(selectedIndex, essenceText);
+    ItemStackExtensionsKt.setLore(targetItem, itemLore);
+
+    player.playSound(player.getEyeLocation(), Sound.BLOCK_PISTON_EXTEND, 1F, 1.5F);
+    plugin.getStrifePlugin().getSkillExperienceManager()
+        .addExperience(player, LifeSkillType.CRAFTING, 200, false, false);
+    updateItem(event, targetItem);
   }
 
   private void updateItem(InventoryClickEvent e, ItemStack currentItem) {

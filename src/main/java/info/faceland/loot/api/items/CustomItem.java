@@ -22,12 +22,14 @@
  */
 package info.faceland.loot.api.items;
 
+import java.util.List;
+import java.util.Set;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.List;
-
 public interface CustomItem {
+
     String getName();
 
     String getDisplayName();
@@ -51,4 +53,8 @@ public interface CustomItem {
     boolean isBroadcast();
 
     boolean canBeQuality();
+
+    Set<ItemFlag> getFlags();
+
+    Set<String> getCanBreak();
 }

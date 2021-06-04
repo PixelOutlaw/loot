@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -52,6 +53,10 @@ public final class SocketGemManager {
 
   public List<String> getGemNames() {
     return new ArrayList<>(gemMap.keySet());
+  }
+
+  public Set<String> getGemIds() {
+    return gemMap.keySet().stream().map(value -> value.replace(" ", "_")).collect(Collectors.toSet());
   }
 
   public List<SocketGem> getSortedGems() {

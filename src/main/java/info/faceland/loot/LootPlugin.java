@@ -21,6 +21,7 @@ package info.faceland.loot;
 import com.tealcube.minecraft.bukkit.TextUtils;
 import com.tealcube.minecraft.bukkit.facecore.logging.PluginLogger;
 import com.tealcube.minecraft.bukkit.facecore.plugin.FacePlugin;
+import com.tealcube.minecraft.bukkit.shade.acf.PaperCommandManager;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.api.creatures.CreatureModBuilder;
 import info.faceland.loot.api.creatures.MobInfo;
@@ -56,6 +57,7 @@ import info.faceland.loot.items.LootItemBuilder;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
+import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.listeners.DeconstructListener;
 import info.faceland.loot.listeners.EnchantDegradeListener;
 import info.faceland.loot.listeners.EnchantMenuListener;
@@ -120,9 +122,9 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.HandlerList;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
-import se.ranzdo.bukkit.methodcommand.CommandHandler;
 
 public final class LootPlugin extends FacePlugin {
 
@@ -253,6 +255,7 @@ public final class LootPlugin extends FacePlugin {
     DropUtil.refresh();
 
     ArcaneEnhancer.rebuild();
+    TinkerersGear.rebuild();
     PurifyingScroll.rebuild();
     ShardOfFailure.rebuild();
 
@@ -260,8 +263,22 @@ public final class LootPlugin extends FacePlugin {
 
     strifePlugin = (StrifePlugin) Bukkit.getPluginManager().getPlugin("Strife");
 
-    CommandHandler handler = new CommandHandler(this);
-    handler.registerCommands(new LootCommand(this));
+    PaperCommandManager commandManager = new PaperCommandManager(this);
+    commandManager.registerCommand(new LootCommand(this));
+
+    commandManager.getCommandCompletions()
+        .registerCompletion("gems", c -> socketGemManager.getGemIds());
+    commandManager.getCommandCompletions()
+        .registerCompletion("tomes", c -> enchantTomeManager.getTomeIds());
+    commandManager.getCommandCompletions()
+        .registerCompletion("tiers", c -> tierManager.getTierIds());
+    commandManager.getCommandCompletions()
+        .registerCompletion("rarities", c -> rarityManager.getRarityIds());
+    commandManager.getCommandCompletions()
+        .registerCompletion("scrolls", c -> scrollManager.getScrollIds());
+    commandManager.getCommandCompletions()
+        .registerCompletion("uniques", c -> customItemManager.listCustomItems());
+
     Bukkit.getPluginManager().registerEvents(new EntityDeathListener(this), this);
     Bukkit.getPluginManager().registerEvents(new CombinerListener(this), this);
     Bukkit.getPluginManager().registerEvents(new InteractListener(this), this);
@@ -649,6 +666,13 @@ public final class LootPlugin extends FacePlugin {
       builder.withCustomData(cs.getInt("custom-data-value", -1));
       builder.withBroadcast(cs.getBoolean("broadcast"));
       builder.withQuality(cs.getBoolean("can-be-quality-enhanced"));
+      List<String> flags = cs.getStringList("flags");
+      Set<ItemFlag> itemFlags = new HashSet<>();
+      for (String s : flags) {
+        itemFlags.add(ItemFlag.valueOf(s));
+      }
+      builder.withFlags(itemFlags);
+      builder.withCanBreak(new HashSet<>(cs.getStringList("can-break")));
       CustomItem ci = builder.build();
       customItems.add(ci);
       loaded.add(ci.getName());

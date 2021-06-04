@@ -422,14 +422,7 @@ public final class CraftingListener implements Listener {
       return;
     }
 
-    List<String> existingCraftStatStrings = new ArrayList<>();
-    for (String str : lore) {
-      if (!str.startsWith(ChatColor.AQUA + "+")) {
-        continue;
-      }
-      str = CharMatcher.javaLetter().or(CharMatcher.is(' ')).retainFrom(ChatColor.stripColor(str).trim());
-      existingCraftStatStrings.add(str);
-    }
+    List<String> existingCraftStatStrings = MaterialUtil.getValidEssenceStats(lore);
 
     String essenceStat = getEssenceStat(essenceStack);
     String strippedStat = CharMatcher.javaLetter().or(CharMatcher.is(' '))

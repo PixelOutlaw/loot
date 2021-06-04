@@ -20,7 +20,15 @@ package info.faceland.loot.commands;
 
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
 
+import com.destroystokyo.paper.Namespaced;
 import com.tealcube.minecraft.bukkit.TextUtils;
+import com.tealcube.minecraft.bukkit.shade.acf.BaseCommand;
+import com.tealcube.minecraft.bukkit.shade.acf.annotation.CommandAlias;
+import com.tealcube.minecraft.bukkit.shade.acf.annotation.CommandCompletion;
+import com.tealcube.minecraft.bukkit.shade.acf.annotation.CommandPermission;
+import com.tealcube.minecraft.bukkit.shade.acf.annotation.Default;
+import com.tealcube.minecraft.bukkit.shade.acf.annotation.Subcommand;
+import com.tealcube.minecraft.bukkit.shade.acf.bukkit.contexts.OnlinePlayer;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.ItemGenerationReason;
@@ -28,11 +36,8 @@ import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
-import info.faceland.loot.items.prefabs.IdentityTome;
-import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
-import info.faceland.loot.items.prefabs.UnidentifiedItem;
-import info.faceland.loot.math.LootRandom;
+import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.menu.pawn.PawnMenu;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.sockets.SocketGem;
@@ -42,39 +47,35 @@ import info.faceland.loot.utils.InventoryUtil;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.List;
+import java.util.Random;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import se.ranzdo.bukkit.methodcommand.Arg;
-import se.ranzdo.bukkit.methodcommand.Command;
-import se.ranzdo.bukkit.methodcommand.FlagArg;
-import se.ranzdo.bukkit.methodcommand.Flags;
-import se.ranzdo.bukkit.methodcommand.Wildcard;
 
-public final class LootCommand {
+@CommandAlias("loot")
+public class LootCommand extends BaseCommand {
 
   private final LootPlugin plugin;
-  private final LootRandom random;
+  private final Random random;
   private String awardFormat;
   private String awardFormatSelf;
 
   public LootCommand(LootPlugin plugin) {
     this.plugin = plugin;
-    this.random = new LootRandom(System.currentTimeMillis());
+    this.random = new Random(System.currentTimeMillis());
     awardFormat = plugin.getSettings().getString("language.broadcast.reward-item", "");
     awardFormatSelf = plugin.getSettings().getString("language.broadcast.reward-item-self", "");
   }
 
-  @Command(identifier = "loot reward", permissions = "loot.command.spawn", onlyPlayers = false)
-  public void reward(CommandSender sender,
-      @Arg(name = "target") Player target,
-      @Arg(name = "minLevel", def = "1") int minLevel,
-      @Arg(name = "maxLevel", def = "100") int maxLevel,
-      @Arg(name = "rarity") String rarity) {
-    Tier t = DropUtil.getTier(target);
+  @Subcommand("reward")
+  @CommandCompletion("@players @range:1-100 @range:1-100")
+  @CommandPermission("loot.reward")
+  public void memeCommand(CommandSender sender, OnlinePlayer player, int minLevel, int maxLevel,
+      String rarity) {
+    Tier t = DropUtil.getTier(player.getPlayer());
     if (t == null) {
       sendMessage(sender,
           plugin.getSettings().getString("language.commands.spawn.other-failure", ""));
@@ -92,206 +93,185 @@ public final class LootCommand {
         .withItemGenerationReason(ItemGenerationReason.COMMAND)
         .build().getStack();
 
-    target.playSound(target.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
-    target.playSound(target.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-    target.getInventory().addItem(item);
+    player.getPlayer().playSound(player.getPlayer().getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
+    player.getPlayer()
+        .playSound(player.getPlayer().getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+    player.getPlayer().getInventory().addItem(item);
     if (itemRarity.isBroadcast()) {
-      InventoryUtil.broadcast(target, item, awardFormat, true);
+      InventoryUtil.sendToDiscord(player.getPlayer(), item, awardFormat, true);
     } else {
-      InventoryUtil.broadcast(target, item, awardFormatSelf, false);
+      InventoryUtil.sendToDiscord(player.getPlayer(), item, awardFormatSelf, false);
     }
-    sendMessage(sender, "Rewarded " + target.getName() + " successfully!");
+    sendMessage(sender, "Rewarded " + player.getPlayer().getName() + " successfully!");
   }
 
-  @Command(identifier = "loot spawn", permissions = "loot.command.spawn")
-  @Flags(identifier = {"c", "s", "t", "e", "se", "u", "id", "us", "rp"},
-      description = {"custom", "socket gem", "tier", "enchantment", "socket extender",
-          "unidentified", "tome",
-          "upgrade scroll", "reveal powder"})
-  public void spawnCommand(Player sender, @Arg(name = "amount", def = "1") int amount,
-      @Arg(name = "name", def = "") String name,
-      @FlagArg("c") boolean custom,
-      @FlagArg("s") boolean socket,
-      @FlagArg("t") boolean tier,
-      @FlagArg("e") boolean enchantment,
-      @FlagArg("se") boolean socketExtender,
-      @FlagArg("u") boolean unidentified,
-      @FlagArg("id") boolean tome,
-      @FlagArg("us") boolean upgradeScroll) {
-    if (custom) {
-      if (name.equals("")) {
-        for (int i = 0; i < amount; i++) {
-          giveItem(sender, plugin.getCustomItemManager().getRandomCustomItem(true).toItemStack(1));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.custom-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-        return;
-      }
-      CustomItem ci = plugin.getCustomItemManager().getCustomItem(name);
-      if (ci == null) {
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.custom-failure", ""));
-        return;
-      }
+  @Subcommand("give")
+  @CommandPermission("loot.give")
+  public class GiveCommand extends BaseCommand {
+
+    @Subcommand("tier")
+    @CommandCompletion("@players @tiers @rarities @range:1-100")
+    public void giveTier(CommandSender sender, OnlinePlayer player, String tier, String rarity, @Default("1") int amount, @Default("-1") int level) {
+      Tier t = tier.equalsIgnoreCase("random") ? null : plugin.getTierManager().getTier(tier);
+      ItemRarity r = rarity.equalsIgnoreCase("random") ? null : plugin.getRarityManager().getRarity(rarity);
       for (int i = 0; i < amount; i++) {
-        sender.getInventory().addItem(ci.toItemStack(1));
+        player.getPlayer().getInventory().addItem(
+            plugin.getNewItemBuilder().withItemGenerationReason(ItemGenerationReason.COMMAND)
+                .withTier(t == null ? plugin.getTierManager().getRandomTier() : t)
+                .withRarity(r == null ? plugin.getRarityManager().getRandomRarity() : r)
+                .withLevel(level == -1 ? 1 + random.nextInt(100) : level)
+                .build()
+                .getStack());
       }
       sendMessage(sender,
-          plugin.getSettings().getString("language.commands.spawn.custom-success", ""),
+          plugin.getSettings().getString("language.commands.spawn.other-success", ""),
           new String[][]{{"%amount%", amount + ""}});
-      return;
     }
-    if (socket) {
-      if (name.equals("")) {
+
+    @Subcommand("tome")
+    @CommandCompletion("@players @tomes @range:1-100")
+    public void giveTome(CommandSender sender, OnlinePlayer player, String id, @Default("1") int amount) {
+      if (id.equalsIgnoreCase("random")) {
         for (int i = 0; i < amount; i++) {
-          giveItem(sender, plugin.getSocketGemManager().getRandomSocketGem(true).toItemStack(1));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.gem-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-        return;
-      }
-      SocketGem sg = plugin.getSocketGemManager().getSocketGem(name);
-      if (sg == null) {
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.gem-failure", ""));
-        return;
-      }
-      for (int i = 0; i < amount; i++) {
-        sender.getInventory().addItem(sg.toItemStack(1));
-      }
-      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.gem-success", ""),
-          new String[][]{{"%amount%", amount + ""}});
-      return;
-    }
-    if (enchantment) {
-      if (name.equals("")) {
-        for (int i = 0; i < amount; i++) {
-          sender.getInventory()
-              .addItem(plugin.getEnchantTomeManager().getRandomEnchantTome().toItemStack(1));
+          player.getPlayer().getInventory().addItem(
+              plugin.getEnchantTomeManager().getRandomEnchantTome().toItemStack(1));
         }
         sendMessage(sender,
             plugin.getSettings().getString("language.commands.spawn.stone-success", ""),
             new String[][]{{"%amount%", amount + ""}});
         return;
       }
-      EnchantmentTome es = plugin.getEnchantTomeManager().getEnchantTome(name);
+      EnchantmentTome es = plugin.getEnchantTomeManager().getEnchantTome(id);
       if (es == null) {
         sendMessage(sender,
             plugin.getSettings().getString("language.commands.spawn.stone-failure", ""));
         return;
       }
       for (int i = 0; i < amount; i++) {
-        sender.getInventory().addItem(es.toItemStack(1));
+        player.getPlayer().getInventory().addItem(es.toItemStack(1));
       }
       sendMessage(sender,
           plugin.getSettings().getString("language.commands.spawn.stone-success", ""),
           new String[][]{{"%amount%", amount + ""}});
-      return;
     }
-    if (socketExtender) {
+
+    @Subcommand("gem")
+    @CommandCompletion("@players @gems @range:1-100")
+    public void giveGem(CommandSender sender, OnlinePlayer player, String id, @Default("1") int amount) {
+      if (id.equalsIgnoreCase("random")) {
+        for (int i = 0; i < amount; i++) {
+          giveItem(player.getPlayer(),
+              plugin.getSocketGemManager().getRandomSocketGem(true).toItemStack(1));
+        }
+        sendMessage(sender,
+            plugin.getSettings().getString("language.commands.spawn.gem-success", ""),
+            new String[][]{{"%amount%", amount + ""}});
+        return;
+      }
+      SocketGem sg = plugin.getSocketGemManager().getSocketGem(id);
+      if (sg == null) {
+        sendMessage(sender,
+            plugin.getSettings().getString("language.commands.spawn.gem-failure", ""));
+        return;
+      }
       for (int i = 0; i < amount; i++) {
-        sender.getInventory().addItem(new SocketExtender());
+        player.getPlayer().getInventory().addItem(sg.toItemStack(1));
+      }
+      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.gem-success", ""),
+          new String[][]{{"%amount%", amount + ""}});
+    }
+
+    @Subcommand("unique")
+    @CommandCompletion("@players @uniques @range:1-100")
+    public void giveUnique(CommandSender sender, OnlinePlayer player, String id, @Default("1") int amount) {
+      if (id.equalsIgnoreCase("random")) {
+        for (int i = 0; i < amount; i++) {
+          giveItem(player.getPlayer(),
+              plugin.getCustomItemManager().getRandomCustomItem(true).toItemStack(1));
+        }
+        sendMessage(sender,
+            plugin.getSettings().getString("language.commands.spawn.custom-success", ""),
+            new String[][]{{"%amount%", amount + ""}});
+        return;
+      }
+      CustomItem ci = plugin.getCustomItemManager().getCustomItem(id);
+      if (ci == null) {
+        sendMessage(sender,
+            plugin.getSettings().getString("language.commands.spawn.custom-failure", ""));
+        return;
+      }
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(ci.toItemStack(1));
+      }
+      sendMessage(sender,
+          plugin.getSettings().getString("language.commands.spawn.custom-success", ""),
+          new String[][]{{"%amount%", amount + ""}});
+    }
+
+    @Subcommand("scroll")
+    @CommandCompletion("@players @scrolls @range:1-100")
+    public void giveScroll(CommandSender sender, OnlinePlayer player, String id, @Default("1") int amount) {
+      if (id.equalsIgnoreCase("random")) {
+        for (int i = 0; i < amount; i++) {
+          player.getPlayer().getInventory().addItem(plugin.getScrollManager()
+              .buildItemStack(plugin.getScrollManager().getRandomScroll()));
+        }
+        sendMessage(sender, plugin.getSettings()
+                .getString("language.commands.spawn.upgrade-scroll", ""),
+            new String[][]{{"%amount%", amount + ""}});
+        return;
+      }
+      UpgradeScroll scroll = plugin.getScrollManager().getScroll(id);
+      if (scroll == null) {
+        sendMessage(sender, plugin.getSettings()
+            .getString("language.commands.spawn.other-failure", ""));
+        return;
+      }
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(plugin.getScrollManager().buildItemStack(scroll));
+      }
+      sendMessage(sender, plugin.getSettings()
+          .getString("language.commands.spawn.upgrade-scroll", ""));
+    }
+
+    @Subcommand("extender")
+    @CommandCompletion("@players @range:1-100")
+    public void giveExtender(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(new SocketExtender());
       }
       sendMessage(sender,
           plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
           new String[][]{{"%amount%", amount + ""}});
-      return;
     }
-    if (unidentified) {
+
+    @Subcommand("tinker")
+    @CommandCompletion("@players @range:1-100")
+    public void giveTinker(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
       for (int i = 0; i < amount; i++) {
-        Tier t = plugin.getTierManager().getRandomTier();
-        Material[] array = t.getAllowedMaterials()
-            .toArray(new Material[t.getAllowedMaterials().size()]);
-        Material m = array[random.nextInt(array.length)];
-        if (plugin.getSettings().getBoolean("config.beast.beast-mode-activate", false)) {
-          sender.getInventory().addItem(new UnidentifiedItem(m, random.nextInt(100)));
-        } else {
-          sender.getInventory().addItem(new UnidentifiedItem(m, -1));
-        }
+        player.getPlayer().getInventory().addItem(TinkerersGear.get());
       }
       sendMessage(sender,
-          plugin.getSettings().getString("language.commands.spawn.unidentified-item", ""),
+          plugin.getSettings().getString("language.commands.spawn.tinker-gear", ""),
           new String[][]{{"%amount%", amount + ""}});
-      return;
     }
-    if (tome) {
+
+    @Subcommand("enhancer")
+    @CommandCompletion("@players @range:1-100")
+    public void giveEnhancer(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
       for (int i = 0; i < amount; i++) {
-        sender.getInventory().addItem(new IdentityTome());
+        player.getPlayer().getInventory().addItem(ArcaneEnhancer.get());
       }
       sendMessage(sender,
-          plugin.getSettings().getString("language.commands.spawn.identity-tome", ""),
+          plugin.getSettings().getString("language.commands.spawn.arcane-enhancer", ""),
           new String[][]{{"%amount%", amount + ""}});
-      return;
     }
-    if (tier) {
-      if (name.equals("")) {
-        for (int i = 0; i < amount; i++) {
-          sender.getInventory().addItem(
-              plugin.getNewItemBuilder().withItemGenerationReason(ItemGenerationReason.COMMAND)
-                  .build()
-                  .getStack());
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.other-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-      } else {
-        Tier t = plugin.getTierManager().getTier(name);
-        if (t == null) {
-          sendMessage(
-              sender, plugin.getSettings().getString("language.commands.spawn.other-failure", ""));
-          return;
-        }
-        for (int i = 0; i < amount; i++) {
-          sender.getInventory().addItem(plugin.getNewItemBuilder().withTier(t).build().getStack());
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.other-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-      }
-      return;
-    }
-    if (upgradeScroll) {
-      if (name.equals("")) {
-        for (int i = 0; i < amount; i++) {
-          sender.getInventory().addItem(plugin.getScrollManager()
-              .buildItemStack(plugin.getScrollManager().getRandomScroll()));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.upgrade-scroll", ""),
-            new String[][]{{"%amount%", amount + ""}});
-        return;
-      }
-      UpgradeScroll scroll = plugin.getScrollManager().getScroll(name);
-      if (scroll == null) {
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.other-failure", ""));
-        return;
-      }
-      for (int i = 0; i < amount; i++) {
-        sender.getInventory().addItem(plugin.getScrollManager().buildItemStack(scroll));
-      }
-      sendMessage(sender,
-          plugin.getSettings().getString("language.commands.spawn.upgrade-scroll", ""));
-      return;
-    }
-    for (int i = 0; i < amount; i++) {
-      giveItem(sender, plugin.getNewItemBuilder()
-          .withItemGenerationReason(ItemGenerationReason.COMMAND)
-          .withLevel(sender.getLevel())
-          .withTier(plugin.getTierManager().getRandomTier())
-          .withRarity(plugin.getRarityManager().getRandomRarity())
-          .build().getStack());
-    }
-    sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.other-success", ""),
-        new String[][]{{"%amount%", amount + ""}});
   }
 
-  @Command(identifier = "loot materials", permissions = "loot.command.spawn", onlyPlayers = false)
-  public void reward(CommandSender sender, @Arg(name = "target") Player target,
-      @Arg(name = "itemLevel", def = "1") int itemLevel,
-      @Arg(name = "itemQuality", def = "1") int quality) {
+  @Subcommand("materials")
+  @CommandCompletion("@players @range:1-100 @range:1-100")
+  @CommandPermission("loot.give")
+  public void materials(CommandSender sender, Player target, int itemLevel, int quality) {
 
     quality = Math.min(5, Math.max(quality, 1));
 
@@ -302,409 +282,8 @@ public final class LootCommand {
     }
   }
 
-  @Command(identifier = "loot give purify", permissions = "loot.command.spawn", onlyPlayers = false)
-  public void givePurify(CommandSender sender, @Arg(name = "target") Player target,
-      @Arg(name = "amount", def = "1") int amount) {
-
-    ItemStack scroll = PurifyingScroll.get();
-    scroll.setAmount(amount);
-    target.getInventory().addItem(scroll);
-  }
-
-  @Command(identifier = "loot give enhance", permissions = "loot.command.spawn", onlyPlayers = false)
-  public void giveEnhance(CommandSender sender, @Arg(name = "target") Player target,
-      @Arg(name = "amount", def = "1") int amount) {
-
-    ItemStack enhancer = ArcaneEnhancer.get();
-    enhancer.setAmount(amount);
-    target.getInventory().addItem(enhancer);
-  }
-
-  @Command(identifier = "loot simulate", permissions = "loot.command.simulate")
-  @Flags(identifier = {"c", "s", "t", "e", "se", "u", "id", "us", "rp"},
-      description = {"custom", "socket gem", "tier", "enchantment", "socket extender",
-          "unidentified", "tome",
-          "upgrade scroll", "reveal powder"})
-  public void simulateCommand(Player sender, @Arg(name = "amount", def = "1") int amount,
-      @Arg(name = "name", def = "") String name,
-      @FlagArg("c") boolean custom,
-      @FlagArg("s") boolean socket,
-      @FlagArg("t") boolean tier,
-      @FlagArg("e") boolean enchantment,
-      @FlagArg("se") boolean socketExtender,
-      @FlagArg("u") boolean unidentified,
-      @FlagArg("id") boolean tome,
-      @FlagArg("us") boolean upgradeScroll) {
-    double distanceFromSpawnSquared = sender.getLocation()
-        .distanceSquared(sender.getWorld().getSpawnLocation());
-    if (custom) {
-      if (name.equals("")) {
-        for (int i = 0; i < amount; i++) {
-          sender.getInventory().addItem(
-              plugin.getCustomItemManager().getRandomCustomItem(true, distanceFromSpawnSquared)
-                  .toItemStack(1));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.custom-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-      } else {
-        CustomItem ci = plugin.getCustomItemManager().getCustomItem(name);
-        if (ci == null) {
-          sendMessage(
-              sender, plugin.getSettings().getString("language.commands.spawn.custom-failure", ""));
-          return;
-        }
-        for (int i = 0; i < amount; i++) {
-          sender.getInventory().addItem(ci.toItemStack(1));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.custom-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-      }
-    } else if (socket) {
-      if (name.equals("")) {
-        for (int i = 0; i < amount; i++) {
-          sender.getInventory().addItem(
-              plugin.getSocketGemManager().getRandomSocketGem(true, distanceFromSpawnSquared)
-                  .toItemStack(1));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.gem-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-      } else {
-        SocketGem sg = plugin.getSocketGemManager().getSocketGem(name);
-        if (sg == null) {
-          sendMessage(
-              sender, plugin.getSettings().getString("language.commands.spawn.gem-failure", ""));
-          return;
-        }
-        for (int i = 0; i < amount; i++) {
-          sender.getInventory().addItem(sg.toItemStack(1));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.gem-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-      }
-    } else if (enchantment) {
-      if (name.equals("")) {
-        for (int i = 0; i < amount; i++) {
-          sender.getInventory().addItem(
-              plugin.getEnchantTomeManager().getRandomEnchantTome().toItemStack(1));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.stone-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-      } else {
-        EnchantmentTome es = plugin.getEnchantTomeManager().getEnchantTome(name);
-        if (es == null) {
-          sendMessage(
-              sender, plugin.getSettings().getString("language.commands.spawn.stone-failure", ""));
-          return;
-        }
-        for (int i = 0; i < amount; i++) {
-          sender.getInventory().addItem(es.toItemStack(1));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.stone-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-      }
-    } else if (socketExtender) {
-      for (int i = 0; i < amount; i++) {
-        sender.getInventory().addItem(new SocketExtender());
-      }
-      sendMessage(sender,
-          plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
-          new String[][]{{"%amount%", amount + ""}});
-    } else if (unidentified) {
-      for (int i = 0; i < amount; i++) {
-        Tier t = plugin.getTierManager().getRandomTier();
-        Material[] array = t.getAllowedMaterials()
-            .toArray(new Material[t.getAllowedMaterials().size()]);
-        Material m = array[random.nextInt(array.length)];
-        if (plugin.getSettings().getBoolean("config.beast.beast-mode-activate", false)) {
-          sender.getInventory().addItem(new UnidentifiedItem(m, random.nextInt(100)));
-        } else {
-          sender.getInventory().addItem(new UnidentifiedItem(m, -1));
-        }
-      }
-      sendMessage(sender,
-          plugin.getSettings().getString("language.commands.spawn.unidentified-item", ""),
-          new String[][]{{"%amount%", amount + ""}});
-    } else if (tome) {
-      for (int i = 0; i < amount; i++) {
-        sender.getInventory().addItem(new IdentityTome());
-      }
-      sendMessage(sender,
-          plugin.getSettings().getString("language.commands.spawn.identity-tome", ""),
-          new String[][]{{"%amount%", amount + ""}});
-    } else if (tier) {
-      if (name.equals("")) {
-        for (int i = 0; i < amount; i++) {
-          sender.getInventory().addItem(
-              plugin.getNewItemBuilder().withItemGenerationReason(ItemGenerationReason.COMMAND)
-                  .build().getStack());
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.other-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-      } else {
-        Tier t = plugin.getTierManager().getTier(name);
-        if (t == null) {
-          sendMessage(
-              sender, plugin.getSettings().getString("language.commands.spawn.other-failure", ""));
-          return;
-        }
-        for (int i = 0; i < amount; i++) {
-          sender.getInventory().addItem(
-              plugin.getNewItemBuilder().withItemGenerationReason(ItemGenerationReason.COMMAND)
-                  .build().getStack());
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.other-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-      }
-    } else if (upgradeScroll) {
-      if (name.equals("")) {
-        for (int i = 0; i < amount; i++) {
-          sender.getInventory().addItem(plugin.getScrollManager()
-              .buildItemStack(plugin.getScrollManager().getRandomScroll()));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.upgrade-scroll", ""),
-            new String[][]{{"%amount%", amount + ""}});
-      } else {
-        UpgradeScroll scroll = plugin.getScrollManager().getScroll(name);
-        if (scroll == null) {
-          sendMessage(
-              sender, plugin.getSettings().getString("language.commands.spawn.other-failure", ""));
-          return;
-        }
-        for (int i = 0; i < amount; i++) {
-          sender.getInventory().addItem(plugin.getScrollManager().buildItemStack(scroll));
-        }
-        sendMessage(
-            sender, plugin.getSettings().getString("language.commands.spawn.upgrade-scroll", ""));
-      }
-    } else {
-      for (int i = 0; i < amount; i++) {
-        sender.getInventory().addItem(
-            plugin.getNewItemBuilder().withItemGenerationReason(ItemGenerationReason.COMMAND)
-                .build().getStack());
-      }
-      sendMessage(sender,
-          plugin.getSettings().getString("language.commands.spawn.other-success", ""),
-          new String[][]{{"%amount%", amount + ""}});
-    }
-  }
-
-  @Command(identifier = "loot give", permissions = "loot.command.give", onlyPlayers = false)
-  @Flags(identifier = {"c", "s", "t", "e", "se", "u", "id", "us", "rp"},
-      description = {"custom", "socket gem", "tier", "enchantment", "socket extender",
-          "unidentified", "tome",
-          "upgrade scroll", "reveal powder"})
-  public void giveCommand(CommandSender sender,
-      @Arg(name = "player") Player target,
-      @Arg(name = "amount", def = "1") int amount,
-      @Arg(name = "name", def = "") String name,
-      @FlagArg("c") boolean custom,
-      @FlagArg("s") boolean socket,
-      @FlagArg("t") boolean tier,
-      @FlagArg("e") boolean enchantment,
-      @FlagArg("se") boolean socketExtender,
-      @FlagArg("u") boolean unidentified,
-      @FlagArg("id") boolean tome,
-      @FlagArg("us") boolean upgradeScroll) {
-    if (custom) {
-      if (name.equals("")) {
-        for (int i = 0; i < amount; i++) {
-          giveItem(target, plugin.getCustomItemManager().getRandomCustomItem(true).toItemStack(1));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.custom-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-      } else {
-        CustomItem ci = plugin.getCustomItemManager().getCustomItem(name);
-        if (ci == null) {
-          sendMessage(
-              sender, plugin.getSettings().getString("language.commands.spawn.custom-failure", ""));
-          sendMessage(target, plugin.getSettings().getString("language.commands.give.failure", ""));
-          target.updateInventory();
-          return;
-        }
-        for (int i = 0; i < amount; i++) {
-          target.getInventory().addItem(ci.toItemStack(1));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.custom-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-        sendMessage(target, plugin.getSettings().getString("language.commands.give.receive", ""));
-      }
-    } else if (socket) {
-      if (name.equals("")) {
-        for (int i = 0; i < amount; i++) {
-          target.getInventory().addItem(
-              plugin.getSocketGemManager().getRandomSocketGem(true).toItemStack(1));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.gem-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-        sendMessage(target,
-            plugin.getSettings().getString("language.commands.spawn.gem-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-      } else {
-        SocketGem sg = plugin.getSocketGemManager().getSocketGem(name);
-        if (sg == null) {
-          sendMessage(
-              sender, plugin.getSettings().getString("language.commands.spawn.gem-failure", ""));
-          sendMessage(target, plugin.getSettings().getString("language.commands.give.failure", ""));
-          target.updateInventory();
-          return;
-        }
-        for (int i = 0; i < amount; i++) {
-          target.getInventory().addItem(sg.toItemStack(1));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.gem-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-        sendMessage(target, plugin.getSettings().getString("language.commands.give.receive", ""));
-      }
-    } else if (enchantment) {
-      if (name.equals("")) {
-        for (int i = 0; i < amount; i++) {
-          target.getInventory().addItem(
-              plugin.getEnchantTomeManager().getRandomEnchantTome().toItemStack(1));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.stone-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-        sendMessage(target, plugin.getSettings().getString("language.commands.give.receive", ""));
-      } else {
-        EnchantmentTome es = plugin.getEnchantTomeManager().getEnchantTome(name);
-        if (es == null) {
-          sendMessage(
-              sender, plugin.getSettings().getString("language.commands.spawn.stone-failure", ""));
-          sendMessage(target, plugin.getSettings().getString("language.commands.give.failure", ""));
-          target.updateInventory();
-          return;
-        }
-        for (int i = 0; i < amount; i++) {
-          target.getInventory().addItem(es.toItemStack(1));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.stone-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-        sendMessage(target, plugin.getSettings().getString("language.commands.give.receive", ""));
-      }
-    } else if (socketExtender) {
-      for (int i = 0; i < amount; i++) {
-        target.getInventory().addItem(new SocketExtender());
-      }
-      sendMessage(sender,
-          plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
-          new String[][]{{"%amount%", amount + ""}});
-      sendMessage(target, plugin.getSettings().getString("language.commands.give.receive", ""));
-    } else if (unidentified) {
-      for (int i = 0; i < amount; i++) {
-        Tier t = plugin.getTierManager().getRandomTier();
-        Material[] array = t.getAllowedMaterials()
-            .toArray(new Material[t.getAllowedMaterials().size()]);
-        Material m = array[random.nextInt(array.length)];
-        if (plugin.getSettings().getBoolean("config.beast.beast-mode-activate", false)) {
-          target.getInventory().addItem(new UnidentifiedItem(m, random.nextInt(100)));
-        } else {
-          target.getInventory().addItem(new UnidentifiedItem(m, -1));
-        }
-      }
-      sendMessage(sender,
-          plugin.getSettings().getString("language.commands.spawn.unidentified-item", ""),
-          new String[][]{{"%amount%", amount + ""}});
-      sendMessage(target, plugin.getSettings().getString("language.commands.give.receive", ""));
-    } else if (tome) {
-      for (int i = 0; i < amount; i++) {
-        target.getInventory().addItem(new IdentityTome());
-      }
-      sendMessage(sender,
-          plugin.getSettings().getString("language.commands.spawn.identity-tome", ""),
-          new String[][]{{"%amount%", amount + ""}});
-      sendMessage(target, plugin.getSettings().getString("language.commands.give.receive", ""));
-    } else if (tier) {
-      if (name.equals("")) {
-        for (int i = 0; i < amount; i++) {
-          plugin.getNewItemBuilder()
-              .withTier(plugin.getTierManager().getRandomTier())
-              .withRarity(plugin.getRarityManager().getRandomRarity())
-              .withLevel(random.nextIntRange(1, 100))
-              .withItemGenerationReason(ItemGenerationReason.COMMAND).build();
-          giveItem(target,
-              plugin.getNewItemBuilder().withItemGenerationReason(ItemGenerationReason.COMMAND)
-                  .build().getStack());
-          target.getInventory().addItem();
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.other-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-        sendMessage(target, plugin.getSettings().getString("language.commands.give.receive", ""));
-      } else {
-        Tier t = plugin.getTierManager().getTier(name);
-        ItemRarity r = plugin.getRarityManager().getRandomRarity();
-        if (t == null) {
-          sendMessage(
-              sender, plugin.getSettings().getString("language.commands.spawn.other-failure", ""));
-          sendMessage(target, plugin.getSettings().getString("language.commands.give.failure", ""));
-          target.updateInventory();
-          return;
-        }
-        for (int i = 0; i < amount; i++) {
-          target.getInventory()
-              .addItem(plugin.getNewItemBuilder().withTier(t).withRarity(r).build().getStack());
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.other-success", ""),
-            new String[][]{{"%amount%", amount + ""}});
-        sendMessage(target, plugin.getSettings().getString("language.commands.give.receive", ""));
-      }
-    } else if (upgradeScroll) {
-      if (name.equals("")) {
-        for (int i = 0; i < amount; i++) {
-          UpgradeScroll scroll = plugin.getScrollManager().getRandomScroll();
-          target.getInventory().addItem(plugin.getScrollManager().buildItemStack(scroll));
-        }
-        sendMessage(sender,
-            plugin.getSettings().getString("language.commands.spawn.upgrade-scroll", ""),
-            new String[][]{{"%amount%", amount + ""}});
-        sendMessage(target, plugin.getSettings().getString("language.commands.give.receive", ""));
-      } else {
-        UpgradeScroll scroll = plugin.getScrollManager().getScroll(name);
-        if (scroll == null) {
-          sendMessage(
-              sender, plugin.getSettings().getString("language.commands.spawn.other-failure", ""));
-          target.updateInventory();
-          return;
-        }
-        for (int i = 0; i < amount; i++) {
-          target.getInventory().addItem(plugin.getScrollManager().buildItemStack(scroll));
-        }
-        sendMessage(
-            sender, plugin.getSettings().getString("language.commands.spawn.upgrade-scroll", ""));
-        sendMessage(target, plugin.getSettings().getString("language.commands.give.receive", ""));
-      }
-    } else {
-      for (int i = 0; i < amount; i++) {
-        target.getInventory().addItem(
-            plugin.getNewItemBuilder()
-                .withLevel(random.nextIntRange(1, 100))
-                .withRarity(plugin.getRarityManager().getRandomRarity())
-                .withTier(plugin.getTierManager().getRandomTier())
-                .withItemGenerationReason(ItemGenerationReason.COMMAND).build().getStack());
-      }
-      sendMessage(sender,
-          plugin.getSettings().getString("language.commands.spawn.other-success", ""),
-          new String[][]{{"%amount%", amount + ""}});
-      sendMessage(target, plugin.getSettings().getString("language.commands.give.receive", ""));
-    }
-  }
-
-  @Command(identifier = "loot reload", permissions = "loot.command.reload", onlyPlayers = false)
+  @Subcommand("reload")
+  @CommandPermission("loot.reload")
   public void reloadSubcommand(CommandSender sender) {
     plugin.disable();
     plugin.enable();
@@ -712,26 +291,42 @@ public final class LootCommand {
         plugin.getSettings().getString("language.command.reload", "&aLoot reloaded!"));
   }
 
-  @Command(identifier = "loot upgrade", permissions = "loot.command.reload")
-  public void upgradeSubcommand(CommandSender sender, @Arg(name = "player") Player target) {
-    if (target == null || !target.isValid()) {
+  @Subcommand("upgrade")
+  @CommandCompletion("@players")
+  @CommandPermission("loot.upgrade")
+  public void upgradeSubcommand(CommandSender sender, OnlinePlayer target) {
+    if (target == null || !target.getPlayer().isValid()) {
       return;
     }
     EnchantMenu menu = new EnchantMenu(plugin);
-    menu.open(target);
+    menu.open(target.getPlayer());
   }
 
-  @Command(identifier = "loot pawn", permissions = "loot.command.reload", onlyPlayers = false)
-  public void pawnSubcommand(CommandSender sender, @Arg(name = "player") Player target) {
-    if (target == null || !target.isValid()) {
+  @Subcommand("pawn")
+  @CommandCompletion("@players")
+  @CommandPermission("loot.pawn")
+  public void pawnSubcommand(CommandSender sender, OnlinePlayer target) {
+    if (target == null || !target.getPlayer().isValid()) {
       return;
     }
     PawnMenu menu = PawnMenu.getPawnMenu(plugin);
-    menu.open(target);
+    menu.open(target.getPlayer());
   }
 
-  @Command(identifier = "loot renametag", permissions = "loot.command.renametag", onlyPlayers = true)
-  public void renameSubcommand(Player sender, @Arg(name = "item name") @Wildcard String newLore) {
+  @Subcommand("inspectBreakKeys")
+  @CommandPermission("loot.inspect")
+  public void inspectKeys(Player sender) {
+    ItemStack stack = sender.getEquipment().getItemInMainHand();
+    for (Namespaced k : stack.getItemMeta().getDestroyableKeys()) {
+      sendMessage(sender, "key: " + k.getKey());
+      sendMessage(sender, "namespace: " + k.getNamespace());
+    }
+  }
+
+  @Subcommand("rename")
+  @CommandCompletion("@players")
+  @CommandPermission("loot.rename")
+  public void renameSubcommand(Player sender, String newLore) {
     ItemStack heldItem = new ItemStack(sender.getEquipment().getItemInMainHand());
     if (heldItem.getType() != Material.NAME_TAG) {
       sendMessage(sender, plugin.getSettings().getString("language.command.renamefail", ""));

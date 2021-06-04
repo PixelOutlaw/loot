@@ -32,6 +32,8 @@ import info.faceland.loot.data.ItemStat;
 import io.pixeloutlaw.minecraft.spigot.garbage.BroadcastMessageUtil;
 import io.pixeloutlaw.minecraft.spigot.garbage.BroadcastMessageUtil.BroadcastItemVisibility;
 import io.pixeloutlaw.minecraft.spigot.garbage.BroadcastMessageUtil.BroadcastTarget;
+import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
+import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -53,31 +55,35 @@ public final class InventoryUtil {
     thechan = DiscordSRV.getPlugin().getMainTextChannel();
   }
 
-  public static void broadcast(Player player, ItemStack his, String format) {
-    broadcast(player, his, format, true);
+  public static void sendToDiscord(Player player, ItemStack his, String format) {
+    sendToDiscord(player, his, format, true);
   }
 
-  public static void broadcast(Player player, ItemStack item, String format, boolean sendToAll) {
+  public static void sendToDiscord(Player player, ItemStack item, String format, boolean sendToAll) {
+
+    ItemStack finalItem = item.clone();
     BroadcastTarget target = sendToAll ? BroadcastTarget.SERVER : BroadcastTarget.PLAYER;
     BroadcastMessageUtil.INSTANCE
-        .broadcastItem(format, player, item, target, BroadcastItemVisibility.SHOW);
+        .broadcastItem(format, player, finalItem, target, BroadcastItemVisibility.SHOW);
+
     if (sendToAll) {
+      String finalFormat = ChatColor.stripColor(StringExtensionsKt.chatColorize(format));
       Bukkit.getScheduler().runTaskAsynchronously(InteractiveChatDiscordSrvAddon.plugin, () -> {
         try {
           List<DiscordMessageContent> contents = new ArrayList<>();
-          BufferedImage image = ImageGeneration.getItemStackImage(item, player);
+          BufferedImage image = ImageGeneration.getItemStackImage(finalItem, player);
           ByteArrayOutputStream itemOs = new ByteArrayOutputStream();
           ImageIO.write(image, "png", itemOs);
 
-          DiscordDescription description = DiscordItemStackUtils.getDiscordDescription(item);
+          DiscordDescription description = DiscordItemStackUtils.getDiscordDescription(finalItem);
 
-          Color color = DiscordItemStackUtils.getDiscordColor(item);
+          Color color = DiscordItemStackUtils.getDiscordColor(finalItem);
           DiscordMessageContent content = new DiscordMessageContent(description.getName(),
               "attachment://Item.png", color);
           content.addAttachment("Item.png", itemOs.toByteArray());
           contents.add(content);
 
-          DiscordToolTip discordToolTip = DiscordItemStackUtils.getToolTip(item);
+          DiscordToolTip discordToolTip = DiscordItemStackUtils.getToolTip(finalItem);
           if (!discordToolTip.isBaseItem()
               || InteractiveChatDiscordSrvAddon.plugin.itemUseTooltipImageOnBaseItem) {
             BufferedImage tooltip = ImageGeneration.getToolTipImage(discordToolTip.getComponents());
@@ -89,7 +95,9 @@ public final class InventoryUtil {
             content.addDescription(description.getDescription().orElse(null));
           }
 
-          broadcast("\uD83C\uDF1F **Dang Son!** " + player.getName() + " got an item!", contents);
+          String itemName = ItemStackExtensionsKt.getDisplayName(finalItem);
+          sendToDiscord("\\uD83C\\uDF1F " + finalFormat.replace("%player%",
+              player.getName()).replace("%item%", itemName), contents);
 
         } catch (Exception e) {
           Bukkit.getLogger().warning("Failed to send dang son to discord");
@@ -98,7 +106,7 @@ public final class InventoryUtil {
     }
   }
 
-  private static void broadcast(String originalText, List<DiscordMessageContent> contents) {
+  private static void sendToDiscord(String originalText, List<DiscordMessageContent> contents) {
     Bukkit.getScheduler().runTaskAsynchronously(LootPlugin.getInstance(), () -> {
 
       String text = originalText;
@@ -111,7 +119,8 @@ public final class InventoryUtil {
         }
       }
 
-      DiscordImageEvent discordImageEvent = new DiscordImageEvent(thechan, text, text, contents, false, true);
+      DiscordImageEvent discordImageEvent = new DiscordImageEvent(thechan, text, text, contents,
+          false, true);
       TextChannel textChannel = discordImageEvent.getChannel();
       if (discordImageEvent.isCancelled()) {
         String restore = discordImageEvent.getOriginalMessage();
