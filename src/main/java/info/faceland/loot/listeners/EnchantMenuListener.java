@@ -53,6 +53,10 @@ public final class EnchantMenuListener implements Listener {
     if (stack == null || stack.getType() == Material.AIR) {
       return;
     }
+    if (LootPlugin.getInstance().getStrifePlugin() != null && LootPlugin.getInstance()
+        .getStrifePlugin().getAbilityIconManager().isAbilityIcon(stack)) {
+      return;
+    }
     Player player = (Player) event.getWhoClicked();
     MenuHolder holder = (MenuHolder) event.getInventory().getHolder();
     EnchantMenu enchantMenu = (EnchantMenu) holder.getMenu();

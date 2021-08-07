@@ -147,6 +147,7 @@ public final class InteractListener implements Listener {
     if (e.getWhoClicked().getGameMode() == GameMode.CREATIVE) {
       return;
     }
+    //Bukkit.getLogger().info("cursor: " + e.getCursor());
     if (e.getAction() == InventoryAction.DROP_ALL_CURSOR ||
         e.getAction() == InventoryAction.DROP_ONE_CURSOR ||
         e.getAction() == InventoryAction.DROP_ALL_SLOT ||
@@ -164,8 +165,11 @@ public final class InteractListener implements Listener {
       dropFromInvySet.remove(e.getPlayer().getUniqueId());
       return;
     }
-    e.setCancelled(true);
-    MessageUtils.sendMessage(e.getPlayer(), noDropMessage);
+    if (e.getPlayer().getInventory().firstEmpty() != -1 || e.getItemDrop().getItemStack()
+        .isSimilar(e.getPlayer().getInventory().getItem(e.getPlayer().getInventory().getHeldItemSlot()))) {
+      e.setCancelled(true);
+      MessageUtils.sendMessage(e.getPlayer(), noDropMessage);
+    }
   }
 
   @EventHandler(priority = EventPriority.HIGHEST)

@@ -92,6 +92,7 @@ public class EnchantMenu extends ItemMenu {
   private List<String> validPurityLore;
   private List<String> noHelmetMergeLore;
   private List<String> validHelmetMergeLore;
+  private List<String> breakWarning;
 
   private ItemStack blankItem;
 
@@ -169,6 +170,8 @@ public class EnchantMenu extends ItemMenu {
         .getStringList("language.menu.no-helmet-merge-lore"));
     validHelmetMergeLore = TextUtils.color(plugin.getSettings()
         .getStringList("language.menu.valid-helmet-merge-lore"));
+    breakWarning = ListExtensionsKt.chatColorize(plugin.getSettings()
+        .getStringList("language.menu.break-warning"));
 
     blankItem = new ItemStack(Material.AIR);
 
@@ -193,7 +196,7 @@ public class EnchantMenu extends ItemMenu {
 
   public void setSelectedUpgradeItem(Player player, ItemStack selectedUpgradeItem) {
     this.selectedUpgradeItem = selectedUpgradeItem;
-    upgradeItemIcon.getIcon().setAmount(selectedUpgradeItem.getAmount());
+    upgradeItemIcon.getIcon().setAmount(1);
     upgradeItemIcon.getIcon().setType(selectedUpgradeItem.getType());
     upgradeItemIcon.getIcon().setItemMeta(selectedUpgradeItem.getItemMeta());
     upgradeItemIcon.setDisplayName(ItemStackExtensionsKt.getDisplayName(selectedUpgradeItem));
@@ -403,6 +406,10 @@ public class EnchantMenu extends ItemMenu {
             .replace("{ded}", DF.format(killChance)));
       }
 
+      if (selectedEquipment.getDurability() > 0 && killChance > 0) {
+        lore.addAll(breakWarning);
+      }
+
       ItemStackExtensionsKt.setLore(confirmIcon.getIcon(), lore);
     }
   }
@@ -419,21 +426,27 @@ public class EnchantMenu extends ItemMenu {
         return false;
       }
       MaterialUtil.convertToHead(player, selectedUpgradeItem, selectedEquipment);
+      setSelectedUpgradeItem(player, selectedUpgradeItem);
     } else if (MaterialUtil.isEnchantmentItem(selectedUpgradeItem)) {
       MaterialUtil.enchantItem(player, selectedUpgradeItem, selectedEquipment);
+      setSelectedUpgradeItem(player, new ItemStack(Material.AIR));
     } else if (plugin.getScrollManager().getScroll(selectedUpgradeItem) != null) {
       MaterialUtil.upgradeItem(player, selectedUpgradeItem, selectedEquipment);
+      setSelectedUpgradeItem(player, new ItemStack(Material.AIR));
     } else if (MaterialUtil.isExtender(selectedUpgradeItem)) {
       MaterialUtil.extendItem(player, selectedEquipment, selectedUpgradeItem);
+      setSelectedUpgradeItem(player, selectedUpgradeItem);
     } else if (selectedUpgradeItem.isSimilar(ArcaneEnhancer.get())) {
       MaterialUtil.enhanceEnchantment(player, selectedEquipment, selectedUpgradeItem);
+      setSelectedUpgradeItem(player, selectedUpgradeItem);
     } else if (selectedUpgradeItem.isSimilar(PurifyingScroll.get())) {
       MaterialUtil.purifyItem(player, selectedEquipment, selectedUpgradeItem);
+      setSelectedUpgradeItem(player, selectedUpgradeItem);
     } else {
       player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
+      setSelectedUpgradeItem(player, selectedUpgradeItem);
       return false;
     }
-    setSelectedUpgradeItem(player, selectedUpgradeItem);
     setSelectedEquipment(player, selectedEquipment);
     return true;
   }

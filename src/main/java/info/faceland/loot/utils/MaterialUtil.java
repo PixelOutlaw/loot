@@ -818,7 +818,8 @@ public final class MaterialUtil {
         continue;
       }
       if (str.startsWith(ChatColor.BLUE + "+") || str.startsWith(ChatColor.GRAY + "+")
-          || str.startsWith(ChatColor.DARK_PURPLE + "+") || str.startsWith(ChatColor.RED + "+")) {
+          || str.startsWith(ChatColor.DARK_PURPLE + "+") || str.startsWith(ChatColor.RED + "+")
+          || str.startsWith(ChatColor.GOLD + "+")) {
         continue;
       }
       str = CharMatcher.javaLetter().or(CharMatcher.is(' ')).retainFrom(strippedString.trim());

@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.Set;
 import land.face.strife.events.CriticalEvent;
 import land.face.strife.events.EvadeEvent;
+import land.face.strife.events.UniqueSpawnEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -60,5 +61,13 @@ public final class StrifeListener implements Listener {
       defenderEffects.addAll(defenderData.getArmorCache(GemType.ON_EVADE));
       applyEffects(defenderEffects, p, event.getAttacker().getEntity());
     }
+  }
+
+  @EventHandler
+  public void onEvade(UniqueSpawnEvent event) {
+    if (!"INTENRAL_ROGUE".equals(event.getStrifeMob().getUniqueEntityId())) {
+      return;
+    }
+    event.getStrifeMob().setUseEquipment(true);
   }
 }

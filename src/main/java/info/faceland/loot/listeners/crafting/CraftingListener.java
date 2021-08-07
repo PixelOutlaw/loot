@@ -27,7 +27,6 @@ import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.events.LootCraftEvent;
-import info.faceland.loot.items.LootItemBuilder;
 import info.faceland.loot.listeners.DeconstructListener;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.recipe.EquipmentRecipeBuilder;
@@ -45,6 +44,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.attribute.AttributeModifier.Operation;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -321,15 +322,15 @@ public final class CraftingListener implements Listener {
 
     ItemStackExtensionsKt.setLore(newResult, lore);
     ItemStackExtensionsKt.addItemFlags(newResult, ItemFlag.HIDE_ATTRIBUTES);
-    switch (newResult.getType()) {
-      case NETHERITE_HELMET:
-      case NETHERITE_CHESTPLATE:
-      case NETHERITE_LEGGINGS:
-      case NETHERITE_BOOTS:
-        ItemMeta iMeta = newResult.getItemMeta();
-        iMeta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE, LootItemBuilder.MINUS_ONE_KB_RESIST);
-        newResult.setItemMeta(iMeta);
-    }
+
+    // This section exists to clear existing item attributes and enforce
+    // no stacking on equipment items
+    ItemMeta meta = newResult.getItemMeta();
+    double serialValue = Math.random() * 0.0001;
+    AttributeModifier serial = new AttributeModifier("SERIAL", serialValue, Operation.ADD_NUMBER);
+    meta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE, serial);
+    newResult.setItemMeta(meta);
+
     MaterialUtil.applyTierLevelData(newResult, tier, itemLevel);
 
     event.setCurrentItem(newResult);
@@ -358,7 +359,7 @@ public final class CraftingListener implements Listener {
   @EventHandler
   public void onEssenceInfuse(PrepareItemCraftEvent event) {
 
-    if (event.getRecipe() == null) {
+    if (event.getRecipe() == null || event.getRecipe().getResult().getType() != Material.END_CRYSTAL) {
       return;
     }
 
@@ -374,12 +375,12 @@ public final class CraftingListener implements Listener {
         continue;
       }
       ItemStack loopItem = new ItemStack(is);
-      if (is.getType() == resultStack.getType()) {
-        equipmentItem = loopItem;
-        continue;
-      }
       if (isEssence(loopItem)) {
         essenceStack = loopItem;
+        continue;
+      }
+      if (EquipmentRecipeBuilder.MATERIAL_LIST.contains(is.getType())) {
+        equipmentItem = loopItem;
       }
     }
 

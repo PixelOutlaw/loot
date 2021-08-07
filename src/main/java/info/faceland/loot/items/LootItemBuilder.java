@@ -62,9 +62,6 @@ public final class LootItemBuilder implements ItemBuilder {
 
   private double specialStatChance;
 
-  public static AttributeModifier MINUS_ONE_KB_RESIST = new AttributeModifier("NO_KB_RESIST",
-      -1, Operation.ADD_NUMBER);
-
   public LootItemBuilder(LootPlugin plugin) {
     statManager = plugin.getStatManager();
     rarityManager = plugin.getRarityManager();
@@ -158,16 +155,14 @@ public final class LootItemBuilder implements ItemBuilder {
     ItemStackExtensionsKt.setLore(stack, lore);
     ItemStackExtensionsKt.addItemFlags(stack, ItemFlag.HIDE_ATTRIBUTES);
 
-    switch (material) {
-      case NETHERITE_HELMET:
-      case NETHERITE_CHESTPLATE:
-      case NETHERITE_LEGGINGS:
-      case NETHERITE_BOOTS:
-        ItemMeta iMeta = stack.getItemMeta();
-        iMeta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE,
-            LootItemBuilder.MINUS_ONE_KB_RESIST);
-        stack.setItemMeta(iMeta);
-    }
+
+    // This section exists to clear existing item attributes and enforce
+    // no stacking on equipment items
+    ItemMeta iMeta = stack.getItemMeta();
+    double serialValue = Math.random() * 0.0001;
+    AttributeModifier serial = new AttributeModifier("SERIAL", serialValue, Operation.ADD_NUMBER);
+    iMeta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE, serial);
+    stack.setItemMeta(iMeta);
 
     MaterialUtil.applyTierLevelData(stack, tier, level);
 

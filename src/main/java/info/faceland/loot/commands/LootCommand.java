@@ -36,6 +36,7 @@ import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
+import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.menu.pawn.PawnMenu;
@@ -242,6 +243,17 @@ public class LootCommand extends BaseCommand {
       }
       sendMessage(sender,
           plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
+          new String[][]{{"%amount%", amount + ""}});
+    }
+
+    @Subcommand("purity|purify")
+    @CommandCompletion("@players @range:1-100")
+    public void givePurity(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(PurifyingScroll.get());
+      }
+      sendMessage(sender,
+          plugin.getSettings().getString("language.commands.spawn.purify-scroll", ""),
           new String[][]{{"%amount%", amount + ""}});
     }
 

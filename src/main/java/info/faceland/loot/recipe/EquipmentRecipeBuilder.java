@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.RecipeChoice.MaterialChoice;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -20,7 +21,7 @@ public class EquipmentRecipeBuilder {
 
   private final LootPlugin plugin;
 
-  private static List<Material> MATERIAL_LIST;
+  public static List<Material> MATERIAL_LIST;
   private static List<String> INFUSE_LORE;
 
   public EquipmentRecipeBuilder(LootPlugin plugin) {
@@ -30,21 +31,16 @@ public class EquipmentRecipeBuilder {
   }
 
   public void setupAllRecipes() {
-    for (Material m : MATERIAL_LIST) {
-      setupEssenceRecipe(m);
-    }
-  }
 
-  private void setupEssenceRecipe(Material material) {
-    ItemStack itemStack = new ItemStack(material);
-
-    ItemStackExtensionsKt.setDisplayName(itemStack, INFUSE_NAME);
-    ItemStackExtensionsKt.setLore(itemStack, INFUSE_LORE);
-    ItemMeta meta = itemStack.getItemMeta();
+    ItemStack resultStack = new ItemStack(Material.END_CRYSTAL);
+    ItemStackExtensionsKt.setDisplayName(resultStack, INFUSE_NAME);
+    ItemStackExtensionsKt.setLore(resultStack, INFUSE_LORE);
+    ItemMeta meta = resultStack.getItemMeta();
     meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-    itemStack.setItemMeta(meta);
-    ShapelessRecipe recipe = new ShapelessRecipe(new NamespacedKey(plugin, material.toString() + "_ESS"), itemStack);
-    recipe.addIngredient(1, material).addIngredient(1, Material.PRISMARINE_SHARD);
+    resultStack.setItemMeta(meta);
+
+    ShapelessRecipe recipe = new ShapelessRecipe(new NamespacedKey(plugin, "ESS_INFUSE"), resultStack);
+    recipe.addIngredient(new MaterialChoice(MATERIAL_LIST)).addIngredient(1, Material.PRISMARINE_SHARD);
     try {
       plugin.getServer().addRecipe(recipe);
     } catch (Exception e) {
@@ -84,6 +80,14 @@ public class EquipmentRecipeBuilder {
         Material.DIAMOND_AXE,
         Material.DIAMOND_HOE,
 
+        Material.NETHERITE_HELMET,
+        Material.NETHERITE_CHESTPLATE,
+        Material.NETHERITE_LEGGINGS,
+        Material.NETHERITE_BOOTS,
+        Material.NETHERITE_SWORD,
+        Material.NETHERITE_AXE,
+        Material.NETHERITE_HOE,
+
         Material.GOLDEN_HELMET,
         Material.GOLDEN_CHESTPLATE,
         Material.GOLDEN_LEGGINGS,
@@ -113,7 +117,8 @@ public class EquipmentRecipeBuilder {
         Material.BOW,
         Material.ARROW,
         Material.BOOK,
-        Material.SHIELD
+        Material.SHIELD,
+        Material.FISHING_ROD
     );
   }
 }

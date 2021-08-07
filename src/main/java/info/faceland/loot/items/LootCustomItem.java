@@ -29,6 +29,8 @@ import java.util.Set;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.attribute.AttributeModifier.Operation;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -89,16 +91,18 @@ public final class LootCustomItem implements CustomItem {
     ItemStackExtensionsKt.setDisplayName(itemStack, TextUtils.color(this.displayName));
     ItemStackExtensionsKt.setLore(itemStack, TextUtils.color(this.lore));
     ItemStackExtensionsKt.addItemFlags(itemStack, ItemFlag.HIDE_ATTRIBUTES);
-    switch (material) {
-      case NETHERITE_HELMET:
-      case NETHERITE_CHESTPLATE:
-      case NETHERITE_LEGGINGS:
-      case NETHERITE_BOOTS:
-        ItemMeta iMeta = itemStack.getItemMeta();
-        iMeta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE,
-            LootItemBuilder.MINUS_ONE_KB_RESIST);
-        itemStack.setItemMeta(iMeta);
+
+    if (material.getMaxStackSize() == 1 || (material == Material.BOOK
+        || material == Material.ARROW)) {
+      // This section exists to clear existing item attributes and enforce
+      // no stacking on equipment items
+      ItemMeta meta = itemStack.getItemMeta();
+      double serialValue = Math.random() * 0.0001;
+      AttributeModifier serial = new AttributeModifier("SERIAL", serialValue, Operation.ADD_NUMBER);
+      meta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE, serial);
+      itemStack.setItemMeta(meta);
     }
+
     if (customDataNumber != -1) {
       ItemStackExtensionsKt.setCustomModelData(itemStack, customDataNumber);
     }
