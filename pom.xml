@@ -122,11 +122,6 @@
       <version>1.0.1</version>
     </dependency>
     <dependency>
-      <groupId>org.inventivetalent</groupId>
-      <artifactId>glowapi</artifactId>
-      <version>1.4.13-SNAPSHOT</version>
-    </dependency>
-    <dependency>
       <groupId>com.discordsrv</groupId>
       <artifactId>discordsrv</artifactId>
       <version>1.18.1</version>
@@ -137,6 +132,11 @@
       <artifactId>InteractiveChatDiscordSrvAddon</artifactId>
       <version>1.4.0.7</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.Xezard</groupId>
+      <artifactId>XGlow</artifactId>
+      <version>1.0.5</version>
     </dependency>
     <dependency>
       <groupId>com.github.Mitsugaru</groupId>

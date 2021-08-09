@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import land.face.strife.util.GlowUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -42,8 +41,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.inventivetalent.glow.GlowAPI;
-import org.inventivetalent.glow.GlowAPI.Color;
+import ru.xezard.glow.data.glow.Glow;
 
 public class DropUtil implements Listener {
 
@@ -164,7 +162,7 @@ public class DropUtil implements Listener {
       }
 
       boolean broadcast = rarity.isBroadcast() || upgradeBonus > 4 || qualityBonus > 2;
-      Color glowColor = rarity.isBroadcast() ? Color.valueOf(rarity.getColor().name()) : null;
+      ChatColor glowColor = rarity.isBroadcast() ? rarity.getColor() : null;
       dropItem(event.getLocation(), tierItem, killer, builtItem.getTicksLived(), broadcast, glowColor);
     }
 
@@ -196,29 +194,29 @@ public class DropUtil implements Listener {
 
       assert sg != null;
       ItemStack his = sg.toItemStack(1);
-      dropItem(event.getLocation(), his, killer, sg.isBroadcast(), sg.isBroadcast() ? Color.GREEN : null);
+      dropItem(event.getLocation(), his, killer, sg.isBroadcast(), sg.isBroadcast() ? ChatColor.GREEN : null);
     }
     if (plugin.getSettings().getBoolean("config.custom-enchanting", true)) {
       if (random.nextDouble() < dropMultiplier * tomeDropChance) {
         EnchantmentTome es = plugin.getEnchantTomeManager().getRandomEnchantTome(rarityMultiplier);
         assert es != null;
         ItemStack his = es.toItemStack(1);
-        dropItem(event.getLocation(), his, killer, es.isBroadcast(), es.isBroadcast() ? Color.BLUE : null);
+        dropItem(event.getLocation(), his, killer, es.isBroadcast(), es.isBroadcast() ? ChatColor.BLUE : null);
       }
       if (random.nextDouble() < dropMultiplier * enhancerDropChance) {
-        dropItem(event.getLocation(), ArcaneEnhancer.get(), killer, true, Color.RED);
+        dropItem(event.getLocation(), ArcaneEnhancer.get(), killer, true, ChatColor.RED);
       }
       if (random.nextDouble() < dropMultiplier * purityDropChance) {
         dropItem(event.getLocation(), PurifyingScroll.get(), killer, false, null);
       }
     }
     if (random.nextDouble() < dropMultiplier * tinkerGearDropChance) {
-      dropItem(event.getLocation(), TinkerersGear.get(), killer, true, Color.RED);
+      dropItem(event.getLocation(), TinkerersGear.get(), killer, true, ChatColor.RED);
     }
     if (random.nextDouble() < dropMultiplier * scrollDropChance) {
       UpgradeScroll us = plugin.getScrollManager().getRandomScroll();
       ItemStack stack = plugin.getScrollManager().buildItemStack(us);
-      dropItem(event.getLocation(), stack, killer, us.isBroadcast(), us.isBroadcast() ? Color.DARK_GREEN : null);
+      dropItem(event.getLocation(), stack, killer, us.isBroadcast(), us.isBroadcast() ? ChatColor.DARK_GREEN : null);
     }
     if (random.nextDouble() < dropMultiplier * plugin.getSettings().getDouble("config.drops.identity-tome", 0D)) {
       ItemStack his = new IdentityTome();
@@ -247,11 +245,11 @@ public class DropUtil implements Listener {
         }
       }
       boolean broadcast = ci.isBroadcast() || qualityBonus > 2;
-      dropItem(event.getLocation(), stack, killer, broadcast, broadcast ? Color.GOLD : null);
+      dropItem(event.getLocation(), stack, killer, broadcast, broadcast ? ChatColor.GOLD : null);
     }
     if (random.nextDouble() < plugin.getSettings().getDouble("config.drops.socket-extender", 0D)) {
       ItemStack his = new SocketExtender();
-      dropItem(event.getLocation(), his, killer, true, Color.AQUA);
+      dropItem(event.getLocation(), his, killer, true, ChatColor.AQUA);
     }
     // NOTE: Drop bonus should not be applied to Unidentified Items!
     if (random.nextDouble() < dropMultiplier * plugin.getSettings().getDouble("config.drops.unidentified-item", 0D)) {
@@ -279,7 +277,7 @@ public class DropUtil implements Listener {
           continue;
         }
         ItemStack his = gem.toItemStack(1);
-        dropItem(location, his, killer, gem.isBroadcast(), gem.isBroadcast() ? Color.GREEN : null);
+        dropItem(location, his, killer, gem.isBroadcast(), gem.isBroadcast() ? ChatColor.GREEN : null);
       }
     }
     for (String tomeString : uniqueLoot.getTomeMap().keySet()) {
@@ -289,7 +287,7 @@ public class DropUtil implements Listener {
           continue;
         }
         ItemStack his = tome.toItemStack(1);
-        dropItem(location, his, killer, tome.isBroadcast(), tome.isBroadcast() ? Color.BLUE : null);
+        dropItem(location, his, killer, tome.isBroadcast(), tome.isBroadcast() ? ChatColor.BLUE : null);
       }
     }
     for (String tableName : uniqueLoot.getCustomItemMap().keySet()) {
@@ -310,7 +308,7 @@ public class DropUtil implements Listener {
             break;
           }
           ItemStack his = ci.toItemStack(1);
-          dropItem(location, his, killer, ci.isBroadcast(), ci.isBroadcast() ? Color.GOLD : null);
+          dropItem(location, his, killer, ci.isBroadcast(), ci.isBroadcast() ? ChatColor.GOLD : null);
           break;
         }
       }
@@ -353,20 +351,29 @@ public class DropUtil implements Listener {
     return his;
   }
 
-  private static void dropItem(Location loc, ItemStack itemStack, Player looter, boolean broadcast, Color glowColor) {
+  private static void dropItem(Location loc, ItemStack itemStack, Player looter, boolean broadcast, ChatColor glowColor) {
     dropItem(loc, itemStack, looter, 0, broadcast, glowColor);
   }
 
-  private static void dropItem(Location loc, ItemStack itemStack, Player looter, int ticksLived, boolean broadcast,
-      Color glowColor) {
+  private static void dropItem(Location loc, ItemStack itemStack, Player looter, int ticksLived,
+      boolean broadcast, ChatColor glowColor) {
     Item drop = Objects.requireNonNull(loc.getWorld()).dropItemNaturally(loc, itemStack);
-    if (glowColor != null) {
-      if (plugin.getStrifePlugin() == null) {
-        GlowAPI.setGlowing(drop, true, looter);
-        GlowAPI.setGlowing(drop, glowColor, looter);
-      } else {
-        GlowUtil.setGlow(looter, drop, glowColor);
+    try {
+      if (glowColor != null) {
+        Glow glow = Glow.builder()
+            .animatedColor(glowColor)
+            .name(UUID.randomUUID().toString().substring(0, 16))
+            .build();
+        glow.addHolders(drop);
+        glow.display(looter);
+        Bukkit.getScheduler().runTaskTimer(LootPlugin.getInstance(), () -> {
+          if (!drop.isValid()) {
+            glow.destroy();
+          }
+        }, 0L, 20L);
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
     if (ticksLived != 0) {
       drop.setTicksLived(ticksLived);
