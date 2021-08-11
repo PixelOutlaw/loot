@@ -18,7 +18,7 @@
  */
 package info.faceland.loot.managers;
 
-import com.tealcube.minecraft.bukkit.TextUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.sockets.SocketGem;
@@ -210,7 +210,7 @@ public final class SocketGemManager {
       return new HashSet<>();
     }
     Set<SocketGem> gems = new HashSet<>();
-    List<String> lore = ItemStackExtensionsKt.getLore(itemStack);
+    List<String> lore = TextUtils.getLore(itemStack);
     List<String> strippedLore = new ArrayList<>();
     for (String s : lore) {
       strippedLore.add(ChatColor.stripColor(s));

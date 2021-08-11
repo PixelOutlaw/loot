@@ -18,7 +18,7 @@
  */
 package info.faceland.loot.menu.pawn;
 
-import com.tealcube.minecraft.bukkit.TextUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.PriceData;
 import java.util.ArrayList;

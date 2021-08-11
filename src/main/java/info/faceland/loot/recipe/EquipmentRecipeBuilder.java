@@ -1,5 +1,6 @@
 package info.faceland.loot.recipe;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -34,7 +35,7 @@ public class EquipmentRecipeBuilder {
 
     ItemStack resultStack = new ItemStack(Material.END_CRYSTAL);
     ItemStackExtensionsKt.setDisplayName(resultStack, INFUSE_NAME);
-    ItemStackExtensionsKt.setLore(resultStack, INFUSE_LORE);
+    TextUtils.setLore(resultStack, INFUSE_LORE);
     ItemMeta meta = resultStack.getItemMeta();
     meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
     resultStack.setItemMeta(meta);

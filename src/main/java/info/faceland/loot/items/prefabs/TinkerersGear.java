@@ -18,12 +18,14 @@
  */
 package info.faceland.loot.items.prefabs;
 
-import com.tealcube.minecraft.bukkit.TextUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.Arrays;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 
 public final class TinkerersGear {
@@ -34,7 +36,7 @@ public final class TinkerersGear {
   public static void rebuild() {
     ItemStack stack = new ItemStack(Material.BRICK);
     ItemStackExtensionsKt.setDisplayName(stack, ChatColor.RED + "Tinkerer's Gear");
-    ItemStackExtensionsKt.setLore(stack, TextUtils.color(Arrays.asList(
+    TextUtils.setLore(stack, TextUtils.color(Arrays.asList(
         "&7This perplexing gear can be",
         "&7used on an equipment item to",
         "&7turn one random &agreen&7/&eyellow",
@@ -44,6 +46,8 @@ public final class TinkerersGear {
     )));
     stack.setDurability((short) 12);
     ItemStackExtensionsKt.setCustomModelData(stack, 3000);
+    stack.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+    stack.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
     item = stack;
   }
 

@@ -18,7 +18,7 @@
  */
 package info.faceland.loot.items.prefabs;
 
-import com.tealcube.minecraft.bukkit.TextUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.Arrays;
 import org.bukkit.ChatColor;
@@ -33,7 +33,7 @@ public final class SocketExtender extends ItemStack {
     super(Material.NETHER_STAR);
     setAmount(1);
     ItemStackExtensionsKt.setDisplayName(this, ChatColor.DARK_AQUA + "Socket Extender");
-    ItemStackExtensionsKt.setLore(this, TextUtils.color(Arrays.asList(
+    TextUtils.setLore(this, TextUtils.color(Arrays.asList(
         "&7An upgrade item that can",
         "&7be used on equipment with",
         "&7a &3(+) &7in the description",

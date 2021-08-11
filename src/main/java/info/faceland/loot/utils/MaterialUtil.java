@@ -21,8 +21,8 @@ package info.faceland.loot.utils;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
 import static org.bukkit.ChatColor.stripColor;
 
-import com.tealcube.minecraft.bukkit.TextUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils;
 import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
@@ -43,6 +43,7 @@ import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import land.face.strife.StrifePlugin;
@@ -67,6 +68,8 @@ public final class MaterialUtil {
   private static final double MIN_BONUS_ESS_MULT = 0.25;
   private static final double BASE_ESSENCE_MULT = 0.3;
   private static final LootRandom random = new LootRandom();
+
+  private static final Pattern ONLY_LETTERS = Pattern.compile("[^A-za-z]");
 
   private static String upgradeFailureMsg;
   private static String noPointsForHelmetMsg;
@@ -133,7 +136,7 @@ public final class MaterialUtil {
   }
 
   public static int getFailureBonus(ItemStack scrollStack) {
-    for (String s : ItemStackExtensionsKt.getLore(scrollStack)) {
+    for (String s : TextUtils.getLore(scrollStack)) {
       if (s.startsWith(FAILURE_BONUS)) {
         return MaterialUtil.getDigit(ChatColor.stripColor(s));
       }
@@ -159,7 +162,7 @@ public final class MaterialUtil {
   }
 
   public static void extendItem(Player player, ItemStack stack, ItemStack extender) {
-    List<String> lore = new ArrayList<>(ItemStackExtensionsKt.getLore(stack));
+    List<String> lore = new ArrayList<>(TextUtils.getLore(stack));
     List<String> strippedLore = InventoryUtil.stripColor(lore);
     if (!canBeExtended(strippedLore)) {
       sendMessage(player, extendFailMsg);
@@ -168,7 +171,7 @@ public final class MaterialUtil {
     }
     int index = strippedLore.indexOf("(+)");
     lore.set(index, ChatColor.GOLD + "(Socket)");
-    ItemStackExtensionsKt.setLore(stack, lore);
+    TextUtils.setLore(stack, lore);
 
     sendMessage(player, extendSuccessMsg);
     player.playSound(player.getEyeLocation(), Sound.BLOCK_PORTAL_TRAVEL, 1L, 2.0F);
@@ -298,9 +301,8 @@ public final class MaterialUtil {
     if (newLevel >= 10 && stack.getEnchantments().isEmpty()) {
       stack.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
     }
-    ItemStackExtensionsKt.addItemFlags(stack, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES,
-        ItemFlag.HIDE_UNBREAKABLE);
-    List<String> lore = ItemStackExtensionsKt.getLore(stack);
+    stack.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_UNBREAKABLE);
+    List<String> lore = TextUtils.getLore(stack);
     for (int i = 0; i < lore.size(); i++) {
       String s = lore.get(i);
       String ss = stripColor(s);
@@ -312,7 +314,7 @@ public final class MaterialUtil {
       lore.set(i, s.replace("+" + attributeValue, "+" + (attributeValue + statAmount)));
       break;
     }
-    ItemStackExtensionsKt.setLore(stack, lore);
+    TextUtils.setLore(stack, lore);
   }
 
   public static boolean meetsUpgradeRange(UpgradeScroll type, int itemPlus) {
@@ -328,7 +330,7 @@ public final class MaterialUtil {
         new ArrayList<>()).contains(targetName)) {
       return false;
     }
-    List<String> lore = ItemStackExtensionsKt.getLore(stack);
+    List<String> lore = TextUtils.getLore(stack);
     for (String s : lore) {
       if ("< Cannot be upgraded >".equals(stripColor(s))) {
         return false;
@@ -341,7 +343,7 @@ public final class MaterialUtil {
     if (stack.getType().getMaxDurability() > 5) {
       return true;
     }
-    List<String> strip = InventoryUtil.stripColor(ItemStackExtensionsKt.getLore(stack));
+    List<String> strip = InventoryUtil.stripColor(TextUtils.getLore(stack));
     for (String s : strip) {
       if (s.startsWith("+")) {
         return true;
@@ -362,7 +364,7 @@ public final class MaterialUtil {
   }
 
   public static boolean hasEnchantmentTag(ItemStack stack) {
-    List<String> lore = new ArrayList<>(ItemStackExtensionsKt.getLore(stack));
+    List<String> lore = new ArrayList<>(TextUtils.getLore(stack));
     List<String> strippedLore = InventoryUtil.stripColor(lore);
     return strippedLore.contains("(Enchantable)");
   }
@@ -400,8 +402,8 @@ public final class MaterialUtil {
     }
 
     int index = -1;
-    for (int i = 0; i < ItemStackExtensionsKt.getLore(item).size(); i++) {
-      String string = ItemStackExtensionsKt.getLore(item).get(i);
+    for (int i = 0; i < TextUtils.getLore(item).size(); i++) {
+      String string = TextUtils.getLore(item).get(i);
       if (!isEnchantBar(string)) {
         continue;
       }
@@ -414,7 +416,7 @@ public final class MaterialUtil {
 
     degradeItemEnchantment(item, player);
 
-    List<String> lore = new ArrayList<>(ItemStackExtensionsKt.getLore(item));
+    List<String> lore = new ArrayList<>(TextUtils.getLore(item));
     String enchantmentStatString = ChatColor.stripColor(lore.get(index - 1));
 
     int statValue = NumberUtils
@@ -434,7 +436,7 @@ public final class MaterialUtil {
         ChatColor.BLUE + enchantmentStatString
             .replace(Integer.toString(statValue), Integer.toString(newValue)));
     lore.set(index, lore.get(index).replace(ChatColor.BLACK + "", ChatColor.DARK_RED + ""));
-    ItemStackExtensionsKt.setLore(item, lore);
+    TextUtils.setLore(item, lore);
     enhancer.setAmount(enhancer.getAmount() - 1);
     StrifePlugin.getInstance().getSkillExperienceManager()
         .addExperience(player, LifeSkillType.ENCHANTING, 400, false, false);
@@ -447,8 +449,8 @@ public final class MaterialUtil {
       return;
     }
     List<String> lore = new ArrayList<>();
-    for (int i = 0; i < ItemStackExtensionsKt.getLore(item).size(); i++) {
-      String string = ItemStackExtensionsKt.getLore(item).get(i);
+    for (int i = 0; i < TextUtils.getLore(item).size(); i++) {
+      String string = TextUtils.getLore(item).get(i);
       if (!string.startsWith(ChatColor.BLUE + "[")) {
         lore.add(string);
         continue;
@@ -456,7 +458,7 @@ public final class MaterialUtil {
       lore.remove(lore.size() - 1);
       lore.add(ChatColor.BLUE + "(Enchantable)");
     }
-    ItemStackExtensionsKt.setLore(item, lore);
+    TextUtils.setLore(item, lore);
   }
 
   public static boolean canBeEnchanted(Player player, ItemStack tomeStack, ItemStack stack) {
@@ -484,7 +486,7 @@ public final class MaterialUtil {
   }
 
   public static boolean isEnchanted(ItemStack stack) {
-    for (String string : ItemStackExtensionsKt.getLore(stack)) {
+    for (String string : TextUtils.getLore(stack)) {
       String s = net.md_5.bungee.api.ChatColor.stripColor(string);
       if (!(s.startsWith("[") && string.endsWith("]") && s.contains("||"))) {
         return true;
@@ -497,7 +499,7 @@ public final class MaterialUtil {
     if (!isEnchanted(stack)) {
       return false;
     }
-    for (String string : ItemStackExtensionsKt.getLore(stack)) {
+    for (String string : TextUtils.getLore(stack)) {
       if (isEnchantBar(string) && string.contains("" + ChatColor.DARK_RED)) {
         return true;
       }
@@ -510,8 +512,8 @@ public final class MaterialUtil {
       return;
     }
     List<String> lore = new ArrayList<>();
-    for (int i = 0; i < ItemStackExtensionsKt.getLore(item).size(); i++) {
-      String barString = ItemStackExtensionsKt.getLore(item).get(i);
+    for (int i = 0; i < TextUtils.getLore(item).size(); i++) {
+      String barString = TextUtils.getLore(item).get(i);
       if (!isEnchantBar(barString)) {
         lore.add(barString);
         continue;
@@ -545,7 +547,7 @@ public final class MaterialUtil {
       barString = barString.replace("[", ChatColor.BLUE + "[").replace("]", ChatColor.BLUE + "]");
       lore.add(barString);
     }
-    ItemStackExtensionsKt.setLore(item, lore);
+    TextUtils.setLore(item, lore);
   }
 
   public static boolean enchantItem(Player player, ItemStack tomeStack, ItemStack targetItem) {
@@ -565,7 +567,7 @@ public final class MaterialUtil {
       return false;
     }
 
-    List<String> lore = new ArrayList<>(ItemStackExtensionsKt.getLore(targetItem));
+    List<String> lore = new ArrayList<>(TextUtils.getLore(targetItem));
     List<String> strippedLore = InventoryUtil.stripColor(lore);
 
     int index = strippedLore.indexOf("(Enchantable)");
@@ -632,7 +634,7 @@ public final class MaterialUtil {
     }
 
     tomeStack.setAmount(tomeStack.getAmount() - 1);
-    ItemStackExtensionsKt.setLore(targetItem, lore);
+    TextUtils.setLore(targetItem, lore);
 
     float weightDivisor = tome.getWeight() == 0 ? 2000 : (float) tome.getWeight();
     float exp = 12 + 8 * (2000 / weightDivisor);
@@ -704,7 +706,7 @@ public final class MaterialUtil {
     SkullMeta newMeta = ((SkullMeta) head.getItemMeta()).clone();
     short dura = helmet.getDurability();
     newMeta.setDisplayName(ItemStackExtensionsKt.getDisplayName(helmet));
-    newMeta.setLore(new ArrayList<>(ItemStackExtensionsKt.getLore(helmet)));
+    newMeta.setLore(new ArrayList<>(TextUtils.getLore(helmet)));
     helmet.setType(Material.PLAYER_HEAD);
     helmet.setItemMeta(newMeta);
     helmet.setDurability(dura);
@@ -748,13 +750,13 @@ public final class MaterialUtil {
     lore.add(ChatColor.WHITE + "Quality: " + color + IntStream.range(0, quality).mapToObj(i -> "✪")
         .collect(Collectors.joining("")));
     lore.add(ChatColor.YELLOW + "[ Crafting Component ]");
-    ItemStackExtensionsKt.setLore(his, lore);
+    TextUtils.setLore(his, lore);
     his.setDurability((short) 11);
     return his;
   }
 
   public static int getQuality(ItemStack stack) {
-    for (String line : ItemStackExtensionsKt.getLore(stack)) {
+    for (String line : TextUtils.getLore(stack)) {
       if (ChatColor.stripColor(line).startsWith("Quality:")) {
         return (int) line.chars().filter(ch -> ch == '✪').count();
       }
@@ -789,11 +791,11 @@ public final class MaterialUtil {
     esslore.add("&fItem Level Requirement: " + essLevel);
     esslore.add("&fItem Type: " + tier.getName());
     esslore.add("&e" + newStatString);
-    esslore.add("&7&oCraft this together with an");
-    esslore.add("&7&ounfinished item to have a");
-    esslore.add("&7&ochance of applying this stat!");
+    esslore.add("&7&oCraft this together with");
+    esslore.add("&7&oan unfinished item to fill");
+    esslore.add("&7&oan &b&oEssence Slot&7&o!");
     esslore.add("&e[ Crafting Component ]");
-    ItemStackExtensionsKt.setLore(shard, ListExtensionsKt.chatColorize(esslore));
+    TextUtils.setLore(shard, ListExtensionsKt.chatColorize(esslore));
     ItemStackExtensionsKt.setCustomModelData(shard, 501);
 
     return shard;
@@ -814,16 +816,15 @@ public final class MaterialUtil {
     List<String> existingCraftStatStrings = new ArrayList<>();
     for (String str : lore) {
       String strippedString = ChatColor.stripColor(str);
-      if (!strippedString.startsWith("+")) {
+      if (!(strippedString.startsWith("+") || strippedString.startsWith("-"))) {
         continue;
       }
-      if (str.startsWith(ChatColor.BLUE + "+") || str.startsWith(ChatColor.GRAY + "+")
-          || str.startsWith(ChatColor.DARK_PURPLE + "+") || str.startsWith(ChatColor.RED + "+")
-          || str.startsWith(ChatColor.GOLD + "+")) {
+      if (str.startsWith(ChatColor.BLUE + "") || str.startsWith(ChatColor.GRAY + "")
+          || str.startsWith(ChatColor.DARK_PURPLE + "") || str.startsWith(ChatColor.RED + "")
+          || str.startsWith(ChatColor.GOLD + "")) {
         continue;
       }
-      str = CharMatcher.javaLetter().or(CharMatcher.is(' ')).retainFrom(strippedString.trim());
-      existingCraftStatStrings.add(str);
+      existingCraftStatStrings.add(ONLY_LETTERS.matcher(strippedString).replaceAll(""));
     }
     return existingCraftStatStrings;
   }
@@ -832,14 +833,14 @@ public final class MaterialUtil {
     if (stack.getItemMeta() == null) {
       return -1;
     }
-    if (ItemStackExtensionsKt.getLore(stack).get(0) == null) {
+    if (TextUtils.getLore(stack).get(0) == null) {
       return -1;
     }
-    String lvlReqString = ChatColor.stripColor(ItemStackExtensionsKt.getLore(stack).get(0));
+    String lvlReqString = ChatColor.stripColor(TextUtils.getLore(stack).get(0));
     if (!lvlReqString.startsWith("Level Requirement:")) {
       return -1;
     }
-    return getDigit(ItemStackExtensionsKt.getLore(stack).get(0));
+    return getDigit(TextUtils.getLore(stack).get(0));
   }
 
   public static Tier getTierFromStack(ItemStack stack) {
@@ -867,10 +868,10 @@ public final class MaterialUtil {
     if (stack.getItemMeta() == null) {
       return 0;
     }
-    if (ItemStackExtensionsKt.getLore(stack).size() < 2) {
+    if (TextUtils.getLore(stack).size() < 2) {
       return 0;
     }
-    String tierString = ChatColor.stripColor(ItemStackExtensionsKt.getLore(stack).get(1));
+    String tierString = ChatColor.stripColor(TextUtils.getLore(stack).get(1));
     if (!tierString.startsWith("Tier:")) {
       return 0;
     }
@@ -896,28 +897,28 @@ public final class MaterialUtil {
     if (stack.getItemMeta() == null) {
       return 0;
     }
-    if (ItemStackExtensionsKt.getLore(stack).get(0) == null) {
+    if (TextUtils.getLore(stack).get(0) == null) {
       return 0;
     }
-    String lvlReqString = ChatColor.stripColor(ItemStackExtensionsKt.getLore(stack).get(0));
+    String lvlReqString = ChatColor.stripColor(TextUtils.getLore(stack).get(0));
     if (!lvlReqString.startsWith("Item Level:")) {
       return 0;
     }
-    return getDigit(ItemStackExtensionsKt.getLore(stack).get(0));
+    return getDigit(TextUtils.getLore(stack).get(0));
   }
 
   public static int getToolLevel(ItemStack stack) {
     if (stack.getItemMeta() == null) {
       return -1;
     }
-    if (ItemStackExtensionsKt.getLore(stack).get(0) == null) {
+    if (TextUtils.getLore(stack).get(0) == null) {
       return -1;
     }
-    String lvlReqString = ChatColor.stripColor(ItemStackExtensionsKt.getLore(stack).get(0));
+    String lvlReqString = ChatColor.stripColor(TextUtils.getLore(stack).get(0));
     if (!lvlReqString.startsWith("Craft Skill Requirement:")) {
       return -1;
     }
-    return getDigit(ItemStackExtensionsKt.getLore(stack).get(0));
+    return getDigit(TextUtils.getLore(stack).get(0));
   }
 
   public static int getDigit(String string) {

@@ -22,6 +22,7 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.Arrays;
 import org.bukkit.ChatColor;
@@ -34,12 +35,12 @@ public final class UnidentifiedItem extends ItemStack {
         super(material);
         ItemStackExtensionsKt.setDisplayName(this, ChatColor.LIGHT_PURPLE + "Unidentified Item");
         if (level > -1) {
-            ItemStackExtensionsKt.setLore(this, Arrays.asList(
+            TextUtils.setLore(this, Arrays.asList(
                     ChatColor.WHITE + "Item Level: " + level,
                     ChatColor.GRAY + "Find an " + ChatColor.DARK_PURPLE + "Identity Tome" + ChatColor.GRAY + " to",
                     ChatColor.GRAY + "reveal this item's stats!"));
         } else {
-            ItemStackExtensionsKt.setLore(this, Arrays.asList(
+            TextUtils.setLore(this, Arrays.asList(
                     ChatColor.GRAY + "Find an " + ChatColor.DARK_PURPLE + "Identity Tome" + ChatColor.GRAY + " to",
                     ChatColor.GRAY + "reveal this item's stats!"));
         }

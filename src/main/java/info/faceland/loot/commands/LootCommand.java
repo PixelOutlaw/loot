@@ -21,7 +21,7 @@ package info.faceland.loot.commands;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
 
 import com.destroystokyo.paper.Namespaced;
-import com.tealcube.minecraft.bukkit.TextUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.acf.BaseCommand;
 import com.tealcube.minecraft.bukkit.shade.acf.annotation.CommandAlias;
 import com.tealcube.minecraft.bukkit.shade.acf.annotation.CommandCompletion;
@@ -358,9 +358,9 @@ public class LootCommand extends BaseCommand {
       sendMessage(sender, plugin.getSettings().getString("language.command.invalidname", ""));
       return;
     }
-    List<String> lore = ItemStackExtensionsKt.getLore(heldItem);
+    List<String> lore = TextUtils.getLore(heldItem);
     lore.set(3, ChatColor.WHITE + ChatColor.stripColor(TextUtils.color(newLore)));
-    ItemStackExtensionsKt.setLore(heldItem, lore);
+    TextUtils.setLore(heldItem, lore);
     sender.getEquipment().setItemInMainHand(heldItem);
     sender.updateInventory();
     sendMessage(sender, plugin.getSettings().getString("language.command.renamesuccess", ""));

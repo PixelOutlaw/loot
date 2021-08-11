@@ -18,7 +18,7 @@
  */
 package info.faceland.loot.enchantments;
 
-import com.tealcube.minecraft.bukkit.TextUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.text.WordUtils;
 import info.faceland.loot.api.groups.ItemGroup;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -135,7 +135,7 @@ public class EnchantmentTome {
     if (description != null && !description.isEmpty()) {
       lore.add(description);
     }
-    ItemStackExtensionsKt.setLore(is, TextUtils.color(lore));
+    TextUtils.setLore(is, TextUtils.color(lore));
     is.setDurability((short) 11);
     return is;
   }

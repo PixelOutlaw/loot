@@ -22,19 +22,19 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
+import java.util.Arrays;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.Arrays;
 
 public final class IdentityTome extends ItemStack {
 
     public IdentityTome() {
         super(Material.ENCHANTED_BOOK);
         ItemStackExtensionsKt.setDisplayName(this, ChatColor.DARK_PURPLE + "Identity Tome");
-        ItemStackExtensionsKt.setLore(this, Arrays.asList(ChatColor.GRAY + "Place this tome onto an",
+        TextUtils.setLore(this, Arrays.asList(ChatColor.GRAY + "Place this tome onto an",
                 ChatColor.LIGHT_PURPLE + "Unidentified Item" + ChatColor.GRAY + " to reveal",
                 ChatColor.GRAY + "that item's hidden stats!"));
     }

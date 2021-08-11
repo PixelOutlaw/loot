@@ -1,5 +1,6 @@
 package info.faceland.loot.managers;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.math.LootRandom;
@@ -32,7 +33,7 @@ public class ScrollManager {
       ItemStack stack = new ItemStack(scrollMaterial);
       ItemStackExtensionsKt.setDisplayName(stack,
           ChatColor.DARK_GREEN + upgradeScroll.getPrefix() + " Upgrade Scroll");
-      ItemStackExtensionsKt.setLore(stack, upgradeScroll.getLore());
+      TextUtils.setLore(stack, upgradeScroll.getLore());
       stack.setDurability((short) 11);
       ItemStackExtensionsKt.setCustomModelData(stack, upgradeScroll.getCustomData());
       cachedScrollStacks.put(upgradeScroll, stack);

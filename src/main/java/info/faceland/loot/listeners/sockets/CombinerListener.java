@@ -18,8 +18,8 @@
  */
 package info.faceland.loot.listeners.sockets;
 
-import com.tealcube.minecraft.bukkit.TextUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.utils.InventoryUtil;

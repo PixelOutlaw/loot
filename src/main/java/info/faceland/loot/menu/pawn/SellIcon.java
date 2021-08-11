@@ -18,8 +18,8 @@
  */
 package info.faceland.loot.menu.pawn;
 
-import com.tealcube.minecraft.bukkit.TextUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.text.DecimalFormat;
@@ -71,7 +71,7 @@ public class SellIcon extends MenuItem {
       newLore.add(
           TextUtils.color("&eTrade Level Bonus: " + DF.format(((double) tradeLevel) / 5) + "%"));
     }
-    ItemStackExtensionsKt.setLore(stack, newLore);
+    TextUtils.setLore(stack, newLore);
     return stack;
   }
 

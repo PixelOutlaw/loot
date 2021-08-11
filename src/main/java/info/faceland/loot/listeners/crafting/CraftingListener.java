@@ -1,26 +1,28 @@
 /**
  * The MIT License Copyright (c) 2015 Teal Cube Games
  * <p>
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  * <p>
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
- * Software.
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
  * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
- * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package info.faceland.loot.listeners.crafting;
 
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
 import static info.faceland.loot.utils.InventoryUtil.stripColor;
 
-import com.tealcube.minecraft.bukkit.TextUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils;
 import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
@@ -37,6 +39,7 @@ import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.util.PlayerDataUtil;
 import org.bukkit.Bukkit;
@@ -56,8 +59,10 @@ import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public final class CraftingListener implements Listener {
@@ -81,6 +86,8 @@ public final class CraftingListener implements Listener {
   private final ItemMeta wrongTypeMeta;
   private final ItemMeta noSlotsMeta;
 
+  private static final Pattern pattern = Pattern.compile("[^A-za-z]");
+
   private final LootRandom random;
 
   public CraftingListener(LootPlugin plugin) {
@@ -88,20 +95,24 @@ public final class CraftingListener implements Listener {
     this.random = new LootRandom();
 
     CRAFT_EXP = plugin.getSettings().getDouble("config.crafting.base-craft-exp", 1);
-    CRAFT_LEVEL_MULT = plugin.getSettings().getDouble("config.crafting.craft-item-level-mult", 0.01);
+    CRAFT_LEVEL_MULT = plugin.getSettings()
+        .getDouble("config.crafting.craft-item-level-mult", 0.01);
     CRAFT_QUALITY_MULT = plugin.getSettings().getDouble("config.crafting.craft-quality-mult", 0.1);
     CRAFT_MASTER_MULT = plugin.getSettings().getDouble("config.crafting.craft-master-mult", 2.5);
     MAX_QUALITY = plugin.getSettings().getDouble("config.crafting.craft-max-quality", 5);
     MAX_SLOTS = plugin.getSettings().getDouble("config.crafting.craft-max-craft-slots", 5);
     MAX_SOCKETS = plugin.getSettings().getDouble("config.crafting.craft-max-sockets", 3);
     ESSENCE_SLOT_TEXT = StringExtensionsKt
-        .chatColorize(plugin.getSettings().getString("config.crafting.essence-text", "&b(Essence Slot)"));
+        .chatColorize(
+            plugin.getSettings().getString("config.crafting.essence-text", "&b(Essence Slot)"));
 
     BAD_INFUSE_NAME = StringExtensionsKt
-        .chatColorize(plugin.getSettings().getString("language.essence.invalid-title", "&cCannot Use Essence!"));
+        .chatColorize(plugin.getSettings()
+            .getString("language.essence.invalid-title", "&cCannot Use Essence!"));
 
     ItemStack failStack = new ItemStack(Material.BARRIER);
-    ItemStackExtensionsKt.setDisplayName(failStack, StringExtensionsKt.chatColorize(BAD_INFUSE_NAME));
+    ItemStackExtensionsKt.setDisplayName(failStack,
+        StringExtensionsKt.chatColorize(BAD_INFUSE_NAME));
 
     dupeStatMeta = failStack.getItemMeta().clone();
     dupeStatMeta.setLore(ListExtensionsKt.chatColorize(
@@ -134,7 +145,7 @@ public final class CraftingListener implements Listener {
       // TODO: Configurable material type restriction
       if (material == Material.DIAMOND_BLOCK || material == Material.IRON_BLOCK ||
           material == Material.GOLD_BLOCK || material == Material.EMERALD_BLOCK) {
-        for (String str : ItemStackExtensionsKt.getLore(materialStack)) {
+        for (String str : TextUtils.getLore(materialStack)) {
           if (ChatColor.stripColor(str).equals("[ Crafting Component ]")) {
             sendMessage(event.getWhoClicked(),
                 plugin.getSettings().getString("language.craft.nope", ""));
@@ -203,7 +214,8 @@ public final class CraftingListener implements Listener {
       if (is == null) {
         continue;
       }
-      if (is.getType() == Material.PRISMARINE_SHARD || isDyeEvent(is.getType(), resultStack.getType())) {
+      if (is.getType() == Material.PRISMARINE_SHARD || isDyeEvent(is.getType(),
+          resultStack.getType())) {
         return;
       }
     }
@@ -215,12 +227,14 @@ public final class CraftingListener implements Listener {
     Tier tier = MaterialUtil.getTierFromStack(resultStack);
 
     if (tier == null) {
-      Bukkit.getLogger().warning("Attempted to craft item with unknown tier... " + resultStack.getType());
+      Bukkit.getLogger()
+          .warning("Attempted to craft item with unknown tier... " + resultStack.getType());
       return;
     }
 
     int craftingLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.CRAFTING);
-    double effectiveCraftLevel = PlayerDataUtil.getEffectiveLifeSkill(player, LifeSkillType.CRAFTING, true);
+    double effectiveCraftLevel = PlayerDataUtil.getEffectiveLifeSkill(player,
+        LifeSkillType.CRAFTING, true);
 
     int numMaterials = 0;
     double totalQuality = 0;
@@ -233,20 +247,23 @@ public final class CraftingListener implements Listener {
       ItemStack loopItem = new ItemStack(is);
       if (hasItemLevel(loopItem)) {
         int iLevel = NumberUtils.toInt(CharMatcher.digit().or(CharMatcher.is('-')).negate()
-            .collapseFrom(ChatColor.stripColor(ItemStackExtensionsKt.getLore(loopItem).get(0)), ' ').trim());
+            .collapseFrom(ChatColor.stripColor(TextUtils.getLore(loopItem).get(0)), ' ')
+            .trim());
         totalItemLevel += iLevel;
       } else {
         totalItemLevel += 0.5;
       }
       numMaterials++;
       if (hasQuality(loopItem)) {
-        long count = ItemStackExtensionsKt.getLore(loopItem).get(1).chars().filter(ch -> ch == '✪').count();
+        long count = TextUtils.getLore(loopItem).get(1).chars().filter(ch -> ch == '✪')
+            .count();
         totalQuality += count;
       }
     }
 
     double rawItemLevel = totalItemLevel / numMaterials;
-    double levelAdvantage = DeconstructListener.getLevelAdvantage(craftingLevel, (int) rawItemLevel);
+    double levelAdvantage = DeconstructListener.getLevelAdvantage(craftingLevel,
+        (int) rawItemLevel);
 
     if (levelAdvantage < 0) {
       sendMessage(player, plugin.getSettings().getString("language.craft.low-level-craft", ""));
@@ -254,9 +271,11 @@ public final class CraftingListener implements Listener {
       return;
     }
 
-    double effiLevelAdvantage = DeconstructListener.getLevelAdvantage((int) effectiveCraftLevel, (int) rawItemLevel);
+    double effiLevelAdvantage = DeconstructListener.getLevelAdvantage((int) effectiveCraftLevel,
+        (int) rawItemLevel);
     double skillMultiplier = 1 + Math.min(1, effiLevelAdvantage / 25);
-    double quality = Math.max(1, Math.min(totalQuality / numMaterials, MAX_QUALITY) - (0.5 * random.nextDouble()));
+    double quality = Math.max(1,
+        Math.min(totalQuality / numMaterials, MAX_QUALITY) - (0.5 * random.nextDouble()));
 
     double slotLuckBonus = (MAX_SLOTS - quality) * Math.pow(random.nextDouble(), 6);
     double craftedSlotScore = Math.max(1, quality + slotLuckBonus);
@@ -282,14 +301,17 @@ public final class CraftingListener implements Listener {
     lore.add(ChatColor.WHITE + "Level Requirement: " + itemLevel);
     lore.add(ChatColor.WHITE + "Tier: " + ChatColor.AQUA + "Crafted " + tier.getName());
 
-    lore.add(plugin.getStatManager().getFinalStat(tier.getPrimaryStat(), itemLevel, quality, false).getStatString());
+    lore.add(plugin.getStatManager().getFinalStat(tier.getPrimaryStat(), itemLevel, quality, false)
+        .getStatString());
     lore.add(plugin.getStatManager().getFinalStat(
-        tier.getSecondaryStats().get(random.nextInt(tier.getSecondaryStats().size())), itemLevel, quality, false)
+            tier.getSecondaryStats().get(random.nextInt(tier.getSecondaryStats().size())), itemLevel,
+            quality, false)
         .getStatString());
 
     List<ItemStat> stats = new ArrayList<>(tier.getBonusStats());
 
-    boolean masterwork = craftedSlotScore / MAX_SLOTS > 0.85 && craftedSocketScore / MAX_SOCKETS > 0.85;
+    boolean masterwork =
+        craftedSlotScore / MAX_SLOTS > 0.85 && craftedSocketScore / MAX_SOCKETS > 0.85;
 
     if (masterwork) {
       craftedSlotScore = Math.ceil(craftedSlotScore);
@@ -303,7 +325,8 @@ public final class CraftingListener implements Listener {
       } else {
         ItemStat stat = stats.get(random.nextInt(stats.size()));
         lore.add(ChatColor.AQUA + ChatColor
-            .stripColor(plugin.getStatManager().getFinalStat(stat, itemLevel, quality, false).getStatString()));
+            .stripColor(plugin.getStatManager().getFinalStat(stat, itemLevel, quality, false)
+                .getStatString()));
         stats.remove(stat);
       }
       craftedSlotScore--;
@@ -320,8 +343,8 @@ public final class CraftingListener implements Listener {
       lore.add(TextUtils.color("&8&o[ Flavor Text Slot ]"));
     }
 
-    ItemStackExtensionsKt.setLore(newResult, lore);
-    ItemStackExtensionsKt.addItemFlags(newResult, ItemFlag.HIDE_ATTRIBUTES);
+    TextUtils.setLore(newResult, lore);
+    newResult.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 
     // This section exists to clear existing item attributes and enforce
     // no stacking on equipment items
@@ -358,16 +381,18 @@ public final class CraftingListener implements Listener {
 
   @EventHandler
   public void onEssenceInfuse(PrepareItemCraftEvent event) {
+    updateCraftInvy(event.getInventory(), event.getRecipe(), (Player) event.getViewers().get(0));
+  }
 
-    if (event.getRecipe() == null || event.getRecipe().getResult().getType() != Material.END_CRYSTAL) {
+  private void updateCraftInvy(CraftingInventory craftingInventory, Recipe recipe, Player player) {
+    if (recipe == null || recipe.getResult().getType() != Material.END_CRYSTAL) {
       return;
     }
 
-    ItemStack resultStack = event.getRecipe().getResult();
     ItemStack equipmentItem = null;
     ItemStack essenceStack = null;
 
-    for (ItemStack is : event.getInventory().getMatrix()) {
+    for (ItemStack is : craftingInventory.getMatrix()) {
       if (!(essenceStack == null || equipmentItem == null)) {
         break;
       }
@@ -388,18 +413,19 @@ public final class CraftingListener implements Listener {
       return;
     }
 
-    if (getEssenceTier(essenceStack) != MaterialUtil.getTierFromStack(equipmentItem)) {
-      event.getInventory().getResult().setType(Material.BARRIER);
-      event.getInventory().getResult().setItemMeta(wrongTypeMeta);
+    if (!isEssenceTypeAny(essenceStack) && getEssenceTier(essenceStack) !=
+        MaterialUtil.getTierFromStack(equipmentItem)) {
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(wrongTypeMeta);
       return;
     }
 
-    List<String> lore = ItemStackExtensionsKt.getLore(equipmentItem);
+    List<String> lore = TextUtils.getLore(equipmentItem);
     List<String> strippedLore = stripColor(lore);
 
     if (!lore.contains(CraftingListener.ESSENCE_SLOT_TEXT)) {
-      event.getInventory().getResult().setType(Material.BARRIER);
-      event.getInventory().getResult().setItemMeta(noSlotsMeta);
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(noSlotsMeta);
       return;
     }
 
@@ -408,39 +434,36 @@ public final class CraftingListener implements Listener {
 
     int essenceLevel = getEssenceLevel(essenceStack);
 
-    Player player = (Player) event.getViewers().get(0);
     int craftingLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.CRAFTING);
     double levelAdvantage = DeconstructListener.getLevelAdvantage(craftingLevel, itemLevel);
     if (levelAdvantage < 0) {
-      event.getInventory().getResult().setType(Material.BARRIER);
-      event.getInventory().getResult().setItemMeta(lowLevelMeta);
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(lowLevelMeta);
       return;
     }
 
     if (essenceLevel > itemLevel) {
-      event.getInventory().getResult().setType(Material.BARRIER);
-      event.getInventory().getResult().setItemMeta(powerfulEssenceMeta);
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(powerfulEssenceMeta);
       return;
     }
 
     List<String> existingCraftStatStrings = MaterialUtil.getValidEssenceStats(lore);
-
     String essenceStat = getEssenceStat(essenceStack);
-    String strippedStat = CharMatcher.javaLetter().or(CharMatcher.is(' '))
-        .retainFrom(ChatColor.stripColor(essenceStat).trim());
+    String matcherString = pattern.matcher(ChatColor.stripColor(essenceStat)).replaceAll("");
 
-    if (existingCraftStatStrings.contains(strippedStat)) {
-      event.getInventory().getResult().setType(Material.BARRIER);
-      event.getInventory().getResult().setItemMeta(dupeStatMeta);
+    if (existingCraftStatStrings.contains(matcherString)) {
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(dupeStatMeta);
       return;
     }
 
     int slotIndex = lore.indexOf(CraftingListener.ESSENCE_SLOT_TEXT);
     lore.set(slotIndex, ChatColor.AQUA + ChatColor.stripColor(essenceStat));
-    ItemStackExtensionsKt.setLore(equipmentItem, lore);
+    TextUtils.setLore(equipmentItem, lore);
 
-    event.getInventory().getResult().setType(equipmentItem.getType());
-    event.getInventory().getResult().setItemMeta(equipmentItem.getItemMeta());
+    craftingInventory.getResult().setType(equipmentItem.getType());
+    craftingInventory.getResult().setItemMeta(equipmentItem.getItemMeta());
   }
 
   @EventHandler(priority = EventPriority.LOWEST)
@@ -460,8 +483,10 @@ public final class CraftingListener implements Listener {
         .equals(EquipmentRecipeBuilder.INFUSE_NAME)) {
       return;
     }
-    plugin.getStrifePlugin().getSkillExperienceManager().addExperience((Player) event.getWhoClicked(),
-        LifeSkillType.CRAFTING, 25, false, false);
+    plugin.getStrifePlugin().getSkillExperienceManager()
+        .addExperience((Player) event.getWhoClicked(),
+            LifeSkillType.CRAFTING, 25, false, false);
+    updateCraftInvy(event.getInventory(), event.getRecipe(), (Player) event.getViewers().get(0));
   }
 
   private boolean isUncraftableByName(String name) {
@@ -479,10 +504,11 @@ public final class CraftingListener implements Listener {
         .isBlank(ItemStackExtensionsKt.getDisplayName(itemStack))) {
       return false;
     }
-    if (!ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(itemStack)).equals("Item Essence")) {
+    if (!ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(itemStack))
+        .equals("Item Essence")) {
       return false;
     }
-    List<String> lore = ItemStackExtensionsKt.getLore(itemStack);
+    List<String> lore = TextUtils.getLore(itemStack);
     List<String> strippedLore = stripColor(lore);
     if (strippedLore.get(0) == null || !strippedLore.get(0).startsWith("Item Level Requirement")) {
       return false;
@@ -497,29 +523,36 @@ public final class CraftingListener implements Listener {
   }
 
   private Tier getEssenceTier(ItemStack itemStack) {
-    String str = ChatColor.stripColor(ItemStackExtensionsKt.getLore(itemStack).get(1)).replace("Item Type: ", "");
+    String str = ChatColor.stripColor(TextUtils.getLore(itemStack).get(1))
+        .replace("Item Type: ", "");
     return plugin.getTierManager().getTier(str);
   }
 
+  private boolean isEssenceTypeAny(ItemStack itemStack) {
+    String str = ChatColor.stripColor(TextUtils.getLore(itemStack).get(1))
+        .replace("Item Type: ", "");
+    return "Any".equalsIgnoreCase(str);
+  }
+
   private String getEssenceStat(ItemStack itemStack) {
-    return ItemStackExtensionsKt.getLore(itemStack).get(2);
+    return TextUtils.getLore(itemStack).get(2);
   }
 
   private boolean hasQuality(ItemStack h) {
     return !StringUtils.isBlank(ItemStackExtensionsKt.getDisplayName(h)) && h.hasItemMeta()
-        && ItemStackExtensionsKt.getLore(h).get(1) != null &&
-        ChatColor.stripColor(ItemStackExtensionsKt.getLore(h).get(1)).startsWith("Quality: ");
+        && TextUtils.getLore(h).get(1) != null &&
+        ChatColor.stripColor(TextUtils.getLore(h).get(1)).startsWith("Quality: ");
   }
 
   private boolean hasItemLevel(ItemStack h) {
     return !StringUtils.isBlank(ItemStackExtensionsKt.getDisplayName(h)) && h.hasItemMeta()
-        && ItemStackExtensionsKt.getLore(h).get(0) != null &&
-        ChatColor.stripColor(ItemStackExtensionsKt.getLore(h).get(0)).startsWith("Item Level: ");
+        && TextUtils.getLore(h).get(0) != null &&
+        ChatColor.stripColor(TextUtils.getLore(h).get(0)).startsWith("Item Level: ");
   }
 
   private int getEssenceLevel(ItemStack h) {
     return NumberUtils.toInt(CharMatcher.digit().or(CharMatcher.is('-')).negate().collapseFrom(
-        ChatColor.stripColor(ItemStackExtensionsKt.getLore(h).get(0)), ' ').trim());
+        ChatColor.stripColor(TextUtils.getLore(h).get(0)), ' ').trim());
   }
 
   private boolean isDyeEvent(Material ingredient, Material result) {

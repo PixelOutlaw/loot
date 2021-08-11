@@ -16,7 +16,7 @@
  */
 package info.faceland.loot.sockets;
 
-import com.tealcube.minecraft.bukkit.TextUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.text.WordUtils;
 import info.faceland.loot.api.groups.ItemGroup;
@@ -134,7 +134,7 @@ public final class SocketGem implements Comparable<SocketGem> {
         ChatColor.GRAY + "open " + ChatColor.GOLD + "(Socket) " + ChatColor.GRAY + "to upgrade it!",
         ChatColor.WHITE + "Bonuses Applied:");
     lore.addAll(getLore());
-    ItemStackExtensionsKt.setLore(itemStack, TextUtils.color(lore));
+    TextUtils.setLore(itemStack, TextUtils.color(lore));
     itemStack.setDurability((short) 11);
     return itemStack;
   }

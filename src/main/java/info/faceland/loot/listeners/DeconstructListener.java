@@ -7,6 +7,7 @@ import static info.faceland.loot.utils.MaterialUtil.getLevelRequirement;
 import static info.faceland.loot.utils.MaterialUtil.getToolLevel;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.events.LootDeconstructEvent;
@@ -138,7 +139,7 @@ public class DeconstructListener implements Listener {
 
     int toolQuality = 1;
     if (cursorItem.hasItemMeta()) {
-      toolQuality = (int) ItemStackExtensionsKt.getLore(cursorItem).get(1).chars().filter(ch -> ch == '✪').count();
+      toolQuality = (int) TextUtils.getLore(cursorItem).get(1).chars().filter(ch -> ch == '✪').count();
     }
 
     double levelAdvantage = getLevelAdvantage(craftingLevel, itemLevel);
@@ -152,7 +153,7 @@ public class DeconstructListener implements Listener {
     }
 
     double effectiveLevelAdvantage = getLevelAdvantage((int) effectiveCraftLevel, itemLevel);
-    List<String> lore = ItemStackExtensionsKt.getLore(targetItem);
+    List<String> lore = TextUtils.getLore(targetItem);
     List<String> possibleStats = new ArrayList<>();
     for (String str : lore) {
       if (!ChatColor.stripColor(str).startsWith("+")) {
@@ -216,7 +217,7 @@ public class DeconstructListener implements Listener {
       }
     }
 
-    List<String> toolLore = ItemStackExtensionsKt.getLore(cursorItem);
+    List<String> toolLore = TextUtils.getLore(cursorItem);
     if (ChatColor.stripColor(toolLore.get(toolLore.size() - 1)).startsWith("Remaining Uses: ")) {
       int uses = getDigit(ChatColor.stripColor(toolLore.get(toolLore.size() - 1)));
       if (uses == 1) {
@@ -225,7 +226,7 @@ public class DeconstructListener implements Listener {
       } else {
         uses--;
         toolLore.set(toolLore.size() - 1, ChatColor.WHITE + "Remaining Uses: " + uses);
-        ItemStackExtensionsKt.setLore(cursorItem, toolLore);
+        TextUtils.setLore(cursorItem, toolLore);
         event.setCursorItem(cursorItem);
       }
     }

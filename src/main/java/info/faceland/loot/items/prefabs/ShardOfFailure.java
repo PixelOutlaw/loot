@@ -16,6 +16,7 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -33,12 +34,12 @@ public final class ShardOfFailure {
 
   public static ItemStack build(String name) {
     List<String> lore = new ArrayList<>();
-    for (String s : ItemStackExtensionsKt.getLore(item)) {
+    for (String s : TextUtils.getLore(item)) {
       s = s.replace("{name}", name);
       lore.add(s);
     }
     ItemStack shard = item.clone();
-    ItemStackExtensionsKt.setLore(shard, lore);
+    TextUtils.setLore(shard, lore);
     return shard;
   }
 
@@ -47,7 +48,7 @@ public final class ShardOfFailure {
     String name = ChatColor.RED + "Shard of Failure";
     FAILURE_NAME = name;
     ItemStackExtensionsKt.setDisplayName(stack, name);
-    ItemStackExtensionsKt.setLore(stack, ListExtensionsKt.chatColorize(Arrays.asList(
+    TextUtils.setLore(stack, ListExtensionsKt.chatColorize(Arrays.asList(
         "&7Place this item onto an",
         "&2Upgrade Scroll &7to raise",
         "&7its success chance!",

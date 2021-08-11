@@ -2,6 +2,7 @@ package info.faceland.loot.utils;
 
 import static info.faceland.loot.utils.InventoryUtil.getFirstColor;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils;
 import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
@@ -328,7 +329,7 @@ public class DropUtil implements Listener {
 
   private static ItemStack upgradeItemQuality(ItemStack his, int upgradeBonus) {
     boolean succeed = false;
-    List<String> lore = ItemStackExtensionsKt.getLore(his);
+    List<String> lore = TextUtils.getLore(his);
     for (int i = 0; i < lore.size(); i++) {
       String s = lore.get(i);
       String ss = ChatColor.stripColor(s);
@@ -346,7 +347,7 @@ public class DropUtil implements Listener {
       break;
     }
     if (succeed) {
-      ItemStackExtensionsKt.setLore(his, lore);
+      TextUtils.setLore(his, lore);
     }
     return his;
   }

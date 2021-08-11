@@ -18,11 +18,13 @@
  */
 package info.faceland.loot.items.prefabs;
 
-import com.tealcube.minecraft.bukkit.TextUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.Arrays;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 
 public final class ArcaneEnhancer {
@@ -32,7 +34,7 @@ public final class ArcaneEnhancer {
   public static void rebuild() {
     ItemStack stack = new ItemStack(Material.MAGMA_CREAM);
     ItemStackExtensionsKt.setDisplayName(stack, ChatColor.RED + "Arcane Enhancer");
-    ItemStackExtensionsKt.setLore(stack, TextUtils.color(Arrays.asList(
+    TextUtils.setLore(stack, TextUtils.color(Arrays.asList(
         "&7Use this at an enchantment",
         "&7table to &cenhance &7the power",
         "&7of an item's &9enchantment&7!",
@@ -44,6 +46,8 @@ public final class ArcaneEnhancer {
     )));
     stack.setDurability((short) 11);
     ItemStackExtensionsKt.setCustomModelData(stack, 79);
+    stack.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+    stack.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
     item = stack;
   }
 

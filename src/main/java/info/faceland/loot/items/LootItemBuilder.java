@@ -18,6 +18,7 @@
  */
 package info.faceland.loot.items;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.ItemBuilder;
 import info.faceland.loot.api.items.ItemGenerationReason;
@@ -152,8 +153,8 @@ public final class LootItemBuilder implements ItemBuilder {
     }
 
     ItemStackExtensionsKt.setDisplayName(stack, rarity.getColor() + prefix + " " + suffix);
-    ItemStackExtensionsKt.setLore(stack, lore);
-    ItemStackExtensionsKt.addItemFlags(stack, ItemFlag.HIDE_ATTRIBUTES);
+    TextUtils.setLore(stack, lore);
+    stack.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 
 
     // This section exists to clear existing item attributes and enforce

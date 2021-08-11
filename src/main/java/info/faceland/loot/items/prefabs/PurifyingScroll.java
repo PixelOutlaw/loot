@@ -18,7 +18,7 @@
  */
 package info.faceland.loot.items.prefabs;
 
-import com.tealcube.minecraft.bukkit.TextUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.Arrays;
 import org.bukkit.ChatColor;
@@ -32,7 +32,7 @@ public final class PurifyingScroll {
   public static void rebuild() {
     ItemStack stack = new ItemStack(Material.PAPER);
     ItemStackExtensionsKt.setDisplayName(stack, ChatColor.DARK_PURPLE + "Scroll Of Purity");
-    ItemStackExtensionsKt.setLore(stack, TextUtils.color(Arrays.asList(
+    TextUtils.setLore(stack, TextUtils.color(Arrays.asList(
         "&7Use this at an enchantment",
         "&7table to remove an item's",
         "&7enchantment"

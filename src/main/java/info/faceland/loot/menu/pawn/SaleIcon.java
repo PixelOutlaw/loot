@@ -18,9 +18,8 @@
  */
 package info.faceland.loot.menu.pawn;
 
-import com.tealcube.minecraft.bukkit.TextUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
-import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
 import ninja.amp.ampmenus.events.ItemClickEvent;
@@ -49,10 +48,10 @@ public class SaleIcon extends MenuItem {
       return getIcon();
     }
     ItemStack finalIcon = targetStack.clone();
-    List<String> newLore = new ArrayList<>(ItemStackExtensionsKt.getLore(finalIcon));
+    List<String> newLore = new ArrayList<>(TextUtils.getLore(finalIcon));
     newLore.add("");
     newLore.add(TextUtils.color("&6Sale Price: &e" + LootPlugin.getInstance().getEconomy().format(price)));
-    ItemStackExtensionsKt.setLore(finalIcon, newLore);
+    TextUtils.setLore(finalIcon, newLore);
     return finalIcon;
   }
 
