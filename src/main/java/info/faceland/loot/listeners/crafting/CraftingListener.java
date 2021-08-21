@@ -479,8 +479,7 @@ public final class CraftingListener implements Listener {
     if (event.isCancelled()) {
       return;
     }
-    if (!ItemStackExtensionsKt.getDisplayName(event.getRecipe().getResult())
-        .equals(EquipmentRecipeBuilder.INFUSE_NAME)) {
+    if (!EquipmentRecipeBuilder.INFUSE_NAME.equals(ItemStackExtensionsKt.getDisplayName(event.getRecipe().getResult()))) {
       return;
     }
     plugin.getStrifePlugin().getSkillExperienceManager()

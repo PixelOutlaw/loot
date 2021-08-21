@@ -18,6 +18,10 @@
  */
 package info.faceland.loot.utils;
 
+import com.loohp.interactivechat.api.InteractiveChatAPI;
+import com.loohp.interactivechat.libs.net.kyori.adventure.text.Component;
+import com.loohp.interactivechat.libs.net.kyori.adventure.text.TextComponent;
+import com.loohp.interactivechat.objectholders.ICPlayer;
 import com.loohp.interactivechatdiscordsrvaddon.InteractiveChatDiscordSrvAddon;
 import com.loohp.interactivechatdiscordsrvaddon.api.events.DiscordImageEvent;
 import com.loohp.interactivechatdiscordsrvaddon.graphics.ImageGeneration;
@@ -25,13 +29,11 @@ import com.loohp.interactivechatdiscordsrvaddon.objectholders.DiscordMessageCont
 import com.loohp.interactivechatdiscordsrvaddon.utils.DiscordItemStackUtils;
 import com.loohp.interactivechatdiscordsrvaddon.utils.DiscordItemStackUtils.DiscordDescription;
 import com.loohp.interactivechatdiscordsrvaddon.utils.DiscordItemStackUtils.DiscordToolTip;
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import github.scarsz.discordsrv.DiscordSRV;
 import github.scarsz.discordsrv.dependencies.jda.api.entities.TextChannel;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemStat;
-import io.pixeloutlaw.minecraft.spigot.garbage.BroadcastMessageUtil;
-import io.pixeloutlaw.minecraft.spigot.garbage.BroadcastMessageUtil.BroadcastItemVisibility;
-import io.pixeloutlaw.minecraft.spigot.garbage.BroadcastMessageUtil.BroadcastTarget;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.awt.Color;
@@ -61,17 +63,34 @@ public final class InventoryUtil {
 
   public static void sendToDiscord(Player player, ItemStack item, String format, boolean sendToAll) {
 
+    format = format.replace("%player%", player.getName());
+    String[] splitFormat = format.split("%item%", 2);
+
     ItemStack finalItem = item.clone();
-    BroadcastTarget target = sendToAll ? BroadcastTarget.SERVER : BroadcastTarget.PLAYER;
-    BroadcastMessageUtil.INSTANCE
-        .broadcastItem(format, player, finalItem, target, BroadcastItemVisibility.SHOW);
+    TextComponent textComponent;
+    if (splitFormat.length == 2) {
+      Component itemComponent = Component.text("");
+      try {
+        itemComponent = InteractiveChatAPI.createItemDisplayComponent(player, finalItem);
+      } catch (Exception ignored) {
+        Bukkit.getLogger().warning("sneed");
+      }
+      textComponent = Component.text(TextUtils.color(splitFormat[0]))
+          .append(itemComponent)
+          .append(Component.text(TextUtils.color(splitFormat[1])));
+    } else {
+      textComponent = Component.text(format);
+    }
 
     if (sendToAll) {
+      for (Player p : Bukkit.getOnlinePlayers()) {
+        InteractiveChatAPI.sendMessage(p, textComponent);
+      }
       String finalFormat = ChatColor.stripColor(StringExtensionsKt.chatColorize(format));
       Bukkit.getScheduler().runTaskAsynchronously(InteractiveChatDiscordSrvAddon.plugin, () -> {
         try {
           List<DiscordMessageContent> contents = new ArrayList<>();
-          BufferedImage image = ImageGeneration.getItemStackImage(finalItem, player);
+          BufferedImage image = ImageGeneration.getItemStackImage(finalItem, new ICPlayer(player));
           ByteArrayOutputStream itemOs = new ByteArrayOutputStream();
           ImageIO.write(image, "png", itemOs);
 
@@ -103,6 +122,8 @@ public final class InventoryUtil {
           Bukkit.getLogger().warning("Failed to send dang son to discord");
         }
       });
+    } else {
+      InteractiveChatAPI.sendMessage(player, textComponent);
     }
   }
 
