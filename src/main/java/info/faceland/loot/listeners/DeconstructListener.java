@@ -61,10 +61,9 @@ public class DeconstructListener implements Listener {
       return;
     }
     if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR ||
-        !(event.getWhoClicked() instanceof Player)) {
+        !(event.getWhoClicked() instanceof Player player)) {
       return;
     }
-    Player player = (Player) event.getWhoClicked();
     ItemStack currentItem = new ItemStack(event.getCurrentItem());
     ItemStack cursor = new ItemStack(event.getCursor());
 

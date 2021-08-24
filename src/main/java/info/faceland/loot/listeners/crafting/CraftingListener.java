@@ -137,6 +137,7 @@ public final class CraftingListener implements Listener {
       return;
     }
     for (ItemStack is : event.getInventory().getMatrix()) {
+      // Keep this == null, javadocs lies
       if (is == null || is.getType() == Material.AIR) {
         continue;
       }
@@ -245,7 +246,7 @@ public final class CraftingListener implements Listener {
         continue;
       }
       ItemStack loopItem = new ItemStack(is);
-      if (hasItemLevel(loopItem)) {
+      if (MaterialUtil.hasItemLevel(loopItem)) {
         int iLevel = NumberUtils.toInt(CharMatcher.digit().or(CharMatcher.is('-')).negate()
             .collapseFrom(ChatColor.stripColor(TextUtils.getLore(loopItem).get(0)), ' ')
             .trim());
@@ -254,7 +255,7 @@ public final class CraftingListener implements Listener {
         totalItemLevel += 0.5;
       }
       numMaterials++;
-      if (hasQuality(loopItem)) {
+      if (MaterialUtil.hasQuality(loopItem)) {
         long count = TextUtils.getLore(loopItem).get(1).chars().filter(ch -> ch == '✪')
             .count();
         totalQuality += count;
@@ -400,7 +401,7 @@ public final class CraftingListener implements Listener {
         continue;
       }
       ItemStack loopItem = new ItemStack(is);
-      if (isEssence(loopItem)) {
+      if (MaterialUtil.isEssence(loopItem)) {
         essenceStack = loopItem;
         continue;
       }
@@ -413,7 +414,7 @@ public final class CraftingListener implements Listener {
       return;
     }
 
-    if (!isEssenceTypeAny(essenceStack) && getEssenceTier(essenceStack) !=
+    if (!MaterialUtil.isEssenceTypeAny(essenceStack) && MaterialUtil.getEssenceTier(essenceStack) !=
         MaterialUtil.getTierFromStack(equipmentItem)) {
       craftingInventory.getResult().setType(Material.BARRIER);
       craftingInventory.getResult().setItemMeta(wrongTypeMeta);
@@ -432,7 +433,7 @@ public final class CraftingListener implements Listener {
     int itemLevel = NumberUtils.toInt(CharMatcher.digit().or(CharMatcher.is('-')).negate()
         .collapseFrom(ChatColor.stripColor(strippedLore.get(0)), ' ').trim());
 
-    int essenceLevel = getEssenceLevel(essenceStack);
+    int essenceLevel = MaterialUtil.getEssenceLevel(essenceStack);
 
     int craftingLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.CRAFTING);
     double levelAdvantage = DeconstructListener.getLevelAdvantage(craftingLevel, itemLevel);
@@ -449,7 +450,7 @@ public final class CraftingListener implements Listener {
     }
 
     List<String> existingCraftStatStrings = MaterialUtil.getValidEssenceStats(lore);
-    String essenceStat = getEssenceStat(essenceStack);
+    String essenceStat = MaterialUtil.getEssenceStat(essenceStack);
     String matcherString = pattern.matcher(ChatColor.stripColor(essenceStat)).replaceAll("");
 
     if (existingCraftStatStrings.contains(matcherString)) {
@@ -496,62 +497,6 @@ public final class CraftingListener implements Listener {
         name.startsWith(ChatColor.BLUE + "Enchantment Tome - ") ||
         name.startsWith(ChatColor.GOLD + "Socket Gem -") ||
         name.startsWith(ChatColor.DARK_AQUA + "Scroll Augment -");
-  }
-
-  private boolean isEssence(ItemStack itemStack) {
-    if (itemStack.getType() != Material.PRISMARINE_SHARD || StringUtils
-        .isBlank(ItemStackExtensionsKt.getDisplayName(itemStack))) {
-      return false;
-    }
-    if (!ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(itemStack))
-        .equals("Item Essence")) {
-      return false;
-    }
-    List<String> lore = TextUtils.getLore(itemStack);
-    List<String> strippedLore = stripColor(lore);
-    if (strippedLore.get(0) == null || !strippedLore.get(0).startsWith("Item Level Requirement")) {
-      return false;
-    }
-    if (strippedLore.get(1) == null || !strippedLore.get(1).startsWith("Item Type")) {
-      return false;
-    }
-    if (strippedLore.get(2) == null) {
-      return false;
-    }
-    return true;
-  }
-
-  private Tier getEssenceTier(ItemStack itemStack) {
-    String str = ChatColor.stripColor(TextUtils.getLore(itemStack).get(1))
-        .replace("Item Type: ", "");
-    return plugin.getTierManager().getTier(str);
-  }
-
-  private boolean isEssenceTypeAny(ItemStack itemStack) {
-    String str = ChatColor.stripColor(TextUtils.getLore(itemStack).get(1))
-        .replace("Item Type: ", "");
-    return "Any".equalsIgnoreCase(str);
-  }
-
-  private String getEssenceStat(ItemStack itemStack) {
-    return TextUtils.getLore(itemStack).get(2);
-  }
-
-  private boolean hasQuality(ItemStack h) {
-    return !StringUtils.isBlank(ItemStackExtensionsKt.getDisplayName(h)) && h.hasItemMeta()
-        && TextUtils.getLore(h).get(1) != null &&
-        ChatColor.stripColor(TextUtils.getLore(h).get(1)).startsWith("Quality: ");
-  }
-
-  private boolean hasItemLevel(ItemStack h) {
-    return !StringUtils.isBlank(ItemStackExtensionsKt.getDisplayName(h)) && h.hasItemMeta()
-        && TextUtils.getLore(h).get(0) != null &&
-        ChatColor.stripColor(TextUtils.getLore(h).get(0)).startsWith("Item Level: ");
-  }
-
-  private int getEssenceLevel(ItemStack h) {
-    return NumberUtils.toInt(CharMatcher.digit().or(CharMatcher.is('-')).negate().collapseFrom(
-        ChatColor.stripColor(TextUtils.getLore(h).get(0)), ' ').trim());
   }
 
   private boolean isDyeEvent(Material ingredient, Material result) {

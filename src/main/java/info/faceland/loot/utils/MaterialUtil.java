@@ -829,8 +829,64 @@ public final class MaterialUtil {
     return existingCraftStatStrings;
   }
 
+  public static boolean isEssence(ItemStack itemStack) {
+    if (itemStack.getType() != Material.PRISMARINE_SHARD || StringUtils
+            .isBlank(ItemStackExtensionsKt.getDisplayName(itemStack))) {
+      return false;
+    }
+    if (!ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(itemStack))
+            .equals("Item Essence")) {
+      return false;
+    }
+    List<String> lore = TextUtils.getLore(itemStack);
+    List<String> strippedLore = InventoryUtil.stripColor(lore);
+    if (strippedLore.get(0) == null || !strippedLore.get(0).startsWith("Item Level Requirement")) {
+      return false;
+    }
+    if (strippedLore.get(1) == null || !strippedLore.get(1).startsWith("Item Type")) {
+      return false;
+    }
+    if (strippedLore.get(2) == null) {
+      return false;
+    }
+    return true;
+  }
+
+  public static Tier getEssenceTier(ItemStack itemStack) {
+    String str = ChatColor.stripColor(TextUtils.getLore(itemStack).get(1))
+            .replace("Item Type: ", "");
+    return LootPlugin.getInstance().getTierManager().getTier(str);
+  }
+
+  public static boolean isEssenceTypeAny(ItemStack itemStack) {
+    String str = ChatColor.stripColor(TextUtils.getLore(itemStack).get(1))
+            .replace("Item Type: ", "");
+    return "Any".equalsIgnoreCase(str);
+  }
+
+  public static String getEssenceStat(ItemStack itemStack) {
+    return TextUtils.getLore(itemStack).get(2);
+  }
+
+  public static boolean hasQuality(ItemStack h) {
+    return !StringUtils.isBlank(ItemStackExtensionsKt.getDisplayName(h)) && h.hasItemMeta()
+            && TextUtils.getLore(h).get(1) != null &&
+            ChatColor.stripColor(TextUtils.getLore(h).get(1)).startsWith("Quality: ");
+  }
+
+  public static boolean hasItemLevel(ItemStack h) {
+    return !StringUtils.isBlank(ItemStackExtensionsKt.getDisplayName(h)) && h.hasItemMeta()
+            && TextUtils.getLore(h).get(0) != null &&
+            ChatColor.stripColor(TextUtils.getLore(h).get(0)).startsWith("Item Level: ");
+  }
+
+  public static int getEssenceLevel(ItemStack h) {
+    return NumberUtils.toInt(CharMatcher.digit().or(CharMatcher.is('-')).negate().collapseFrom(
+            ChatColor.stripColor(TextUtils.getLore(h).get(0)), ' ').trim());
+  }
+
   public static int getLevelRequirement(ItemStack stack) {
-    if (stack.getItemMeta() == null) {
+    if (stack.getItemMeta() == null || !stack.getItemMeta().hasLore()) {
       return -1;
     }
     if (TextUtils.getLore(stack).get(0) == null) {

@@ -9,6 +9,8 @@ import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.HashMap;
 import java.util.Map;
+
+import land.face.strife.util.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -85,6 +87,11 @@ public class PawnManager {
         rare = tome.getWeight() < 100;
       }
       return new PriceData(amount * price, rare);
+    }
+    if (MaterialUtil.isEssence(stack)) {
+      price = 2;
+      price += (double) MaterialUtil.getEssenceLevel(stack) * 0.15;
+      return new PriceData(amount * price, false);
     }
     if (MaterialUtil.getTierFromStack(stack) != null) {
       double itemLevel = MaterialUtil.getLevelRequirement(stack);
