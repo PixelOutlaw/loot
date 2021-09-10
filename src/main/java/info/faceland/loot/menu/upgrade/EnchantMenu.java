@@ -35,6 +35,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.util.ItemUtil;
 import land.face.strife.util.PlayerDataUtil;
 import ninja.amp.ampmenus.menus.ItemMenu;
 import org.apache.commons.lang.StringUtils;
@@ -186,6 +187,9 @@ public class EnchantMenu extends ItemMenu {
   }
 
   public void setSelectedEquipment(Player player, ItemStack selectedEquipment) {
+    if (MaterialUtil.isEssence(selectedEquipment)) {
+      return;
+    }
     this.selectedEquipment = selectedEquipment;
     equipmentIcon.getIcon().setAmount(selectedEquipment.getAmount());
     equipmentIcon.getIcon().setType(selectedEquipment.getType());

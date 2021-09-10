@@ -114,7 +114,13 @@ public class DeconstructListener implements Listener {
       return;
     }
     event.setCurrentItem(deconstructEvent.getTargetItem());
-    event.setCursor(deconstructEvent.getCursorItem());
+    if (deconstructEvent.getCursorItem() == null ||
+        deconstructEvent.getCursorItem().getType() == Material.AIR) {
+      event.getCursor().setAmount(0);
+    } else {
+      TextUtils.setLore(event.getCursor(), TextUtils.getLore(deconstructEvent.getCursorItem()));
+      event.getCursor().setAmount(deconstructEvent.getCursorItem().getAmount());
+    }
   }
 
   @EventHandler

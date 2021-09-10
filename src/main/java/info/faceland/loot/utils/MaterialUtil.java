@@ -343,6 +343,9 @@ public final class MaterialUtil {
     if (stack.getType().getMaxDurability() > 5) {
       return true;
     }
+    if (MaterialUtil.isEssence(stack)) {
+      return false;
+    }
     List<String> strip = InventoryUtil.stripColor(TextUtils.getLore(stack));
     for (String s : strip) {
       if (s.startsWith("+")) {
@@ -724,25 +727,26 @@ public final class MaterialUtil {
     ChatColor color;
     String prefix;
     switch (quality) {
-      case 2:
+      case 2 -> {
         prefix = "Quality";
         color = ChatColor.BLUE;
-        break;
-      case 3:
+      }
+      case 3 -> {
         prefix = "Rare";
         color = ChatColor.DARK_PURPLE;
-        break;
-      case 4:
+      }
+      case 4 -> {
         prefix = "Grand";
         color = ChatColor.RED;
-        break;
-      case 5:
+      }
+      case 5 -> {
         prefix = "Perfect";
         color = ChatColor.GOLD;
-        break;
-      default:
+      }
+      default -> {
         prefix = "Old";
         color = ChatColor.WHITE;
+      }
     }
     ItemStackExtensionsKt.setDisplayName(his, color + prefix + " " + name);
     List<String> lore = new ArrayList<>();
@@ -1010,18 +1014,9 @@ public final class MaterialUtil {
   }
 
   private static boolean isBannedUpgradeMaterial(ItemStack item) {
-    switch (item.getType()) {
-      case EMERALD:
-      case PAPER:
-      case NETHER_STAR:
-      case DIAMOND:
-      case GHAST_TEAR:
-      case ENCHANTED_BOOK:
-      case NAME_TAG:
-      case QUARTZ:
-        return true;
-      default:
-        return false;
-    }
+    return switch (item.getType()) {
+      case EMERALD, PAPER, NETHER_STAR, DIAMOND, GHAST_TEAR, ENCHANTED_BOOK, NAME_TAG, QUARTZ -> true;
+      default -> false;
+    };
   }
 }

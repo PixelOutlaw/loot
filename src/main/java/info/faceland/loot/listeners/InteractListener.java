@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import land.face.strife.data.champion.LifeSkillType;
@@ -181,11 +182,10 @@ public final class InteractListener implements Listener {
     if (event.getCurrentItem() == null || event.getCursor() == null
         || event.getCurrentItem().getType() == Material.AIR
         || event.getCursor().getType() == Material.AIR || !(event
-        .getWhoClicked() instanceof Player)) {
+        .getWhoClicked() instanceof Player player)) {
       return;
     }
 
-    Player player = (Player) event.getWhoClicked();
     ItemStack targetItem = new ItemStack(event.getCurrentItem());
     ItemStack cursor = new ItemStack(event.getCursor());
     String cursorName = ItemStackExtensionsKt.getDisplayName(cursor);
@@ -213,7 +213,6 @@ public final class InteractListener implements Listener {
     TextUtils.setLore(targetItem, lore);
     event.setCurrentItem(targetItem);
     event.getCursor().setAmount(0);
-    event.setCursor(null);
     event.setCancelled(true);
     event.setResult(Event.Result.DENY);
     player.updateInventory();
@@ -335,9 +334,8 @@ public final class InteractListener implements Listener {
       if (isBannedMaterial(targetItem)) {
         return;
       }
-      String name = targetItemName;
-      if (plugin.getSettings().getStringList("config.cannot-be-upgraded", new ArrayList<String>())
-          .contains(stripColor(name))) {
+      if (plugin.getSettings().getStringList("config.cannot-be-upgraded", new ArrayList<>())
+          .contains(stripColor(targetItemName))) {
         return;
       }
       boolean succeed = false;
@@ -387,7 +385,12 @@ public final class InteractListener implements Listener {
       TextUtils.setLore(targetItem, lore);
       event.setCurrentItem(targetItem);
       cursor.setAmount(cursor.getAmount() - 1);
-      event.setCursor(cursor.getAmount() == 0 ? null : cursor);
+      if (cursor.getAmount() == 0) {
+        event.getCursor().setAmount(0);
+      } else  {
+        TextUtils.setLore(event.getCursor(), TextUtils.getLore(cursor));
+        event.getCursor().setAmount(cursor.getAmount());
+      }
       event.setCancelled(true);
       event.setResult(Event.Result.DENY);
       player.updateInventory();
@@ -531,10 +534,7 @@ public final class InteractListener implements Listener {
 
   private void updateItem(InventoryClickEvent e, ItemStack currentItem) {
     e.setCurrentItem(currentItem);
-    e.getCursor().setAmount(e.getCursor().getAmount() - 1);
-    if (e.getCursor().getAmount() <= 0) {
-      e.setCursor(null);
-    }
+    Objects.requireNonNull(e.getCursor()).setAmount(e.getCursor().getAmount() - 1);
     e.setCancelled(true);
     e.setResult(Event.Result.DENY);
     ((Player) e.getWhoClicked()).updateInventory();

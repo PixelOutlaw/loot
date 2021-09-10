@@ -193,12 +193,6 @@ public final class CombinerListener implements Listener {
     45 46 47 48 49 50 51 52 53
     */
 
-    //ItemStack stack = inventory.getItem(13);
-    //if (stack == null || stack.getType() != Material.NETHER_STAR || !"Transmutation Core"
-    //    .equals(ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)))) {
-    //  return;
-    //}
-
     String chestName = ((Chest) holder).getCustomName();
     if (StringUtils.isBlank(chestName)) {
       return;
@@ -210,8 +204,8 @@ public final class CombinerListener implements Listener {
     event.setCancelled(true);
     Inventory toShow = Bukkit.createInventory(null, 45, TextUtils.color("&5&lSocket Gem Combiner"));
     ItemStack buffer = new ItemStack(Material.IRON_BARS);
-    ItemStackExtensionsKt
-        .setDisplayName(buffer, TextUtils.color("&aClick a &6Socket Gem &ato begin!"));
+    ItemStackExtensionsKt.setDisplayName(buffer, TextUtils.color("&aClick a &6Socket Gem &ato begin!"));
+    ItemStackExtensionsKt.setCustomModelData(buffer, 99);
     for (int slot = 0; slot < toShow.getSize(); slot++) {
       if (slot == 10 || slot == 12 || slot == 14 || slot == 16 || slot == 31) {
         continue;
