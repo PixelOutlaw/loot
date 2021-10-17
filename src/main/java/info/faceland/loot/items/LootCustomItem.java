@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -34,6 +35,7 @@ import org.bukkit.attribute.AttributeModifier.Operation;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 public final class LootCustomItem implements CustomItem {
 
@@ -92,8 +94,7 @@ public final class LootCustomItem implements CustomItem {
     TextUtils.setLore(itemStack, TextUtils.color(this.lore));
     itemStack.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 
-    if (material.getMaxStackSize() == 1 || (material == Material.BOOK
-        || material == Material.ARROW)) {
+    if (material.getMaxStackSize() == 1 && customDataNumber > 8000) {
       // This section exists to clear existing item attributes and enforce
       // no stacking on equipment items
       ItemMeta meta = itemStack.getItemMeta();
@@ -105,6 +106,12 @@ public final class LootCustomItem implements CustomItem {
 
     if (customDataNumber != -1) {
       ItemStackExtensionsKt.setCustomModelData(itemStack, customDataNumber);
+      ItemMeta iMeta = itemStack.getItemMeta();
+      iMeta.addItemFlags(ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_DYE);
+      if (customDataNumber != -1 && iMeta instanceof LeatherArmorMeta) {
+        ((LeatherArmorMeta) iMeta).setColor(Color.fromRGB(customDataNumber));
+      }
+      itemStack.setItemMeta(iMeta);
     }
     if (!canBreak.isEmpty()) {
       ItemMeta iMeta = itemStack.getItemMeta();

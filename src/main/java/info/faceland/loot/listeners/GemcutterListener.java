@@ -19,28 +19,46 @@
 package info.faceland.loot.listeners;
 
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.items.prefabs.ArcaneEnhancer;
-import info.faceland.loot.items.prefabs.PurifyingScroll;
-import info.faceland.loot.menu.upgrade.EnchantMenu;
-import info.faceland.loot.utils.MaterialUtil;
+import info.faceland.loot.menu.gemcutter.GemcutterMenu;
 import ninja.amp.ampmenus.menus.MenuHolder;
 import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 
-public final class EnchantMenuListener implements Listener {
+public record GemcutterListener(LootPlugin plugin) implements Listener {
+
+  @EventHandler
+  public void onClickEnchantMenu(InventoryOpenEvent event) {
+    if (event.getInventory().getLocation() == null) {
+      return;
+    }
+    if (event.getInventory().getType() == InventoryType.GRINDSTONE) {
+      event.setCancelled(true);
+      Block block = event.getInventory().getLocation().getBlock();
+      BlockFace face = ((Directional) block.getBlockData()).getFacing();
+      if (face == BlockFace.NORTH || face == BlockFace.SOUTH
+          || face == BlockFace.EAST || face == BlockFace.WEST) {
+        plugin.getGemcutterMenu().setSelectedItem((Player) event.getPlayer(), null);
+        plugin.getGemcutterMenu().open((Player) event.getPlayer());
+      }
+    }
+  }
 
   @EventHandler(priority = EventPriority.LOW)
   public void onClickEnchantMenu(InventoryClickEvent event) {
     if (!(event.getInventory().getHolder() instanceof MenuHolder holder)) {
       return;
     }
-    if (!(((MenuHolder) event.getInventory().getHolder()).getMenu() instanceof EnchantMenu)) {
+    if (!(((MenuHolder) event.getInventory().getHolder()).getMenu() instanceof GemcutterMenu)) {
       return;
     }
     if (event.getClickedInventory() == null) {
@@ -58,36 +76,8 @@ public final class EnchantMenuListener implements Listener {
       return;
     }
     Player player = (Player) event.getWhoClicked();
-    EnchantMenu enchantMenu = (EnchantMenu) holder.getMenu();
-    if (MaterialUtil.isEnchantmentItem(stack)) {
-      enchantMenu.setSelectedUpgradeItem(player, stack);
-      enchantMenu.update(player);
-      player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
-    } else if (LootPlugin.getInstance().getScrollManager().getScroll(stack) != null) {
-      enchantMenu.setSelectedUpgradeItem(player, stack);
-      enchantMenu.update(player);
-      player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
-    } else if (MaterialUtil.isExtender(stack)) {
-      enchantMenu.setSelectedUpgradeItem(player, stack);
-      enchantMenu.update(player);
-      player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
-    } else if (stack.isSimilar(ArcaneEnhancer.get())) {
-      enchantMenu.setSelectedUpgradeItem(player, stack);
-      enchantMenu.update(player);
-      player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
-    } else if (stack.isSimilar(PurifyingScroll.get())) {
-      enchantMenu.setSelectedUpgradeItem(player, stack);
-      enchantMenu.update(player);
-      player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
-    } else if (MaterialUtil.isEquipmentItem(stack) || MaterialUtil.hasEnchantmentTag(stack)) {
-      enchantMenu.setSelectedEquipment(player, stack);
-      enchantMenu.update((Player) event.getWhoClicked());
-      player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
-    } else if (MaterialUtil.isNormalHead(stack)) {
-      enchantMenu.setSelectedUpgradeItem(player, stack);
-      enchantMenu.update(player);
-      player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
-    }
+    GemcutterMenu menu = (GemcutterMenu) holder.getMenu();
+    menu.setSelectedItem(player, stack);
   }
 
 }

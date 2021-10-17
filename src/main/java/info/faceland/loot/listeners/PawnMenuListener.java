@@ -23,26 +23,41 @@ import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.PriceData;
 import info.faceland.loot.menu.pawn.PawnMenu;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
+import java.util.HashMap;
 import ninja.amp.ampmenus.menus.MenuHolder;
 import org.bukkit.Material;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
 
-public final class PawnMenuListener implements Listener {
+public record PawnMenuListener(LootPlugin plugin) implements Listener {
 
-  private LootPlugin plugin;
+  @EventHandler(priority = EventPriority.HIGHEST)
+  public void closePawnWindow(InventoryCloseEvent event) {
+    if (!(event.getInventory().getHolder() instanceof MenuHolder holder)) {
+      return;
+    }
+    if (!(((MenuHolder) event.getInventory().getHolder()).getMenu() instanceof PawnMenu)) {
+      return;
+    }
+    PawnMenu pawnMenu = (PawnMenu) holder.getMenu();
+    HashMap<Integer, ItemStack> overflow = event.getPlayer().getInventory()
+        .addItem(pawnMenu.getReturnStacks().toArray(new ItemStack[0]));
 
-  public PawnMenuListener(LootPlugin plugin) {
-    this.plugin = plugin;
+    for (ItemStack stack : overflow.values()) {
+      Item item = event.getPlayer().getWorld().dropItem(event.getPlayer().getLocation(), stack);
+      item.setOwner(event.getPlayer().getUniqueId());
+    }
   }
 
   @EventHandler(priority = EventPriority.LOW)
   public void onClickPawnMenu(InventoryClickEvent event) {
-    if (!(event.getInventory().getHolder() instanceof MenuHolder)) {
+    if (!(event.getInventory().getHolder() instanceof MenuHolder holder)) {
       return;
     }
     if (!(((MenuHolder) event.getInventory().getHolder()).getMenu() instanceof PawnMenu)) {
@@ -62,14 +77,15 @@ public final class PawnMenuListener implements Listener {
     if (StringUtils.isNotBlank(name) && name.contains("Ability:")) {
       return;
     }
-    MenuHolder holder = (MenuHolder) event.getInventory().getHolder();
     PawnMenu pawnMenu = (PawnMenu) holder.getMenu();
 
     PriceData priceData = plugin.getPawnManager().getPrice(stack);
     if (priceData.getPrice() == -1) {
       return;
     }
-    pawnMenu.addItem((Player) event.getWhoClicked(), stack, priceData, event.getSlot());
+    if (pawnMenu.addItem((Player) event.getWhoClicked(), stack, priceData)) {
+      event.getClickedInventory().setItem(event.getSlot(), null);
+    }
   }
 
 }

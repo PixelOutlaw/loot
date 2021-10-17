@@ -18,7 +18,7 @@
  */
 package info.faceland.loot.managers;
 
-import info.faceland.loot.data.DeconstructData;
+import info.faceland.loot.data.MatchMaterial;
 import info.faceland.loot.utils.MaterialUtil;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,10 +30,10 @@ import org.bukkit.inventory.ItemStack;
 public final class LootCraftMatManager {
 
   private final Map<Material, String> craftMaterials;
-  private final Set<DeconstructData> deconstructDataSet;
+  private final Set<MatchMaterial> matchMaterialSet;
 
   public LootCraftMatManager() {
-    deconstructDataSet = new HashSet<>();
+    matchMaterialSet = new HashSet<>();
     craftMaterials = new HashMap<>();
   }
 
@@ -45,25 +45,25 @@ public final class LootCraftMatManager {
     return craftMaterials;
   }
 
-  public void addDeconstructData(DeconstructData deconstructData) {
-    deconstructDataSet.add(deconstructData);
+  public void addDeconstructData(MatchMaterial matchMaterial) {
+    matchMaterialSet.add(matchMaterial);
   }
 
-  public Set<DeconstructData> getDeconstructDataSet() {
-    return deconstructDataSet;
+  public Set<MatchMaterial> getDeconstructDataSet() {
+    return matchMaterialSet;
   }
 
   public Material getMaterial(ItemStack stack) {
-    for (DeconstructData data : deconstructDataSet) {
+    for (MatchMaterial data : matchMaterialSet) {
       if (data.getMaterial() != stack.getType()) {
         continue;
       }
       int customData = MaterialUtil.getCustomData(stack);
       if (data.getMinCustomData() == -1 && data.getMaxCustomData() == -1) {
-        return DeconstructData.getResultMaterial(data, craftMaterials.keySet());
+        return MatchMaterial.getResultMaterial(data, craftMaterials.keySet());
       }
       if (customData >= data.getMinCustomData() && customData <= data.getMaxCustomData()) {
-        return DeconstructData.getResultMaterial(data, craftMaterials.keySet());
+        return MatchMaterial.getResultMaterial(data, craftMaterials.keySet());
       }
     }
     return null;

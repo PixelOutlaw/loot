@@ -27,6 +27,8 @@ import java.util.Collections;
 import java.util.List;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.LoreAbility;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -39,6 +41,8 @@ public final class SocketGem implements Comparable<SocketGem> {
   private double distanceWeight;
   private double weightPerLevel;
   private double bonusWeight;
+  @Getter @Setter
+  private int customModelData;
   private String prefix;
   private String suffix;
   private List<String> lore;
@@ -134,6 +138,7 @@ public final class SocketGem implements Comparable<SocketGem> {
         ChatColor.GRAY + "open " + ChatColor.GOLD + "(Socket) " + ChatColor.GRAY + "to upgrade it!",
         ChatColor.WHITE + "Bonuses Applied:");
     lore.addAll(getLore());
+    ItemStackExtensionsKt.setCustomModelData(itemStack, customModelData);
     TextUtils.setLore(itemStack, TextUtils.color(lore));
     itemStack.setDurability((short) 11);
     return itemStack;

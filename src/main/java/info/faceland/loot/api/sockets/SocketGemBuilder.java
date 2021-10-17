@@ -49,6 +49,8 @@ public interface SocketGemBuilder {
 
     SocketGemBuilder withWeightPerLevel(double d);
 
+    SocketGemBuilder withCustomModelData(int i);
+
     SocketGemBuilder withBroadcast(boolean b);
 
     SocketGemBuilder withTriggerable(boolean b);

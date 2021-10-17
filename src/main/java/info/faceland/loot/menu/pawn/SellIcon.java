@@ -36,8 +36,8 @@ import org.bukkit.inventory.ItemStack;
 
 public class SellIcon extends MenuItem {
 
-  private PawnMenu menu;
-  private List<String> lore = new ArrayList<>();
+  private final PawnMenu menu;
+  private final List<String> lore = new ArrayList<>();
 
   private static final DecimalFormat DF = new DecimalFormat("###.#");
 
@@ -89,7 +89,7 @@ public class SellIcon extends MenuItem {
     event.getPlayer()
         .playSound(event.getPlayer().getLocation(), Sound.UI_BUTTON_CLICK, 1, 1.2f);
     int tradeLevel = PlayerDataUtil.getLifeSkillLevel(event.getPlayer(), LifeSkillType.TRADING);
-    int total = menu.sellItems(event.getPlayer());
+    int total = menu.sellItems();
     total = getModifiedTotal(total, tradeLevel);
     menu.update(event.getPlayer());
     if (total != 0) {

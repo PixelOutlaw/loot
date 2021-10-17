@@ -44,7 +44,8 @@ public class StatManager {
     return getFinalStat(itemStat, level, rarity, special, RollStyle.RANDOM);
   }
 
-  public StatResponse getFinalStat(ItemStat itemStat, double level, double rarity, boolean special, RollStyle style) {
+  public StatResponse getFinalStat(ItemStat itemStat, double level, double rarity, boolean special,
+      RollStyle style) {
     StatResponse response = new StatResponse();
     double statValue;
     float statRoll;
@@ -52,17 +53,11 @@ public class StatManager {
       statValue = itemStat.getMinBaseValue();
       statRoll = 0;
     } else {
-      switch (style) {
-        case MAX:
-          statRoll = 1;
-          break;
-        case MIN:
-          statRoll = 0;
-          break;
-        case RANDOM:
-        default:
-          statRoll = (float) Math.pow(random.nextDouble(), 2.5);
-      }
+      statRoll = switch (style) {
+        case MAX -> 1;
+        case MIN -> 0;
+        case RANDOM -> (float) Math.pow(random.nextDouble(), 2.5);
+      };
       statValue = itemStat.getMinBaseValue() + statRoll * (itemStat.getMaxBaseValue() - itemStat.getMinBaseValue());
     }
     response.setStatRoll(statRoll);

@@ -20,22 +20,23 @@ package info.faceland.loot.managers;
 
 import info.faceland.loot.api.groups.ItemGroup;
 import info.faceland.loot.api.managers.ItemGroupManager;
+import info.faceland.loot.data.MatchMaterial;
 import info.faceland.loot.tier.Tier;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 
 public final class LootItemGroupManager implements ItemGroupManager {
 
   private final Map<String, ItemGroup> itemGroupMap;
-  private final Map<Material, Set<Tier>> materialToTierMap;
+  private final Set<MatchMaterial> matchMaterials;
 
   public LootItemGroupManager() {
     itemGroupMap = new HashMap<>();
-    materialToTierMap = new HashMap<>();
+    matchMaterials = new HashSet<>();
   }
 
   @Override
@@ -66,22 +67,22 @@ public final class LootItemGroupManager implements ItemGroupManager {
   }
 
   @Override
-  public void addMaterialGroup(Material material, Set<Tier> tierIds) {
-    if (material == null || tierIds.isEmpty()) {
-      Bukkit.getLogger().warning("Did not add " + material + "to mat->tiermap. Invalid!");
-      return;
+  public void addMatchMaterial(MatchMaterial material) {
+    matchMaterials.add(material);
+  }
+
+  @Override
+  public Tier getTierFromStack(ItemStack stack) {
+    for (MatchMaterial material : matchMaterials) {
+      if (stack.getType() == material.getMaterial()) {
+        int modelData = stack.getItemMeta().hasCustomModelData() ? stack.getItemMeta().getCustomModelData() : 0;
+        if (modelData >= material.getMinCustomData() &&
+            (material.getMaxCustomData() == -1 || modelData <= material.getMaxCustomData())) {
+          return material.getTier();
+        }
+      }
     }
-    materialToTierMap.put(material, tierIds);
-  }
-
-  @Override
-  public void removeMaterialGroup(Material material) {
-    materialToTierMap.remove(material);
-  }
-
-  @Override
-  public Set<Tier> getMaterialGroup(Material material) {
-    return materialToTierMap.getOrDefault(material, null);
+    return null;
   }
 
   @Override
@@ -96,8 +97,8 @@ public final class LootItemGroupManager implements ItemGroupManager {
   }
 
   @Override
-  public Map<Material, Set<Tier>> getMaterialGroups() {
-    return materialToTierMap;
+  public Set<MatchMaterial> getMatchMaterials() {
+    return matchMaterials;
   }
 
 }

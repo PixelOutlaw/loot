@@ -23,5 +23,5 @@
 package info.faceland.loot.api.items;
 
 public enum ItemGenerationReason {
-    IDENTIFYING, COMMAND, EXTERNAL, MONSTER
+    IDENTIFYING, COMMAND, EXTERNAL, MONSTER, CRAFTING
 }

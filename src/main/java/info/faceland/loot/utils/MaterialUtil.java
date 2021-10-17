@@ -27,7 +27,7 @@ import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils;
 import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.data.DeconstructData;
+import info.faceland.loot.data.MatchMaterial;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.enchantments.EnchantmentTome;
@@ -46,12 +46,15 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import land.face.dinvy.events.EquipmentUpdateEvent;
+import land.face.dinvy.pojo.PlayerData;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.util.PlayerDataUtil;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
@@ -59,7 +62,11 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.material.Colorable;
+import org.jetbrains.annotations.NotNull;
 
 public final class MaterialUtil {
 
@@ -190,7 +197,7 @@ public final class MaterialUtil {
     int itemUpgradeLevel = MaterialUtil.getUpgradeLevel(targetName);
     int targetLevel = itemUpgradeLevel;
     int shards = getFailureBonus(scrollStack);
-    if (stack.getType() == Material.BOOK || stack.getType() == Material.ARROW) {
+    if (stack.getType().getMaxDurability() < 5) {
       targetLevel += 3;
     } else {
       targetLevel += 1;
@@ -417,7 +424,7 @@ public final class MaterialUtil {
       return;
     }
 
-    degradeItemEnchantment(item, player);
+    degradeItemEnchantment(item, null, player);
 
     List<String> lore = new ArrayList<>(TextUtils.getLore(item));
     String enchantmentStatString = ChatColor.stripColor(lore.get(index - 1));
@@ -510,7 +517,7 @@ public final class MaterialUtil {
     return false;
   }
 
-  public static void degradeItemEnchantment(ItemStack item, Player player) {
+  public static void degradeItemEnchantment(ItemStack item, PlayerData data, Player player) {
     if (!MaterialUtil.isEnchanted(item)) {
       return;
     }
@@ -520,6 +527,10 @@ public final class MaterialUtil {
       if (!isEnchantBar(barString)) {
         lore.add(barString);
         continue;
+      }
+      if (data != null) {
+        EquipmentUpdateEvent e = new EquipmentUpdateEvent(player, data, false);
+        Bukkit.getServer().getPluginManager().callEvent(e);
       }
       barString = barString.replace("" + ChatColor.BLUE, "");
       ChatColor incompleteBarColor;
@@ -537,8 +548,12 @@ public final class MaterialUtil {
       if (index <= 2) {
         lore.remove(lore.size() - 1);
         lore.add(ChatColor.BLUE + "(Enchantable)");
-        sendMessage(player,
-            LootPlugin.getInstance().getSettings().getString("language.enchant.degrade", ""));
+        sendMessage(player, LootPlugin.getInstance()
+            .getSettings().getString("language.enchant.degrade", ""));
+        if (data != null) {
+          EquipmentUpdateEvent e = new EquipmentUpdateEvent(player, data, true);
+          Bukkit.getServer().getPluginManager().callEvent(e);
+        }
         continue;
       } else if (index <= 5) {
         sendMessage(player,
@@ -904,24 +919,7 @@ public final class MaterialUtil {
   }
 
   public static Tier getTierFromStack(ItemStack stack) {
-    String strTier = "";
-    int data = MaterialUtil.getCustomData(stack);
-    for (DeconstructData dd : LootPlugin.getInstance().getCraftMatManager()
-        .getDeconstructDataSet()) {
-      if (StringUtils.isBlank(dd.getTierName())) {
-        continue;
-      }
-      if (dd.getMaterial() == stack.getType()) {
-        if (data >= dd.getMinCustomData() && data <= dd.getMaxCustomData()) {
-          strTier = dd.getTierName();
-          break;
-        }
-      }
-    }
-    if (StringUtils.isBlank(strTier)) {
-      strTier = LootPlugin.getInstance().getCraftBaseManager().getCraftBases().get(stack.getType());
-    }
-    return LootPlugin.getInstance().getTierManager().getTier(strTier);
+    return LootPlugin.getInstance().getItemGroupManager().getTierFromStack(stack);
   }
 
   public static int getItemRarity(ItemStack stack) {
@@ -999,6 +997,10 @@ public final class MaterialUtil {
     if (tier.getCustomDataStart() != -1) {
       int customModel = tier.getCustomDataStart() + level / tier.getCustomDataInterval();
       ItemStackExtensionsKt.setCustomModelData(stack, customModel);
+      if (stack.getItemMeta() instanceof LeatherArmorMeta meta) {
+        meta.setColor(Color.fromRGB(customModel));
+        stack.setItemMeta(meta);
+      }
     }
   }
 

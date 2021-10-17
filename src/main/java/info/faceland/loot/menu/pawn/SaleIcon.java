@@ -21,10 +21,13 @@ package info.faceland.loot.menu.pawn;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import ninja.amp.ampmenus.events.ItemClickEvent;
 import ninja.amp.ampmenus.items.MenuItem;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -60,8 +63,12 @@ public class SaleIcon extends MenuItem {
     super.onItemClick(event);
     price = 0;
     checkRare = false;
+    HashMap<Integer, ItemStack> overflow = event.getPlayer().getInventory().addItem(targetStack);
+    for (ItemStack stack : overflow.values()) {
+      Item item = event.getPlayer().getWorld().dropItem(event.getPlayer().getLocation(), stack);
+      item.setOwner(event.getPlayer().getUniqueId());
+    }
     targetStack = null;
-    menu.removeSlot(slot);
     event.setWillUpdate(true);
   }
 

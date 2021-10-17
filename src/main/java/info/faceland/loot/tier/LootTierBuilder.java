@@ -91,6 +91,18 @@ public final class LootTierBuilder implements TierBuilder {
   }
 
   @Override
+  public TierBuilder withSocketSlots(int d) {
+    tier.setSockets(d);
+    return this;
+  }
+
+  @Override
+  public TierBuilder withExtenderSlots(int d) {
+    tier.setExtenderSlots(d);
+    return this;
+  }
+
+  @Override
   public TierBuilder withIdentifyWeight(double d) {
     tier.setIdentifyWeight(d);
     return this;

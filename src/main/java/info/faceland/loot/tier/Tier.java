@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import land.face.market.data.PlayerMarketState.FilterFlagA;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 
@@ -44,6 +46,11 @@ public final class Tier implements Comparable<Tier> {
   private FilterFlagA filterFlag;
   private Set<ItemGroup> itemGroups;
   private List<String> suffixes = new ArrayList<>();
+
+  @Getter @Setter
+  private int sockets;
+  @Getter @Setter
+  private int extenderSlots;
 
   public Tier(String id) {
     this.id = id;

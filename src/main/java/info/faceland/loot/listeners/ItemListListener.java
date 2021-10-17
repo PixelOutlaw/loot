@@ -24,9 +24,11 @@ import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
+import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.tier.Tier;
 import info.faceland.loot.utils.MaterialUtil;
+import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import land.face.market.data.PlayerMarketState.Category;
 import land.face.market.data.PlayerMarketState.FilterFlagA;
 import land.face.market.data.PlayerMarketState.FilterFlagB;
@@ -80,6 +82,13 @@ public final class ItemListListener implements Listener {
       Bukkit.getLogger().info(" enhancer!");
       return;
     }
+    if (TinkerersGear.get().isSimilar(stack)) {
+      event.getListing().setCategory(Category.CATEGORY_2);
+      event.getListing().setFlagA(FilterFlagA.FLAG_6);
+      event.getListing().setFlagB(FilterFlagB.ALL);
+      Bukkit.getLogger().info(" tinker!");
+      return;
+    }
     if (SocketExtender.EXTENDER.isSimilar(stack)) {
       event.getListing().setCategory(Category.CATEGORY_2);
       event.getListing().setFlagA(FilterFlagA.FLAG_4);
@@ -117,6 +126,14 @@ public final class ItemListListener implements Listener {
       Bukkit.getLogger().info(" tier!");
       return;
     }
+    if (stack.getType() == Material.TRIPWIRE_HOOK && ItemStackExtensionsKt
+        .getDisplayName(stack).contains("Key")) {
+      event.getListing().setCategory(Category.CATEGORY_3);
+      event.getListing().setFlagA(FilterFlagA.FLAG_3);
+      event.getListing().setFlagB(FilterFlagB.ALL);
+      Bukkit.getLogger().info(" key!");
+      return;
+    }
     if (plugin.getCraftMatManager().getCraftMaterials().containsKey(stack.getType()) && stack
         .hasItemMeta()) {
       event.getListing().setCategory(Category.CATEGORY_4);
@@ -129,6 +146,19 @@ public final class ItemListListener implements Listener {
         }
       }
       Bukkit.getLogger().info(" material!");
+      return;
+    }
+    if (MaterialUtil.isEssence(stack)) {
+      event.getListing().setCategory(Category.CATEGORY_4);
+      event.getListing().setFlagA(FilterFlagA.FLAG_1);
+      int index = 1 + (MaterialUtil.getEssenceLevel(stack) - 1) / 10;
+      for (FilterFlagB b : MarketManager.FILTER_BS) {
+        if (b.ordinal() == index) {
+          event.getListing().setFlagB(b);
+          break;
+        }
+      }
+      Bukkit.getLogger().info(" essence!");
       return;
     }
   }

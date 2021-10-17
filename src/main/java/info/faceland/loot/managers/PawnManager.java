@@ -1,5 +1,6 @@
 package info.faceland.loot.managers;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.PriceData;
 import info.faceland.loot.data.UpgradeScroll;
@@ -8,6 +9,7 @@ import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import land.face.strife.util.ItemUtil;
@@ -94,10 +96,11 @@ public class PawnManager {
       return new PriceData(amount * price, false);
     }
     if (MaterialUtil.getTierFromStack(stack) != null) {
+      boolean unique = TextUtils.getLore(stack).get(1).contains("Unique");
       double itemLevel = MaterialUtil.getLevelRequirement(stack);
       int itemPlus = MaterialUtil.getUpgradeLevel(ItemStackExtensionsKt.getDisplayName(stack));
       price = (int) (baseEquipmentPrice + itemLevel * equipPricePerLevel);
-      return new PriceData(amount * price, itemPlus > 4);
+      return new PriceData(amount * price, itemPlus > 4 || unique);
     }
     double quality = MaterialUtil.getQuality(stack);
     if (quality > 0) {

@@ -1,21 +1,25 @@
 package info.faceland.loot.data;
 
+import info.faceland.loot.tier.Tier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 
-public class DeconstructData {
+public class MatchMaterial {
 
   private Material material;
-  private String tierName;
+  @Getter @Setter
+  private Tier tier;
   private int minCustomData;
   private int maxCustomData;
-  private List<Material> results = new ArrayList<>();
+  private final List<Material> results = new ArrayList<>();
 
-  private static Random random = new Random();
+  private static final Random random = new Random();
 
   public Material getMaterial() {
     return material;
@@ -23,14 +27,6 @@ public class DeconstructData {
 
   public void setMaterial(Material material) {
     this.material = material;
-  }
-
-  public String getTierName() {
-    return tierName;
-  }
-
-  public void setTierName(String tierName) {
-    this.tierName = tierName;
   }
 
   public int getMinCustomData() {
@@ -49,11 +45,11 @@ public class DeconstructData {
     this.maxCustomData = maxCustomData;
   }
 
-  public static void addResult(DeconstructData data, Material material) {
+  public static void addResult(MatchMaterial data, Material material) {
     data.results.add(material);
   }
 
-  public static Material getResultMaterial(DeconstructData data, Set<Material> validMats) {
+  public static Material getResultMaterial(MatchMaterial data, Set<Material> validMats) {
     Material material = data.results.get(random.nextInt(data.results.size()));
     if (validMats.contains(material)) {
       return material;

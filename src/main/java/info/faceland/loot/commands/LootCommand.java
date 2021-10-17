@@ -21,12 +21,14 @@ package info.faceland.loot.commands;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
 
 import com.destroystokyo.paper.Namespaced;
+import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.acf.BaseCommand;
 import com.tealcube.minecraft.bukkit.shade.acf.annotation.CommandAlias;
 import com.tealcube.minecraft.bukkit.shade.acf.annotation.CommandCompletion;
 import com.tealcube.minecraft.bukkit.shade.acf.annotation.CommandPermission;
 import com.tealcube.minecraft.bukkit.shade.acf.annotation.Default;
+import com.tealcube.minecraft.bukkit.shade.acf.annotation.Optional;
 import com.tealcube.minecraft.bukkit.shade.acf.annotation.Subcommand;
 import com.tealcube.minecraft.bukkit.shade.acf.bukkit.contexts.OnlinePlayer;
 import info.faceland.loot.LootPlugin;
@@ -39,6 +41,7 @@ import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
+import info.faceland.loot.menu.gemcutter.GemcutterMenu;
 import info.faceland.loot.menu.pawn.PawnMenu;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.sockets.SocketGem;
@@ -49,12 +52,15 @@ import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.List;
 import java.util.Random;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 @CommandAlias("loot")
 public class LootCommand extends BaseCommand {
@@ -64,9 +70,12 @@ public class LootCommand extends BaseCommand {
   private String awardFormat;
   private String awardFormatSelf;
 
+  private GemcutterMenu gemcutterMenu;
+
   public LootCommand(LootPlugin plugin) {
     this.plugin = plugin;
     this.random = new Random(System.currentTimeMillis());
+    gemcutterMenu = new GemcutterMenu(plugin);
     awardFormat = plugin.getSettings().getString("language.broadcast.reward-item", "");
     awardFormatSelf = plugin.getSettings().getString("language.broadcast.reward-item-self", "");
   }
@@ -106,15 +115,34 @@ public class LootCommand extends BaseCommand {
     sendMessage(sender, "Rewarded " + player.getPlayer().getName() + " successfully!");
   }
 
+  @Subcommand("rgb")
+  @CommandPermission("loot.rgb")
+  public void memeCommand(Player player, @Default("0") int number) {
+    if (number > 0) {
+      Color color = Color.fromRGB(number);
+      MessageUtils.sendMessage(player,
+          "r:" + color.getRed() + " g:" + color.getGreen() + " b:" + color.getBlue());
+      return;
+    }
+    ItemStack stack = player.getEquipment().getItemInMainHand();
+    if (stack.getItemMeta() instanceof LeatherArmorMeta) {
+      Color color = ((LeatherArmorMeta) stack.getItemMeta()).getColor();
+      MessageUtils.sendMessage(player,
+          "r:" + color.getRed() + " g:" + color.getGreen() + " b:" + color.getBlue());
+    }
+  }
+
   @Subcommand("give")
   @CommandPermission("loot.give")
   public class GiveCommand extends BaseCommand {
 
     @Subcommand("tier")
     @CommandCompletion("@players @tiers @rarities @range:1-100")
-    public void giveTier(CommandSender sender, OnlinePlayer player, String tier, String rarity, @Default("1") int amount, @Default("-1") int level) {
+    public void giveTier(CommandSender sender, OnlinePlayer player, String tier, String rarity,
+        @Default("1") int amount, @Default("-1") int level) {
       Tier t = tier.equalsIgnoreCase("random") ? null : plugin.getTierManager().getTier(tier);
-      ItemRarity r = rarity.equalsIgnoreCase("random") ? null : plugin.getRarityManager().getRarity(rarity);
+      ItemRarity r =
+          rarity.equalsIgnoreCase("random") ? null : plugin.getRarityManager().getRarity(rarity);
       for (int i = 0; i < amount; i++) {
         player.getPlayer().getInventory().addItem(
             plugin.getNewItemBuilder().withItemGenerationReason(ItemGenerationReason.COMMAND)
@@ -131,7 +159,8 @@ public class LootCommand extends BaseCommand {
 
     @Subcommand("tome")
     @CommandCompletion("@players @tomes @range:1-100")
-    public void giveTome(CommandSender sender, OnlinePlayer player, String id, @Default("1") int amount) {
+    public void giveTome(CommandSender sender, OnlinePlayer player, String id,
+        @Default("1") int amount) {
       if (id.equalsIgnoreCase("random")) {
         for (int i = 0; i < amount; i++) {
           player.getPlayer().getInventory().addItem(
@@ -158,7 +187,8 @@ public class LootCommand extends BaseCommand {
 
     @Subcommand("gem")
     @CommandCompletion("@players @gems @range:1-100")
-    public void giveGem(CommandSender sender, OnlinePlayer player, String id, @Default("1") int amount) {
+    public void giveGem(CommandSender sender, OnlinePlayer player, String id,
+        @Default("1") int amount) {
       if (id.equalsIgnoreCase("random")) {
         for (int i = 0; i < amount; i++) {
           giveItem(player.getPlayer(),
@@ -184,7 +214,8 @@ public class LootCommand extends BaseCommand {
 
     @Subcommand("unique")
     @CommandCompletion("@players @uniques @range:1-100")
-    public void giveUnique(CommandSender sender, OnlinePlayer player, String id, @Default("1") int amount) {
+    public void giveUnique(CommandSender sender, OnlinePlayer player, String id,
+        @Default("1") int amount) {
       if (id.equalsIgnoreCase("random")) {
         for (int i = 0; i < amount; i++) {
           giveItem(player.getPlayer(),
@@ -211,7 +242,8 @@ public class LootCommand extends BaseCommand {
 
     @Subcommand("scroll")
     @CommandCompletion("@players @scrolls @range:1-100")
-    public void giveScroll(CommandSender sender, OnlinePlayer player, String id, @Default("1") int amount) {
+    public void giveScroll(CommandSender sender, OnlinePlayer player, String id,
+        @Default("1") int amount) {
       if (id.equalsIgnoreCase("random")) {
         for (int i = 0; i < amount; i++) {
           player.getPlayer().getInventory().addItem(plugin.getScrollManager()
@@ -333,6 +365,13 @@ public class LootCommand extends BaseCommand {
       sendMessage(sender, "key: " + k.getKey());
       sendMessage(sender, "namespace: " + k.getNamespace());
     }
+  }
+
+  @Subcommand("gemcutter")
+  @CommandPermission("loot.inspect")
+  public void inspectKeys(CommandSender sender, OnlinePlayer target) {
+    gemcutterMenu.setSelectedItem(target.getPlayer(), null);
+    gemcutterMenu.open(target.getPlayer());
   }
 
   @Subcommand("rename")

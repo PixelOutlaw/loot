@@ -409,12 +409,12 @@ public class DropUtil implements Listener {
     if (customizedTierChance < random.nextDouble()) {
       return plugin.getTierManager().getRandomTier();
     }
-    List<Material> wornMaterials = getWornMaterials(killer);
+    List<ItemStack> itemStacks = getWornMaterials(killer);
     List<Tier> wornTiers = new ArrayList<>();
-    for (Material m : wornMaterials) {
-      Set<Tier> tiers = plugin.getItemGroupManager().getMaterialGroup(m);
-      if (tiers != null) {
-        wornTiers.addAll(tiers);
+    for (ItemStack i : itemStacks) {
+      Tier tier = plugin.getItemGroupManager().getTierFromStack(i);
+      if (tier != null) {
+        wornTiers.add(tier);
       }
     }
     if (wornTiers.isEmpty()) {
@@ -423,22 +423,22 @@ public class DropUtil implements Listener {
     return wornTiers.get(random.nextIntRange(0, wornTiers.size()));
   }
 
-  private static List<Material> getWornMaterials(Player player) {
-    List<Material> materials = new ArrayList<>();
+  private static List<ItemStack> getWornMaterials(Player player) {
+    List<ItemStack> wornItems = new ArrayList<>();
     for (ItemStack stack : player.getEquipment().getArmorContents()) {
       if (stack == null || stack.getType() == Material.AIR) {
         continue;
       }
-      materials.add(stack.getType());
+      wornItems.add(stack);
     }
     ItemStack handItem = player.getEquipment().getItemInMainHand();
-    if (handItem.getType() != Material.AIR) {
-      materials.add(handItem.getType());
+    if (handItem != null && handItem.getType() != Material.AIR) {
+      wornItems.add(handItem);
     }
     ItemStack offItem = player.getEquipment().getItemInOffHand();
-    if (offItem.getType() != Material.AIR) {
-      materials.add(offItem.getType());
+    if (offItem != null &&offItem.getType() != Material.AIR) {
+      wornItems.add(offItem);
     }
-    return materials;
+    return wornItems;
   }
 }

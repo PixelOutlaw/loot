@@ -122,16 +122,20 @@ public class EnchantmentTome {
     this.bonusWeight = bonusWeight;
   }
 
+  public static List<String> desc = TextUtils.color(Arrays.asList(
+      "&7Use this at an &dEnchantment Table",
+      "&7to upgrade an &9(Enchantable) &7item!",
+      "&bBonuses Applied:"
+  ));
+
   public ItemStack toItemStack(int amount) {
     ItemStack is = new ItemStack(Material.BOOK);
     is.setAmount(amount);
     ItemStackExtensionsKt.setDisplayName(is, ChatColor.BLUE + "Enchantment Tome - " + getName());
     List<String> lore = new ArrayList<>();
     lore.add(ChatColor.WHITE + "Type: " + (itemGroups.isEmpty() ? "Any" : itemGroupsToString()));
-    lore.addAll(Arrays.asList(ChatColor.GRAY + "Place this tome on an item that is",
-        ChatColor.BLUE + "(Enchantable) " + ChatColor.GRAY + "while close to an",
-        ChatColor.GRAY + "enchanting table to upgrade it!",
-        ChatColor.WHITE + "Bonuses Applied:"));
+    lore.addAll(desc);
+
     if (description != null && !description.isEmpty()) {
       lore.add(description);
     }

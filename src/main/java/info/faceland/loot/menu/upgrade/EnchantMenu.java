@@ -376,8 +376,7 @@ public class EnchantMenu extends ItemMenu {
       }
       confirmIcon.setDisplayName(validUpgrade);
       confirmIcon.getIcon().setType(Material.NETHER_STAR);
-      if (selectedEquipment.getType() == Material.BOOK
-          || selectedEquipment.getType() == Material.ARROW) {
+      if (selectedEquipment.getType().getMaxDurability() < 5) {
         itemPlus += 3;
       } else {
         itemPlus += 1;

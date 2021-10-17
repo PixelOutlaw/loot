@@ -27,6 +27,8 @@ import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils;
 import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
 import info.faceland.loot.LootPlugin;
+import info.faceland.loot.api.items.ItemGenerationReason;
+import info.faceland.loot.data.BuiltItem;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.events.LootCraftEvent;
 import info.faceland.loot.listeners.DeconstructListener;
@@ -225,7 +227,12 @@ public final class CraftingListener implements Listener {
 
     Player player = (Player) event.getWhoClicked();
 
-    Tier tier = MaterialUtil.getTierFromStack(resultStack);
+    Tier tier;
+    tier = MaterialUtil.getTierFromStack(resultStack);
+    if (tier == null) {
+      String tierId = plugin.getCraftBaseManager().getCraftBases().get(resultStack.getType());
+      tier = plugin.getTierManager().getTier(tierId);
+    }
 
     if (tier == null) {
       Bukkit.getLogger()
@@ -272,28 +279,29 @@ public final class CraftingListener implements Listener {
       return;
     }
 
-    double effiLevelAdvantage = DeconstructListener.getLevelAdvantage((int) effectiveCraftLevel,
-        (int) rawItemLevel);
-    double skillMultiplier = 1 + Math.min(1, effiLevelAdvantage / 25);
+    float effectiveLevelAdvantage = DeconstructListener.getLevelAdvantage(
+        (int) effectiveCraftLevel, (int) rawItemLevel);
+    float skillMultiplier = 1f + Math.min(1, effectiveLevelAdvantage / 25f);
     double quality = Math.max(1,
         Math.min(totalQuality / numMaterials, MAX_QUALITY) - (0.5 * random.nextDouble()));
 
-    double slotLuckBonus = (MAX_SLOTS - quality) * Math.pow(random.nextDouble(), 6);
-    double craftedSlotScore = Math.max(1, quality + slotLuckBonus);
-
-    double skillSocketRoll = skillMultiplier * 0.5 * Math.pow(random.nextDouble(), 2);
-    double luckSocketRoll = (1 - skillMultiplier) * Math.pow(random.nextDouble(), 6);
-    double craftedSocketScore = MAX_SOCKETS * (skillSocketRoll + luckSocketRoll);
-
-    if (skillMultiplier > 1.75) {
-      craftedSocketScore = Math.max(2, craftedSocketScore);
-    } else if (skillMultiplier > 1.5) {
-      craftedSocketScore = Math.max(1, craftedSocketScore);
-    }
-
     int itemLevel = (int) Math.max(1, Math.min(100, rawItemLevel - random.nextInt(4)));
+    float openSlotChance = (skillMultiplier - 1) * 0.7f;
 
-    ItemStack newResult = new ItemStack(event.getCurrentItem().getType());
+    BuiltItem builtItem = plugin.getNewItemBuilder()
+        .withTier(tier)
+        .withRarity(plugin.getRarityManager().getRandomRarityWithBonus(1 + quality * 100))
+        .withSlotScore(openSlotChance)
+        .withLevel(itemLevel)
+        .withCreator(player)
+        .withItemGenerationReason(ItemGenerationReason.CRAFTING)
+        .build();
+
+    ItemStack newResult = builtItem.getStack();
+
+    /*
+    List<Material> mats = new ArrayList<>(tier.getAllowedMaterials());
+    ItemStack newResult = new ItemStack(mats.get(0));
     ItemStackExtensionsKt.setDisplayName(newResult, ChatColor.AQUA +
         plugin.getNameManager().getRandomPrefix() + " " + plugin.getNameManager()
         .getRandomSuffix());
@@ -345,7 +353,9 @@ public final class CraftingListener implements Listener {
     }
 
     TextUtils.setLore(newResult, lore);
-    newResult.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+    newResult.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_DYE);
+
+    MaterialUtil.applyTierLevelData(newResult, tier, itemLevel);
 
     // This section exists to clear existing item attributes and enforce
     // no stacking on equipment items
@@ -356,6 +366,7 @@ public final class CraftingListener implements Listener {
     newResult.setItemMeta(meta);
 
     MaterialUtil.applyTierLevelData(newResult, tier, itemLevel);
+    */
 
     event.setCurrentItem(newResult);
     event.setCancelled(false);
@@ -363,9 +374,6 @@ public final class CraftingListener implements Listener {
     double exp = CRAFT_EXP * (numMaterials * 0.25);
     exp *= 1 + (itemLevel * CRAFT_LEVEL_MULT);
     exp *= 1 + (quality * CRAFT_QUALITY_MULT);
-    if (masterwork) {
-      exp *= CRAFT_MASTER_MULT;
-    }
     if (craftingLevel - 8 > rawItemLevel) {
       exp *= rawItemLevel / craftingLevel;
     }

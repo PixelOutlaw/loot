@@ -49,6 +49,10 @@ public interface TierBuilder {
 
     TierBuilder withSpawnWeight(double d);
 
+    TierBuilder withSocketSlots(int d);
+
+    TierBuilder withExtenderSlots(int d);
+
     TierBuilder withIdentifyWeight(double d);
 
     TierBuilder withStartingCustomData(int i);

@@ -29,7 +29,6 @@ import info.faceland.loot.api.enchantments.EnchantmentTomeBuilder;
 import info.faceland.loot.api.groups.ItemGroup;
 import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.CustomItemBuilder;
-import info.faceland.loot.api.items.ItemBuilder;
 import info.faceland.loot.api.managers.CreatureModManager;
 import info.faceland.loot.api.managers.CustomItemManager;
 import info.faceland.loot.api.managers.GemCacheManager;
@@ -42,7 +41,7 @@ import info.faceland.loot.api.sockets.effects.SocketEffect;
 import info.faceland.loot.api.tier.TierBuilder;
 import info.faceland.loot.commands.LootCommand;
 import info.faceland.loot.creatures.LootCreatureModBuilder;
-import info.faceland.loot.data.DeconstructData;
+import info.faceland.loot.data.MatchMaterial;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.JunkItemData;
@@ -53,7 +52,7 @@ import info.faceland.loot.enchantments.LootEnchantmentTomeBuilder;
 import info.faceland.loot.groups.LootItemGroup;
 import info.faceland.loot.io.SmartTextFile;
 import info.faceland.loot.items.LootCustomItemBuilder;
-import info.faceland.loot.items.LootItemBuilder;
+import info.faceland.loot.items.ItemBuilder;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
@@ -62,6 +61,7 @@ import info.faceland.loot.listeners.DeconstructListener;
 import info.faceland.loot.listeners.EnchantDegradeListener;
 import info.faceland.loot.listeners.EnchantMenuListener;
 import info.faceland.loot.listeners.EntityDeathListener;
+import info.faceland.loot.listeners.GemcutterListener;
 import info.faceland.loot.listeners.HeadHelmetsListener;
 import info.faceland.loot.listeners.InteractListener;
 import info.faceland.loot.listeners.ItemListListener;
@@ -88,6 +88,7 @@ import info.faceland.loot.managers.ScrollManager;
 import info.faceland.loot.managers.SocketGemManager;
 import info.faceland.loot.managers.StatManager;
 import info.faceland.loot.managers.TierManager;
+import info.faceland.loot.menu.gemcutter.GemcutterMenu;
 import info.faceland.loot.menu.pawn.PawnMenu;
 import info.faceland.loot.recipe.EquipmentRecipeBuilder;
 import info.faceland.loot.sockets.LootSocketGemBuilder;
@@ -112,6 +113,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import land.face.market.data.PlayerMarketState.FilterFlagA;
 import land.face.strife.StrifePlugin;
+import lombok.Getter;
 import net.milkbowl.vault.economy.Economy;
 import org.black_ixx.playerpoints.PlayerPoints;
 import org.black_ixx.playerpoints.PlayerPointsAPI;
@@ -171,6 +173,9 @@ public final class LootPlugin extends FacePlugin {
 
   private Economy economy;
   private PlayerPointsAPI playerPointsAPI;
+
+  @Getter
+  private GemcutterMenu gemcutterMenu;
 
   public static LootPlugin getInstance() {
     return instance;
@@ -232,16 +237,18 @@ public final class LootPlugin extends FacePlugin {
     uniqueDropsManager = new LootUniqueDropsManager();
     scrollManager = new ScrollManager();
 
+    gemcutterMenu = new GemcutterMenu(this);
+
     setupEconomy();
     setupPlayerPoints();
 
     loadItemGroups();
     loadCraftBases();
-    loadCraftMaterials();
     loadStats();
     loadRarities();
     loadTiers();
     // Load material to tier AFTER tiers or this will not work...
+    loadCraftMaterials();
     loadMaterialToTierMapping();
     loadNames();
     loadCustomItems();
@@ -286,6 +293,7 @@ public final class LootPlugin extends FacePlugin {
     Bukkit.getPluginManager().registerEvents(new CraftingListener(this), this);
     Bukkit.getPluginManager().registerEvents(new AnticheatListener(this), this);
     Bukkit.getPluginManager().registerEvents(new EnchantDegradeListener(this), this);
+    Bukkit.getPluginManager().registerEvents(new GemcutterListener(this), this);
     Bukkit.getPluginManager().registerEvents(new EnchantMenuListener(), this);
     Bukkit.getPluginManager().registerEvents(new ItemListListener(this), this);
     Bukkit.getPluginManager().registerEvents(new HeadHelmetsListener(), this);
@@ -602,6 +610,7 @@ public final class LootPlugin extends FacePlugin {
       builder.withDistanceWeight(cs.getDouble("distance-weight"));
       builder.withBonusWeight(cs.getDouble("bonus-weight"));
       builder.withWeightPerLevel(cs.getDouble("weight-per-level"));
+      builder.withCustomModelData(cs.getInt("custom-model-data", 2000));
       List<SocketEffect> effects = new ArrayList<>();
       for (String eff : cs.getStringList("effects")) {
         effects.add(LootSocketPotionEffect.parseString(eff));
@@ -741,23 +750,32 @@ public final class LootPlugin extends FacePlugin {
   }
 
   private void loadMaterialToTierMapping() {
-    getItemGroupManager().getMaterialGroups().clear();
-    for (String key : materialsYAML.getKeys(false)) {
-      if (!materialsYAML.isList(key)) {
+    getItemGroupManager().getMatchMaterials().clear();
+    for (String materialKey : materialsYAML.getKeys(false)) {
+      Material material;
+      try {
+        material = Material.valueOf(materialKey);
+      } catch (Exception e) {
+        Bukkit.getLogger().warning("[Loot] Material to tier " + materialKey + " is invalid.");
         continue;
       }
-      Material m = Material.getMaterial(key);
-      if (m == null || m == Material.AIR) {
-        continue;
-      }
-      Set<Tier> tiers = new HashSet<>();
-      for (String s : materialsYAML.getStringList(key)) {
-        Tier tier = getTierManager().getTier(s);
-        if (tier != null) {
-          tiers.add(tier);
+      ConfigurationSection matSection = materialsYAML.getConfigurationSection(materialKey);
+      for (String item : matSection.getKeys(false)) {
+        ConfigurationSection cs = matSection.getConfigurationSection(item);
+        MatchMaterial matchMaterial = new MatchMaterial();
+        matchMaterial.setMaterial(material);
+        matchMaterial.setMinCustomData(cs.getInt("min-model-data", -1));
+        matchMaterial.setMaxCustomData(cs.getInt("max-model-data", -1));
+        String tierString = cs.getString("tier-id");
+        Tier tier = getTierManager().getTier(tierString);
+        if (tier == null) {
+          Bukkit.getLogger()
+              .warning("[Loot] Material " + materialKey + " has invalid tier " + tierString);
+          continue;
         }
+        matchMaterial.setTier(tier);
+        getItemGroupManager().addMatchMaterial(matchMaterial);
       }
-      getItemGroupManager().addMaterialGroup(m, tiers);
     }
   }
 
@@ -789,13 +807,15 @@ public final class LootPlugin extends FacePlugin {
     for (String deconSection : deconstructSection.getKeys(false)) {
       ConfigurationSection section = deconstructSection.getConfigurationSection(deconSection);
       for (String key : section.getKeys(true)) {
-        DeconstructData data = new DeconstructData();
+        MatchMaterial data = new MatchMaterial();
         data.setMaterial(Material.valueOf(section.getString("material")));
         data.setMinCustomData(section.getInt("min-custom-data", -1));
-        data.setTierName(section.getString("tier-name", ""));
+        String tierString = section.getString("tier-name", "");
+        Tier tier = getTierManager().getTier(tierString);
+        data.setTier(tier);
         data.setMaxCustomData(section.getInt("max-custom-data", -1));
         for (String mat : section.getStringList("results")) {
-          DeconstructData.addResult(data, Material.valueOf(mat));
+          MatchMaterial.addResult(data, Material.valueOf(mat));
         }
         getCraftMatManager().addDeconstructData(data);
       }
@@ -902,6 +922,8 @@ public final class LootPlugin extends FacePlugin {
       builder.withIdentifyWeight(cs.getDouble("identify-weight"));
       builder.withStartingCustomData(cs.getInt("base-custom-data", -1));
       builder.withCustomDataInterval(cs.getInt("custom-data-level-interval", 200));
+      builder.withSocketSlots(cs.getInt("sockets", -1));
+      builder.withExtenderSlots(cs.getInt("extender-slots", -1));
       List<String> sl = cs.getStringList("item-groups");
       Set<ItemGroup> itemGroups = new HashSet<>();
       for (String s : sl) {
@@ -930,7 +952,7 @@ public final class LootPlugin extends FacePlugin {
 
       tiers.add(t);
     }
-    debug("Loaded tiers: " + loadedTiers.toString());
+    debug("Loaded tiers: " + loadedTiers);
     for (Tier t : tiers) {
       getTierManager().addTier(t);
     }
@@ -952,7 +974,7 @@ public final class LootPlugin extends FacePlugin {
   }
 
   public ItemBuilder getNewItemBuilder() {
-    return new LootItemBuilder(this);
+    return new ItemBuilder(this);
   }
 
   public CustomItemBuilder getNewCustomItemBuilder(String name, Material material) {

@@ -56,6 +56,7 @@ import java.util.UUID;
 import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.util.PlayerDataUtil;
 import org.apache.commons.lang.WordUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -71,6 +72,7 @@ import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.EnchantingInventory;
@@ -132,10 +134,9 @@ public final class InteractListener implements Listener {
       return;
     }
     InventoryHolder holder = inv.getHolder();
-    if (!(holder instanceof Player)) {
+    if (!(holder instanceof Player player)) {
       return;
     }
-    Player player = (Player) holder;
     if (player.isDead() || player.getHealth() <= 0D) {
       return;
     }
@@ -223,6 +224,30 @@ public final class InteractListener implements Listener {
         .addExperience(player, LifeSkillType.ENCHANTING, amount * 22, false, false);
   }
 
+  /*
+  @EventHandler(priority = EventPriority.LOWEST)
+  public void shearsEquip(InventoryClickEvent event) {
+    if (event.getClickedInventory() == null || event.getClickedInventory().getType()
+        != InventoryType.PLAYER) {
+      return;
+    }
+    if (event.getSlot() == 39 && event.getCursor() != null &&
+        event.getCursor().getType() == Material.SHEARS && !event.isShiftClick()) {
+      event.setCancelled(true);
+      if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) {
+        event.getWhoClicked().getInventory().setItem(39, event.getCursor().clone());
+        event.getCursor().setAmount(0);
+      } else {
+        ItemStack currentItem = event.getWhoClicked().getInventory().getItem(39).clone();
+        event.getWhoClicked().getInventory().setItem(39, event.getCursor().clone());
+        event.getCursor().setType(currentItem.getType());
+        event.getCursor().setAmount(currentItem.getAmount());
+        event.getCursor().setItemMeta(currentItem.getItemMeta());
+      }
+    }
+  }
+  */
+
   @EventHandler(priority = EventPriority.HIGHEST)
   public void onRightClickUse(InventoryClickEvent event) {
     if (event.getClick() != ClickType.RIGHT || !(event
@@ -232,11 +257,10 @@ public final class InteractListener implements Listener {
     if (event.getCurrentItem() == null || event.getCursor() == null ||
         event.getCurrentItem().getType() == Material.AIR ||
         event.getCursor().getType() == Material.AIR ||
-        !(event.getWhoClicked() instanceof Player)) {
+        !(event.getWhoClicked() instanceof Player player)) {
       return;
     }
 
-    Player player = (Player) event.getWhoClicked();
     ItemStack targetItem = new ItemStack(event.getCurrentItem());
     ItemStack cursor = new ItemStack(event.getCursor());
     String targetItemName = ItemStackExtensionsKt.getDisplayName(targetItem);

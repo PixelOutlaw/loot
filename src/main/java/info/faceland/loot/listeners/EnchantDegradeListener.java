@@ -21,6 +21,9 @@ package info.faceland.loot.listeners;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.utils.MaterialUtil;
+import land.face.dinvy.DeluxeInvyPlugin;
+import land.face.dinvy.pojo.PlayerData;
+import land.face.dinvy.windows.EquipmentMenu.DeluxeSlot;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -33,7 +36,7 @@ import org.bukkit.inventory.ItemStack;
 public final class EnchantDegradeListener implements Listener {
 
   private final LootPlugin plugin;
-  private LootRandom random;
+  private final LootRandom random;
 
   public EnchantDegradeListener(LootPlugin plugin) {
     this.plugin = plugin;
@@ -50,32 +53,24 @@ public final class EnchantDegradeListener implements Listener {
     if (random.nextDouble() > plugin.getSettings().getDouble("config.enchantment-degrade", 1.0)) {
       return;
     }
-    ItemStack item;
-    switch (random.nextInt(6)) {
-      case 0:
-        item = p.getEquipment().getItemInMainHand();
-        break;
-      case 1:
-        item = p.getEquipment().getItemInOffHand();
-        break;
-      case 2:
-        item = p.getEquipment().getHelmet();
-        break;
-      case 3:
-        item = p.getEquipment().getChestplate();
-        break;
-      case 4:
-        item = p.getEquipment().getLeggings();
-        break;
-      case 5:
-        item = p.getEquipment().getBoots();
-        break;
-      default:
-        item = null;
-    }
+    PlayerData data = DeluxeInvyPlugin.getInstance().getPlayerManager().getPlayerData(p);
+    ItemStack item = switch (random.nextInt(11)) {
+      case 0 -> p.getEquipment().getItemInMainHand();
+      case 1 -> p.getEquipment().getItemInOffHand();
+      case 2 -> data.getEquipmentItem(DeluxeSlot.HELMET);
+      case 3 -> data.getEquipmentItem(DeluxeSlot.BODY);
+      case 4 -> data.getEquipmentItem(DeluxeSlot.LEGS);
+      case 5 -> data.getEquipmentItem(DeluxeSlot.BOOTS);
+      case 6 -> data.getEquipmentItem(DeluxeSlot.RING_1);
+      case 7 -> data.getEquipmentItem(DeluxeSlot.RING_2);
+      case 8 -> data.getEquipmentItem(DeluxeSlot.EARRING_1);
+      case 9 -> data.getEquipmentItem(DeluxeSlot.EARRING_2);
+      case 10 -> data.getEquipmentItem(DeluxeSlot.NECKLACE);
+      default -> null;
+    };
     if (item == null || item.getType() == Material.AIR) {
       return;
     }
-    MaterialUtil.degradeItemEnchantment(item, p);
+    MaterialUtil.degradeItemEnchantment(item, data, p);
   }
 }
