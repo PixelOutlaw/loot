@@ -30,7 +30,7 @@
   <parent>
     <groupId>io.pixeloutlaw</groupId>
     <artifactId>generic-plugin-parent</artifactId>
-    <version>1.17.1.0</version>
+    <version>1.18.2.0</version>
   </parent>
 
   <artifactId>loot</artifactId>
@@ -62,13 +62,18 @@
       <id>loohp-repo</id>
       <url>https://repo.loohpjames.com/repository</url>
     </repository>
+    <repository>
+      <id>nexus</id>
+      <name>Lumine Public</name>
+      <url>https://mvn.lumine.io/repository/maven-public/</url>
+    </repository>
   </repositories>
 
   <dependencies>
     <dependency>
       <groupId>io.pixeloutlaw</groupId>
       <artifactId>facecore</artifactId>
-      <version>1.17.1.0</version>
+      <version>1.18.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -76,15 +81,34 @@
       <artifactId>paper-api</artifactId>
     </dependency>
     <dependency>
+      <groupId>me.clip</groupId>
+      <artifactId>placeholderapi</artifactId>
+      <version>2.11.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.loohp</groupId>
+      <artifactId>InteractiveChat</artifactId>
+      <version>4.1.1.14</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
       <groupId>io.pixeloutlaw</groupId>
       <artifactId>deluxe-invy</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.1</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.pixeloutlaw</groupId>
       <artifactId>strife</artifactId>
-      <version>3.5.0</version>
+      <version>3.6.4</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.pixeloutlaw</groupId>
+      <artifactId>bullion</artifactId>
+      <version>2.3.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -101,24 +125,24 @@
     <dependency>
       <groupId>com.loohp</groupId>
       <artifactId>InteractiveChatDiscordSrvAddon</artifactId>
-      <version>4.0.3.4</version>
+      <version>4.1.2.10</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.loohp</groupId>
-      <artifactId>InteractiveChat</artifactId>
-      <version>4.0.3.5</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.github.Xezard</groupId>
-      <artifactId>XGlow</artifactId>
-      <version>1.0.5</version>
     </dependency>
     <dependency>
       <groupId>com.github.Mitsugaru</groupId>
       <artifactId>PlayerPoints</artifactId>
       <version>master-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>io.pixeloutlaw</groupId>
+      <artifactId>Containers</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.inventivetalent</groupId>
+      <artifactId>glowapi</artifactId>
+      <version>1.5.1-SNAPSHOT</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.github.MilkBowl</groupId>
