@@ -26,15 +26,17 @@ import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.tier.Tier;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
+import land.face.strife.util.GlowUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -42,7 +44,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import ru.xezard.glow.data.glow.Glow;
 
 public class DropUtil implements Listener {
 
@@ -63,6 +64,8 @@ public class DropUtil implements Listener {
 
   private static LootRandom random;
 
+  public static Map<ChatColor, String> CHAT_TO_HEX = new HashMap<>();
+
   public static void refresh() {
     plugin = LootPlugin.getInstance();
     itemFoundFormat = plugin.getSettings().getString("language.broadcast.found-item", "");
@@ -81,12 +84,32 @@ public class DropUtil implements Listener {
     purityDropChance = plugin.getSettings().getDouble("config.drops.purity-scroll", 0D);
 
     random = new LootRandom();
+
+    CHAT_TO_HEX.put(ChatColor.BLACK, "#000000");
+    CHAT_TO_HEX.put(ChatColor.DARK_BLUE, "#0000AA");
+    CHAT_TO_HEX.put(ChatColor.DARK_GREEN, "#00AA00");
+    CHAT_TO_HEX.put(ChatColor.DARK_AQUA, "#00AAAA");
+    CHAT_TO_HEX.put(ChatColor.DARK_RED, "#AA0000");
+    CHAT_TO_HEX.put(ChatColor.DARK_PURPLE, "#AA00AA");
+    CHAT_TO_HEX.put(ChatColor.GOLD, "#FFAA00");
+    CHAT_TO_HEX.put(ChatColor.GRAY, "#AAAAAA");
+    CHAT_TO_HEX.put(ChatColor.DARK_GRAY, "#555555");
+    CHAT_TO_HEX.put(ChatColor.BLUE, "#5555FF");
+    CHAT_TO_HEX.put(ChatColor.GREEN, "#55FF55");
+    CHAT_TO_HEX.put(ChatColor.AQUA, "#55FFFF");
+    CHAT_TO_HEX.put(ChatColor.RED, "#FF5555");
+    CHAT_TO_HEX.put(ChatColor.LIGHT_PURPLE, "#FF55FF");
+    CHAT_TO_HEX.put(ChatColor.YELLOW, "#FFFF55");
+    CHAT_TO_HEX.put(ChatColor.WHITE, "#FFFFFF");
   }
 
   public static void dropLoot(LootDropEvent event) {
-    Player killer = Bukkit.getPlayer(event.getLooterUUID());
-    if (killer == null) {
-      return;
+    Player killer = null;
+    if (event.getLooterUUID() != null) {
+      killer = Bukkit.getPlayer(event.getLooterUUID());
+      if (killer == null) {
+        return;
+      }
     }
     double dropMultiplier = event.getQuantityMultiplier();
     double rarityMultiplier = event.getQualityMultiplier();
@@ -106,9 +129,12 @@ public class DropUtil implements Listener {
       }
     }
 
-    EntityType entityType = event.getEntity().getType();
     String worldName = event.getLocation().getWorld().getName();
-    boolean specialStat = addSpecialStat(entityType, worldName);
+    boolean specialStat = false;
+    if (event.getEntity() != null) {
+      EntityType entityType = event.getEntity().getType();
+      specialStat = addSpecialStat(entityType, worldName);
+    }
     boolean normalDrop = dropMultiplier * normalDropChance > random.nextDouble();
 
     while (bonusDrops.size() > 0 || normalDrop) {
@@ -130,11 +156,15 @@ public class DropUtil implements Listener {
         normalDrop = false;
       }
 
+      boolean distort = random.nextDouble() < 0.01;
+
       BuiltItem builtItem = plugin.getNewItemBuilder()
           .withTier(tier)
           .withRarity(rarity)
           .withLevel((int) itemLevel)
+          .withDistortion(distort)
           .withItemGenerationReason(ItemGenerationReason.MONSTER)
+          .withCreator(killer)
           .withSpecialStat(specialStat)
           .build();
 
@@ -142,7 +172,8 @@ public class DropUtil implements Listener {
 
       int qualityBonus = 1;
       double qualityChance = plugin.getSettings().getDouble("config.random-quality-chance", 0.1);
-      double multiQualityChance = plugin.getSettings().getDouble("config.multi-quality-chance", 0.1);
+      double multiQualityChance = plugin.getSettings()
+          .getDouble("config.multi-quality-chance", 0.1);
 
       if (random.nextDouble() <= qualityChance) {
         while (random.nextDouble() <= multiQualityChance && qualityBonus < 5) {
@@ -153,7 +184,8 @@ public class DropUtil implements Listener {
 
       int upgradeBonus = 1;
       double upgradeChance = plugin.getSettings().getDouble("config.random-upgrade-chance", 0.1);
-      double multiUpgradeChance = plugin.getSettings().getDouble("config.multi-upgrade-chance", 0.1);
+      double multiUpgradeChance = plugin.getSettings()
+          .getDouble("config.multi-upgrade-chance", 0.1);
 
       if (random.nextDouble() <= upgradeChance) {
         while (random.nextDouble() <= multiUpgradeChance && upgradeBonus < 15) {
@@ -165,9 +197,15 @@ public class DropUtil implements Listener {
       boolean broadcast = rarity.isBroadcast() || upgradeBonus > 4 || qualityBonus > 2;
       ChatColor glowColor = rarity.isBroadcast() ? rarity.getColor() : null;
       dropItem(event.getLocation(), tierItem, killer, builtItem.getTicksLived(), broadcast, glowColor);
+      if (distort && rarity.getPower() > 1.5) {
+        event.getLocation().getWorld().playSound(event.getLocation(), Sound.ENTITY_ENDERMAN_HURT, 2f, 0.5f);
+      } else if (broadcast) {
+        event.getLocation().getWorld().playSound(event.getLocation(), Sound.BLOCK_ENDER_CHEST_OPEN, 2f, 0.5f);
+      }
     }
 
-    if (random.nextDouble() < dropMultiplier * plugin.getSettings().getDouble("config.drops.craft-mat", 0D)) {
+    if (random.nextDouble() < dropMultiplier * plugin.getSettings()
+        .getDouble("config.drops.craft-mat", 0D)) {
       Object[] matArr = plugin.getCraftMatManager().getCraftMaterials().keySet().toArray();
       Material m = (Material) matArr[random.nextInt(matArr.length)];
 
@@ -195,14 +233,16 @@ public class DropUtil implements Listener {
 
       assert sg != null;
       ItemStack his = sg.toItemStack(1);
-      dropItem(event.getLocation(), his, killer, sg.isBroadcast(), sg.isBroadcast() ? ChatColor.GREEN : null);
+      dropItem(event.getLocation(), his, killer, sg.isBroadcast(),
+          sg.isBroadcast() ? ChatColor.GREEN : null);
     }
     if (plugin.getSettings().getBoolean("config.custom-enchanting", true)) {
       if (random.nextDouble() < dropMultiplier * tomeDropChance) {
         EnchantmentTome es = plugin.getEnchantTomeManager().getRandomEnchantTome(rarityMultiplier);
         assert es != null;
         ItemStack his = es.toItemStack(1);
-        dropItem(event.getLocation(), his, killer, es.isBroadcast(), es.isBroadcast() ? ChatColor.BLUE : null);
+        dropItem(event.getLocation(), his, killer, es.isBroadcast(),
+            es.isBroadcast() ? ChatColor.BLUE : null);
       }
       if (random.nextDouble() < dropMultiplier * enhancerDropChance) {
         dropItem(event.getLocation(), ArcaneEnhancer.get(), killer, true, ChatColor.RED);
@@ -217,13 +257,16 @@ public class DropUtil implements Listener {
     if (random.nextDouble() < dropMultiplier * scrollDropChance) {
       UpgradeScroll us = plugin.getScrollManager().getRandomScroll();
       ItemStack stack = plugin.getScrollManager().buildItemStack(us);
-      dropItem(event.getLocation(), stack, killer, us.isBroadcast(), us.isBroadcast() ? ChatColor.DARK_GREEN : null);
+      dropItem(event.getLocation(), stack, killer, us.isBroadcast(),
+          us.isBroadcast() ? ChatColor.DARK_GREEN : null);
     }
-    if (random.nextDouble() < dropMultiplier * plugin.getSettings().getDouble("config.drops.identity-tome", 0D)) {
+    if (random.nextDouble() < dropMultiplier * plugin.getSettings()
+        .getDouble("config.drops.identity-tome", 0D)) {
       ItemStack his = new IdentityTome();
       dropItem(event.getLocation(), his, killer, false, null);
     }
-    if (random.nextDouble() < dropMultiplier * plugin.getSettings().getDouble("config.drops.custom-item", 0D)) {
+    if (random.nextDouble() < dropMultiplier * plugin.getSettings()
+        .getDouble("config.drops.custom-item", 0D)) {
       CustomItem ci;
       if (plugin.getSettings().getBoolean("config.beast.beast-mode-activate", false)) {
         ci = plugin.getCustomItemManager().getRandomCustomItemByLevel((int) mobLevel);
@@ -236,7 +279,8 @@ public class DropUtil implements Listener {
       int qualityBonus = 1;
       if (ci.canBeQuality()) {
         double qualityChance = plugin.getSettings().getDouble("config.random-quality-chance", 0.1);
-        double multiQualityChance = plugin.getSettings().getDouble("config.multi-quality-chance", 0.1);
+        double multiQualityChance = plugin.getSettings()
+            .getDouble("config.multi-quality-chance", 0.1);
 
         if (random.nextDouble() <= qualityChance) {
           while (random.nextDouble() <= multiQualityChance && qualityBonus < 5) {
@@ -253,7 +297,8 @@ public class DropUtil implements Listener {
       dropItem(event.getLocation(), his, killer, true, ChatColor.AQUA);
     }
     // NOTE: Drop bonus should not be applied to Unidentified Items!
-    if (random.nextDouble() < dropMultiplier * plugin.getSettings().getDouble("config.drops.unidentified-item", 0D)) {
+    if (random.nextDouble() < dropMultiplier * plugin.getSettings()
+        .getDouble("config.drops.unidentified-item", 0D)) {
       Material m = Material.WOODEN_SWORD;
       ItemStack his;
       if (plugin.getSettings().getBoolean("config.beast.beast-mode-activate", false)) {
@@ -278,7 +323,8 @@ public class DropUtil implements Listener {
           continue;
         }
         ItemStack his = gem.toItemStack(1);
-        dropItem(location, his, killer, gem.isBroadcast(), gem.isBroadcast() ? ChatColor.GREEN : null);
+        dropItem(location, his, killer, gem.isBroadcast(),
+            gem.isBroadcast() ? ChatColor.GREEN : null);
       }
     }
     for (String tomeString : uniqueLoot.getTomeMap().keySet()) {
@@ -288,7 +334,8 @@ public class DropUtil implements Listener {
           continue;
         }
         ItemStack his = tome.toItemStack(1);
-        dropItem(location, his, killer, tome.isBroadcast(), tome.isBroadcast() ? ChatColor.BLUE : null);
+        dropItem(location, his, killer, tome.isBroadcast(),
+            tome.isBroadcast() ? ChatColor.BLUE : null);
       }
     }
     for (String tableName : uniqueLoot.getCustomItemMap().keySet()) {
@@ -309,7 +356,8 @@ public class DropUtil implements Listener {
             break;
           }
           ItemStack his = ci.toItemStack(1);
-          dropItem(location, his, killer, ci.isBroadcast(), ci.isBroadcast() ? ChatColor.GOLD : null);
+          dropItem(location, his, killer, ci.isBroadcast(),
+              ci.isBroadcast() ? ChatColor.GOLD : null);
           break;
         }
       }
@@ -340,9 +388,11 @@ public class DropUtil implements Listener {
       String loreLev = CharMatcher.digit().or(CharMatcher.is('-')).retainFrom(ss);
       int loreLevel = NumberUtils.toInt(loreLev);
       lore.set(i, s.replace("+" + loreLevel, "+" + (loreLevel + upgradeBonus)));
-      String qualityEnhanceName = plugin.getSettings().getString("language.quality." + upgradeBonus, "");
-      String name = getFirstColor(Objects.requireNonNull(ItemStackExtensionsKt.getDisplayName(his))) +
-          qualityEnhanceName + " " + ItemStackExtensionsKt.getDisplayName(his);
+      String qualityEnhanceName = plugin.getSettings()
+          .getString("language.quality." + upgradeBonus, "");
+      String name =
+          getFirstColor(Objects.requireNonNull(ItemStackExtensionsKt.getDisplayName(his))) +
+              qualityEnhanceName + " " + ItemStackExtensionsKt.getDisplayName(his);
       ItemStackExtensionsKt.setDisplayName(his, name);
       break;
     }
@@ -352,7 +402,8 @@ public class DropUtil implements Listener {
     return his;
   }
 
-  private static void dropItem(Location loc, ItemStack itemStack, Player looter, boolean broadcast, ChatColor glowColor) {
+  private static void dropItem(Location loc, ItemStack itemStack, Player looter, boolean broadcast,
+      ChatColor glowColor) {
     dropItem(loc, itemStack, looter, 0, broadcast, glowColor);
   }
 
@@ -360,18 +411,8 @@ public class DropUtil implements Listener {
       boolean broadcast, ChatColor glowColor) {
     Item drop = Objects.requireNonNull(loc.getWorld()).dropItemNaturally(loc, itemStack);
     try {
-      if (glowColor != null) {
-        Glow glow = Glow.builder()
-            .animatedColor(glowColor)
-            .name(UUID.randomUUID().toString().substring(0, 16))
-            .build();
-        glow.addHolders(drop);
-        glow.display(looter);
-        Bukkit.getScheduler().runTaskTimer(LootPlugin.getInstance(), () -> {
-          if (!drop.isValid()) {
-            glow.destroy();
-          }
-        }, 0L, 20L);
+      if (looter != null && glowColor != null) {
+        GlowUtil.setGlow(looter, drop, glowColor);
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -406,7 +447,7 @@ public class DropUtil implements Listener {
   }
 
   public static Tier getTier(Player killer) {
-    if (customizedTierChance < random.nextDouble()) {
+    if (killer == null || customizedTierChance < random.nextDouble()) {
       return plugin.getTierManager().getRandomTier();
     }
     List<ItemStack> itemStacks = getWornMaterials(killer);
@@ -436,7 +477,7 @@ public class DropUtil implements Listener {
       wornItems.add(handItem);
     }
     ItemStack offItem = player.getEquipment().getItemInOffHand();
-    if (offItem != null &&offItem.getType() != Material.AIR) {
+    if (offItem != null && offItem.getType() != Material.AIR) {
       wornItems.add(offItem);
     }
     return wornItems;

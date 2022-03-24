@@ -90,11 +90,11 @@ public final class InventoryUtil {
       Bukkit.getScheduler().runTaskAsynchronously(InteractiveChatDiscordSrvAddon.plugin, () -> {
         try {
           List<DiscordMessageContent> contents = new ArrayList<>();
-          BufferedImage image = ImageGeneration.getItemStackImage(finalItem, new ICPlayer(player));
+          BufferedImage image = ImageGeneration.getItemStackImage(finalItem, InteractiveChatAPI.getICPlayer(player));
           ByteArrayOutputStream itemOs = new ByteArrayOutputStream();
           ImageIO.write(image, "png", itemOs);
 
-          DiscordDescription description = DiscordItemStackUtils.getDiscordDescription(finalItem);
+          DiscordDescription description = DiscordItemStackUtils.getDiscordDescription(finalItem, player);
 
           Color color = DiscordItemStackUtils.getDiscordColor(finalItem);
           DiscordMessageContent content = new DiscordMessageContent(description.getName(),
@@ -102,7 +102,7 @@ public final class InventoryUtil {
           content.addAttachment("Item.png", itemOs.toByteArray());
           contents.add(content);
 
-          DiscordToolTip discordToolTip = DiscordItemStackUtils.getToolTip(finalItem);
+          DiscordToolTip discordToolTip = DiscordItemStackUtils.getToolTip(finalItem, player);
           if (!discordToolTip.isBaseItem()
               || InteractiveChatDiscordSrvAddon.plugin.itemUseTooltipImageOnBaseItem) {
             BufferedImage tooltip = ImageGeneration.getToolTipImage(discordToolTip.getComponents());
@@ -163,8 +163,7 @@ public final class InventoryUtil {
   }
 
   public static net.md_5.bungee.api.ChatColor getRollColor(double roll, float minHue, float maxHue,
-      float minSat,
-      float maxSat, float minBright, float maxBright) {
+      float minSat, float maxSat, float minBright, float maxBright) {
     float hue = minHue + (maxHue - minHue) * (float) roll;
     float saturation = minSat + (maxSat - minSat) * (float) roll;
     float brightness = minBright + (maxBright - minBright) * (float) roll;

@@ -74,6 +74,22 @@ public class LootRarityManager implements RarityManager {
   }
 
   @Override
+  public ItemRarity getRandomRarityWithMinimum(double minimum) {
+    double selectedWeight = random.nextDouble() * getTotalRarityWeightWithMinimum(minimum);
+    double currentWeight = 0;
+    for (ItemRarity rarity : getLoadedRarities().values()) {
+      double calcWeight = rarity.getWeight();
+      if (calcWeight >= 0) {
+        currentWeight += calcWeight;
+      }
+      if (currentWeight >= selectedWeight) {
+        return rarity;
+      }
+    }
+    return null;
+  }
+
+  @Override
   public ItemRarity getRandomIdRarity() {
     double selectedWeight = random.nextDouble() * getTotalIdRarityWeight();
     double currentWeight = 0;
@@ -115,6 +131,20 @@ public class LootRarityManager implements RarityManager {
     double weight = 0;
     for (ItemRarity rarity : getLoadedRarities().values()) {
       double d = rarity.getWeight() + rarity.getPower() * bonus;
+      if (d > 0D) {
+        weight += d;
+      }
+    }
+    return weight;
+  }
+
+  private double getTotalRarityWeightWithMinimum(double minimum) {
+    double weight = 0;
+    for (ItemRarity rarity : getLoadedRarities().values()) {
+      if (rarity.getPower() < minimum) {
+        continue;
+      }
+      double d = rarity.getWeight();
       if (d > 0D) {
         weight += d;
       }

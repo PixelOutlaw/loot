@@ -100,6 +100,15 @@ public class GemcutterMenu extends ItemMenu {
     } else if (modelData < 4000) {
       material = Material.LAPIS_LAZULI;
       name = "Sapphire";
+    } else if (modelData < 5000) {
+      material = Material.ORANGE_DYE;
+      name = "Topaz";
+    } else if (modelData < 6000) {
+      material = Material.AMETHYST_SHARD;
+      name = "Amethyst";
+    } else if (modelData < 7000) {
+      material = Material.PINK_DYE;
+      name = "Opal";
     }
     ItemStack result = new ItemStack(material);
     float upgradeChance = 0.3f * ((effectiveCraftLevel + 100) / (itemLevel + 100));

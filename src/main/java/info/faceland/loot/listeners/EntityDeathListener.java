@@ -67,9 +67,12 @@ public final class EntityDeathListener implements Listener {
     this.violationMap = new HashMap<>();
   }
 
-  @EventHandler(priority = EventPriority.HIGHEST)
+  @EventHandler(priority = EventPriority.HIGH)
   public void onEntityDeathEvent(EntityDeathEvent event) {
     if (event instanceof PlayerDeathEvent) {
+      return;
+    }
+    if (land.face.containers.utils.DropUtil.isContainer(event.getEntity())) {
       return;
     }
     if (event.getEntity().getType() == EntityType.RABBIT

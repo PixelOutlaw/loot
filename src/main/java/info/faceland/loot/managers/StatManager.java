@@ -9,6 +9,7 @@ import java.util.Map;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.Bukkit;
 
 public class StatManager {
 
@@ -22,7 +23,7 @@ public class StatManager {
 
   public ItemStat getStat(String name) {
     if (!itemStats.containsKey(name)) {
-      System.out.println("ERROR! No stat found for name " + name + "!");
+      Bukkit.getLogger().warning("ERROR! No stat found for name " + name + "!");
       return null;
     }
     return itemStats.get(name);

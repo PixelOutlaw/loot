@@ -23,8 +23,8 @@ import info.faceland.loot.menu.gemcutter.GemcutterMenu;
 import ninja.amp.ampmenus.menus.MenuHolder;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.Directional;
+import org.bukkit.block.data.FaceAttachable.AttachedFace;
+import org.bukkit.block.data.type.Grindstone;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -44,9 +44,8 @@ public record GemcutterListener(LootPlugin plugin) implements Listener {
     if (event.getInventory().getType() == InventoryType.GRINDSTONE) {
       event.setCancelled(true);
       Block block = event.getInventory().getLocation().getBlock();
-      BlockFace face = ((Directional) block.getBlockData()).getFacing();
-      if (face == BlockFace.NORTH || face == BlockFace.SOUTH
-          || face == BlockFace.EAST || face == BlockFace.WEST) {
+      Grindstone face = ((Grindstone) block.getBlockData());
+      if (face.getAttachedFace() == AttachedFace.FLOOR) {
         plugin.getGemcutterMenu().setSelectedItem((Player) event.getPlayer(), null);
         plugin.getGemcutterMenu().open((Player) event.getPlayer());
       }

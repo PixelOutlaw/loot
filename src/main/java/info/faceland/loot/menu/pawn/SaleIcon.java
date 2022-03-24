@@ -19,17 +19,16 @@
 package info.faceland.loot.menu.pawn;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
-import info.faceland.loot.LootPlugin;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import ninja.amp.ampmenus.events.ItemClickEvent;
 import ninja.amp.ampmenus.items.MenuItem;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.nunnerycode.mint.MintPlugin;
 
 public class SaleIcon extends MenuItem {
 
@@ -53,7 +52,7 @@ public class SaleIcon extends MenuItem {
     ItemStack finalIcon = targetStack.clone();
     List<String> newLore = new ArrayList<>(TextUtils.getLore(finalIcon));
     newLore.add("");
-    newLore.add(TextUtils.color("&6Sale Price: &e" + LootPlugin.getInstance().getEconomy().format(price)));
+    newLore.add(TextUtils.color("&6Sale Price: &e" + MintPlugin.getInstance().getEconomy().format(price)));
     TextUtils.setLore(finalIcon, newLore);
     return finalIcon;
   }

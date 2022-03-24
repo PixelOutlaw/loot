@@ -41,22 +41,23 @@ import info.faceland.loot.api.sockets.effects.SocketEffect;
 import info.faceland.loot.api.tier.TierBuilder;
 import info.faceland.loot.commands.LootCommand;
 import info.faceland.loot.creatures.LootCreatureModBuilder;
-import info.faceland.loot.data.MatchMaterial;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.JunkItemData;
+import info.faceland.loot.data.MatchMaterial;
 import info.faceland.loot.data.UniqueLoot;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.enchantments.LootEnchantmentTomeBuilder;
 import info.faceland.loot.groups.LootItemGroup;
 import info.faceland.loot.io.SmartTextFile;
-import info.faceland.loot.items.LootCustomItemBuilder;
 import info.faceland.loot.items.ItemBuilder;
+import info.faceland.loot.items.LootCustomItemBuilder;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
 import info.faceland.loot.items.prefabs.TinkerersGear;
+import info.faceland.loot.listeners.ContainerOpenListener;
 import info.faceland.loot.listeners.DeconstructListener;
 import info.faceland.loot.listeners.EnchantDegradeListener;
 import info.faceland.loot.listeners.EnchantMenuListener;
@@ -67,6 +68,7 @@ import info.faceland.loot.listeners.InteractListener;
 import info.faceland.loot.listeners.ItemListListener;
 import info.faceland.loot.listeners.ItemSpawnListener;
 import info.faceland.loot.listeners.PawnMenuListener;
+import info.faceland.loot.listeners.SoulGemListener;
 import info.faceland.loot.listeners.StrifeListener;
 import info.faceland.loot.listeners.anticheat.AnticheatListener;
 import info.faceland.loot.listeners.crafting.CraftingListener;
@@ -114,7 +116,6 @@ import java.util.logging.Level;
 import land.face.market.data.PlayerMarketState.FilterFlagA;
 import land.face.strife.StrifePlugin;
 import lombok.Getter;
-import net.milkbowl.vault.economy.Economy;
 import org.black_ixx.playerpoints.PlayerPoints;
 import org.black_ixx.playerpoints.PlayerPointsAPI;
 import org.bukkit.Bukkit;
@@ -126,7 +127,6 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.RegisteredServiceProvider;
 
 public final class LootPlugin extends FacePlugin {
 
@@ -170,8 +170,6 @@ public final class LootPlugin extends FacePlugin {
   private UniqueDropsManager uniqueDropsManager;
   private ScrollManager scrollManager;
   private StrifePlugin strifePlugin;
-
-  private Economy economy;
   private PlayerPointsAPI playerPointsAPI;
 
   @Getter
@@ -239,7 +237,6 @@ public final class LootPlugin extends FacePlugin {
 
     gemcutterMenu = new GemcutterMenu(this);
 
-    setupEconomy();
     setupPlayerPoints();
 
     loadItemGroups();
@@ -297,6 +294,7 @@ public final class LootPlugin extends FacePlugin {
     Bukkit.getPluginManager().registerEvents(new EnchantMenuListener(), this);
     Bukkit.getPluginManager().registerEvents(new ItemListListener(this), this);
     Bukkit.getPluginManager().registerEvents(new HeadHelmetsListener(), this);
+    Bukkit.getPluginManager().registerEvents(new SoulGemListener(), this);
     Bukkit.getPluginManager().registerEvents(new PawnMenuListener(this), this);
     Bukkit.getPluginManager().registerEvents(new ItemSpawnListener(), this);
     if (potionTriggersEnabled) {
@@ -305,6 +303,7 @@ public final class LootPlugin extends FacePlugin {
     if (strifePlugin != null && potionTriggersEnabled) {
       Bukkit.getPluginManager().registerEvents(new StrifeListener(this), this);
     }
+    Bukkit.getPluginManager().registerEvents(new ContainerOpenListener(), this);
     debug("v" + getDescription().getVersion() + " enabled");
   }
 
@@ -314,7 +313,6 @@ public final class LootPlugin extends FacePlugin {
     Bukkit.getScheduler().cancelTasks(this);
 
     playerPointsAPI = null;
-    economy = null;
   }
 
   private boolean setupPlayerPoints() {
@@ -324,18 +322,6 @@ public final class LootPlugin extends FacePlugin {
       return false;
     }
     playerPointsAPI = ((PlayerPoints) ppplugin).getAPI();
-    return true;
-  }
-
-  private boolean setupEconomy() {
-    if (Bukkit.getPluginManager().getPlugin("Vault") == null) {
-      return false;
-    }
-    RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-    if (rsp == null) {
-      return false;
-    }
-    economy = rsp.getProvider();
     return true;
   }
 
@@ -419,8 +405,10 @@ public final class LootPlugin extends FacePlugin {
     for (EnchantmentTome es : tomes) {
       getEnchantTomeManager().addEnchantTome(es);
     }
-    debug("Loaded enchantment tomes: " + loadedTomes.toString());
+    debug("Loaded enchantment tomes: " + loadedTomes);
   }
+
+  public static Map<String, List<String>> staticAbuse = new HashMap<>();
 
   private void loadScrolls() {
     for (String key : scrollsYAML.getKeys(false)) {
@@ -432,6 +420,7 @@ public final class LootPlugin extends FacePlugin {
       scroll.setId(key);
       scroll.setPrefix(cs.getString("prefix", "CONFIGURE PREFIX FOR SCROLL" + key));
       scroll.setLore(TextUtils.color(cs.getStringList("lore")));
+      staticAbuse.put(key, cs.getStringList("lore"));
       scroll.setBaseSuccess(cs.getDouble("base-success", 1.0));
       scroll.setFlatDecay(cs.getDouble("flat-decay", 0.01));
       scroll.setPercentDecay(cs.getDouble("percent-decay", 0.01));
@@ -588,7 +577,7 @@ public final class LootPlugin extends FacePlugin {
     for (MobInfo cm : mods) {
       creatureModManager.addMobInfo(cm);
     }
-    System.out.println("Loaded creature mods: " + loadedMods.toString());
+    Bukkit.getLogger().info("Loaded creature mods: " + loadedMods);
   }
 
   private void loadSocketGems() {
@@ -1063,10 +1052,6 @@ public final class LootPlugin extends FacePlugin {
 
   public ScrollManager getScrollManager() {
     return scrollManager;
-  }
-
-  public Economy getEconomy() {
-    return economy;
   }
 
   public PlayerPointsAPI getPlayerPointsAPI() {

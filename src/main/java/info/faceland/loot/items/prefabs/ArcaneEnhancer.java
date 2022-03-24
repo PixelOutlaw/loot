@@ -21,6 +21,7 @@ package info.faceland.loot.items.prefabs;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.Arrays;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -35,14 +36,12 @@ public final class ArcaneEnhancer {
     ItemStack stack = new ItemStack(Material.MAGMA_CREAM);
     ItemStackExtensionsKt.setDisplayName(stack, ChatColor.RED + "Arcane Enhancer");
     TextUtils.setLore(stack, TextUtils.color(Arrays.asList(
-        "&7Use this at an enchantment",
-        "&7table to &cenhance &7the power",
-        "&7of an item's &9enchantment&7!",
-        "",
-        "&8&oEnhanced items cannot have",
-        "&8&otheir enchantments refilled",
-        "&8&oand will eventually revert",
-        "&8&oto being (Enchantable)"
+        "&7Use this at an enchantment table",
+        "&7to &cenhance &7the power of an",
+        "&7item's &9enchantment&7!",
+        "&8&oEnhanced items cannot have their",
+        "&8&oenchantment refilled and will",
+        "&8&oslowly revert to &9&o(Enchantable)"
     )));
     stack.setDurability((short) 11);
     ItemStackExtensionsKt.setCustomModelData(stack, 79);
@@ -53,5 +52,19 @@ public final class ArcaneEnhancer {
 
   public static ItemStack get() {
     return item.clone();
+  }
+
+  public static boolean isSimilar(ItemStack stack) {
+    if (stack == null) {
+      return false;
+    }
+    if (item.getType() != stack.getType()) {
+      return false;
+    }
+    String stackName = ItemStackExtensionsKt.getDisplayName(stack);
+    if (StringUtils.isBlank(stackName)) {
+      return false;
+    }
+    return stackName.equals(ItemStackExtensionsKt.getDisplayName(item));
   }
 }

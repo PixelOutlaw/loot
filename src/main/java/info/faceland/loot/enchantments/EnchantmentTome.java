@@ -122,11 +122,13 @@ public class EnchantmentTome {
     this.bonusWeight = bonusWeight;
   }
 
-  public static List<String> desc = TextUtils.color(Arrays.asList(
+  public static List<String> UNCOLORED_TOME_DESC = Arrays.asList(
       "&7Use this at an &dEnchantment Table",
       "&7to upgrade an &9(Enchantable) &7item!",
       "&bBonuses Applied:"
-  ));
+  );
+
+  public static List<String> TOME_DESC = TextUtils.color(UNCOLORED_TOME_DESC);
 
   public ItemStack toItemStack(int amount) {
     ItemStack is = new ItemStack(Material.BOOK);
@@ -134,7 +136,7 @@ public class EnchantmentTome {
     ItemStackExtensionsKt.setDisplayName(is, ChatColor.BLUE + "Enchantment Tome - " + getName());
     List<String> lore = new ArrayList<>();
     lore.add(ChatColor.WHITE + "Type: " + (itemGroups.isEmpty() ? "Any" : itemGroupsToString()));
-    lore.addAll(desc);
+    lore.addAll(TOME_DESC);
 
     if (description != null && !description.isEmpty()) {
       lore.add(description);

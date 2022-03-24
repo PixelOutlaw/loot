@@ -191,10 +191,10 @@ public final class MaterialUtil {
       player.playSound(player.getEyeLocation(), Sound.BLOCK_LAVA_POP, 1F, 0.5F);
       return;
     }
-    String targetName = stripColor(ItemStackExtensionsKt.getDisplayName(stack));
+    String strippedName = stripColor(ItemStackExtensionsKt.getDisplayName(stack));
     UpgradeScroll scroll = LootPlugin.getInstance().getScrollManager().getScroll(scrollStack);
 
-    int itemUpgradeLevel = MaterialUtil.getUpgradeLevel(targetName);
+    int itemUpgradeLevel = MaterialUtil.getUpgradeLevel(strippedName);
     int targetLevel = itemUpgradeLevel;
     int shards = getFailureBonus(scrollStack);
     if (stack.getType().getMaxDurability() < 5) {
@@ -249,7 +249,9 @@ public final class MaterialUtil {
     if (damage >= stack.getType().getMaxDurability()) {
       player.playSound(player.getEyeLocation(), Sound.ENTITY_ITEM_BREAK, 1F, 1F);
       sendMessage(player, upgradeItemDestroyMsg);
-      InventoryUtil.sendToDiscord(player, stack.clone(), upgradeItemDestroyBroadcast);
+      if (itemUpgradeLevel >= 10) {
+        InventoryUtil.sendToDiscord(player, stack.clone(), upgradeItemDestroyBroadcast);
+      }
       stack.setAmount(0);
       if (itemUpgradeLevel > 5) {
         shards += itemUpgradeLevel / 4 + random.nextIntRange(0, itemUpgradeLevel - 5);
@@ -284,25 +286,18 @@ public final class MaterialUtil {
     bumpItemPlus(stack, currentLevel, amount, amount);
   }
 
-  public static void bumpItemPlus(ItemStack stack, int currentLevel, int statAmount,
-      int plusAmount) {
+  public static void bumpItemPlus(ItemStack stack, int currentLevel, int statAmount, int plusAmount) {
     String itemName = ItemStackExtensionsKt.getDisplayName(stack);
     if (StringUtils.isBlank(itemName)) {
       itemName = stack.getType().toString().replaceAll("_", " ");
       itemName = WordUtils.capitalizeFully(itemName);
     }
     int newLevel = Math.max(Math.min(currentLevel + plusAmount, 15), 0);
-    if (currentLevel == 0) {
-      String colorPrefix;
-      ChatColor color = InventoryUtil.getFirstColor(itemName);
-      if (color == ChatColor.RESET || color == ChatColor.WHITE) {
-        colorPrefix = TextUtils.color("&f&7&f");
-      } else {
-        colorPrefix = "" + color;
-      }
-      itemName = colorPrefix + ("+" + newLevel) + " " + itemName;
-    } else {
+    if (currentLevel > 0) {
       itemName = itemName.replace("+" + currentLevel, "+" + newLevel);
+    } else {
+      String strippedName = ChatColor.stripColor(itemName);
+      itemName = itemName.replace(strippedName, "+" + newLevel + " " + strippedName);
     }
     ItemStackExtensionsKt.setDisplayName(stack, itemName);
     if (newLevel >= 10 && stack.getEnchantments().isEmpty()) {

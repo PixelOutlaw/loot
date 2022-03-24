@@ -103,7 +103,7 @@ public final class CraftingListener implements Listener {
     CRAFT_MASTER_MULT = plugin.getSettings().getDouble("config.crafting.craft-master-mult", 2.5);
     MAX_QUALITY = plugin.getSettings().getDouble("config.crafting.craft-max-quality", 5);
     MAX_SLOTS = plugin.getSettings().getDouble("config.crafting.craft-max-craft-slots", 5);
-    MAX_SOCKETS = plugin.getSettings().getDouble("config.crafting.craft-max-sockets", 3);
+    MAX_SOCKETS = plugin.getSettings().getDouble("config.crafting.craft-max-sockets", 2);
     ESSENCE_SLOT_TEXT = StringExtensionsKt
         .chatColorize(
             plugin.getSettings().getString("config.crafting.essence-text", "&b(Essence Slot)"));
@@ -279,18 +279,16 @@ public final class CraftingListener implements Listener {
       return;
     }
 
-    float effectiveLevelAdvantage = DeconstructListener.getLevelAdvantage(
-        (int) effectiveCraftLevel, (int) rawItemLevel);
-    float skillMultiplier = 1f + Math.min(1, effectiveLevelAdvantage / 25f);
-    double quality = Math.max(1,
-        Math.min(totalQuality / numMaterials, MAX_QUALITY) - (0.5 * random.nextDouble()));
+    double quality = Math.floor(totalQuality / numMaterials) - 2;
+    quality = Math.min(MAX_QUALITY, Math.max(0, quality));
 
     int itemLevel = (int) Math.max(1, Math.min(100, rawItemLevel - random.nextInt(4)));
-    float openSlotChance = (skillMultiplier - 1) * 0.7f;
+    float effectiveLevelAdvantage = (float) Math.max(0, effectiveCraftLevel - rawItemLevel);
+    float openSlotChance = 0.1f + Math.min(0.8f, effectiveLevelAdvantage / 100);
 
     BuiltItem builtItem = plugin.getNewItemBuilder()
         .withTier(tier)
-        .withRarity(plugin.getRarityManager().getRandomRarityWithBonus(1 + quality * 100))
+        .withRarity(plugin.getRarityManager().getRandomRarityWithMinimum(quality))
         .withSlotScore(openSlotChance)
         .withLevel(itemLevel)
         .withCreator(player)

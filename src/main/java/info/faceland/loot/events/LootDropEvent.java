@@ -10,13 +10,13 @@ import org.bukkit.entity.LivingEntity;
 
 public class LootDropEvent extends LootCancellableEvent {
 
-  private double quantityMultiplier;
-  private double qualityMultiplier;
-  private List<ItemRarity> bonusTierItems = new ArrayList<>();
+  private double quantityMultiplier = 1;
+  private double qualityMultiplier = 1;
+  private final List<ItemRarity> bonusTierItems = new ArrayList<>();
   private Location location;
   private double distance;
   private UUID looterUUID;
-  private int monsterLevel;
+  private int monsterLevel = 1;
   private LivingEntity entity;
   private String uniqueEntity;
 

@@ -5,6 +5,7 @@ import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.math.LootRandom;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -26,6 +27,10 @@ public class ScrollManager {
     cachedScrollStacks = new HashMap<>();
     random = new LootRandom(System.currentTimeMillis());
     scrollMaterial = Material.PAPER;
+  }
+
+  public Collection<UpgradeScroll> getScrolls() {
+    return scrolls.values();
   }
 
   public ItemStack buildItemStack(UpgradeScroll upgradeScroll) {

@@ -31,11 +31,14 @@ import info.faceland.loot.listeners.crafting.CraftingListener;
 import info.faceland.loot.managers.StatManager;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.tier.Tier;
+import info.faceland.loot.utils.DropUtil;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import me.clip.placeholderapi.PlaceholderAPI;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -61,6 +64,7 @@ public final class ItemBuilder {
   private Player creator;
   private float slotScore;
   private Material material;
+  private boolean distorted = false;
   private ItemGenerationReason itemGenerationReason = ItemGenerationReason.MONSTER;
   private LootRandom random = new LootRandom();
 
@@ -101,6 +105,11 @@ public final class ItemBuilder {
 
   public ItemBuilder withSpecialStat(boolean b) {
     specialStat = b;
+    return this;
+  }
+
+  public ItemBuilder withDistortion(boolean b) {
+    distorted = b;
     return this;
   }
 
@@ -157,18 +166,24 @@ public final class ItemBuilder {
     }
     stack = new ItemStack(material);
     List<String> lore = new ArrayList<>();
+    double rarityPower = rarity.getPower();
 
     boolean crafted = itemGenerationReason == ItemGenerationReason.CRAFTING;
     ChatColor color = crafted ? ChatColor.AQUA : rarity.getColor();
 
     lore.add(ChatColor.WHITE + "Level Requirement: " + level);
-    lore.add(ChatColor.WHITE + "Tier: " + color + rarity.getName() + " " + tier.getName());
+    if (distorted) {
+      lore.add(ChatColor.WHITE + "Tier: " + PlaceholderAPI
+          .setPlaceholders(creator, "%rgb_gradient_#AA0000:" +
+              DropUtil.CHAT_TO_HEX.get(color) + "_Distorted " + tier.getName() + "%"));
+    } else {
+      lore.add(ChatColor.WHITE + "Tier: " + color + rarity.getName() + " " + tier.getName());
+    }
 
-    lore.add(statManager.getFinalStat(tier.getPrimaryStat(), level, rarity.getPower(), false).getStatString());
-    lore.add(statManager.getFinalStat(getRandomSecondaryStat(), level, rarity.getPower(), false).getStatString());
+    lore.add(statManager.getFinalStat(tier.getPrimaryStat(), level, rarityPower, false).getStatString());
+    lore.add(statManager.getFinalStat(getRandomSecondaryStat(), level, rarityPower, false).getStatString());
 
     List<ItemStat> bonusStatList = new ArrayList<>(tier.getBonusStats());
-
     if (specialStat) {
       ItemStat stat;
       if (tier.getSpecialStats().size() > 0 && random.nextDouble() < specialStatChance) {
@@ -176,30 +191,52 @@ public final class ItemBuilder {
       } else {
         stat = bonusStatList.get(random.nextInt(bonusStatList.size()));
       }
-      StatResponse rStat = statManager.getFinalStat(stat, level, rarity.getPower(), true);
+      StatResponse rStat = statManager.getFinalStat(stat, level, rarityPower, true);
       lore.add(rStat.getStatString());
     }
 
     int bonusStats = random.nextIntRange(rarity.getMinimumBonusStats(), rarity.getMaximumBonusStats());
+    if (itemGenerationReason == ItemGenerationReason.CRAFTING && Math.random() < 0.5) {
+      bonusStats++;
+    }
     String prefix = nameManager.getRandomPrefix();
     float roll = 0;
     boolean statPrefix = random.nextDouble() > 0.35;
+    int invertedIndex = -1;
+    int distortionBonus = 0;
+    if (distorted) {
+      distortionBonus = Math.max(10, level / 3);
+      rarityPower += 1;
+      level += distortionBonus;
+      invertedIndex = random.nextInt(bonusStats);
+    }
+    List<String> randomStatsLore = new ArrayList<>();
     for (int i = 0; i < bonusStats; i++) {
       if (crafted && random.nextDouble() < slotScore / 5) {
-        lore.add(ChatColor.AQUA + CraftingListener.ESSENCE_SLOT_TEXT);
+        randomStatsLore.add(ChatColor.AQUA + CraftingListener.ESSENCE_SLOT_TEXT);
         continue;
       }
       ItemStat stat = bonusStatList.get(random.nextInt(bonusStatList.size()));
-      StatResponse rStat = statManager.getFinalStat(stat, level, rarity.getPower(), false);
-      lore.add(rStat.getStatString());
-      bonusStatList.remove(stat);
-      if (StringUtils.isNotBlank(rStat.getStatPrefix())) {
-        if (statPrefix && rStat.getStatRoll() > 0.5 && rStat.getStatRoll() > roll) {
-          roll = rStat.getStatRoll();
-          prefix = rStat.getStatPrefix();
+      StatResponse rStat = statManager.getFinalStat(stat, level, rarityPower, false);
+      if (invertedIndex == i) {
+        randomStatsLore.add(ChatColor.RED + ChatColor.stripColor(rStat.getStatString()).replace("+", "-"));
+      } else {
+        randomStatsLore.add(crafted ? ChatColor.AQUA + ChatColor.stripColor(rStat.getStatString()) : rStat.getStatString());
+        if (StringUtils.isNotBlank(rStat.getStatPrefix())) {
+          if (statPrefix && rStat.getStatRoll() > 0.5 && rStat.getStatRoll() > roll) {
+            roll = rStat.getStatRoll();
+            prefix = rStat.getStatPrefix();
+          }
         }
       }
+      bonusStatList.remove(stat);
     }
+    if (distorted) {
+      rarityPower = rarity.getPower();
+      level -= distortionBonus;
+    }
+
+    lore.addAll(randomStatsLore);
 
     for (int i = 0; i < rarity.getEnchantments(); i++) {
       lore.add(ChatColor.BLUE + "(Enchantable)");
@@ -221,8 +258,7 @@ public final class ItemBuilder {
     }
 
     if (crafted && creator != null) {
-      lore.add(TextUtils.color("&8&oCrafted By:"));
-      lore.add(TextUtils.color("&8&o" + creator.getName()));
+      lore.add(TextUtils.color("&8&o[By: " + creator.getName()) + "]");
     }
 
 

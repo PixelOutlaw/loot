@@ -71,7 +71,7 @@ public final class EnchantMenuListener implements Listener {
       enchantMenu.setSelectedUpgradeItem(player, stack);
       enchantMenu.update(player);
       player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
-    } else if (stack.isSimilar(ArcaneEnhancer.get())) {
+    } else if (ArcaneEnhancer.isSimilar(stack)) {
       enchantMenu.setSelectedUpgradeItem(player, stack);
       enchantMenu.update(player);
       player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
@@ -82,10 +82,6 @@ public final class EnchantMenuListener implements Listener {
     } else if (MaterialUtil.isEquipmentItem(stack) || MaterialUtil.hasEnchantmentTag(stack)) {
       enchantMenu.setSelectedEquipment(player, stack);
       enchantMenu.update((Player) event.getWhoClicked());
-      player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
-    } else if (MaterialUtil.isNormalHead(stack)) {
-      enchantMenu.setSelectedUpgradeItem(player, stack);
-      enchantMenu.update(player);
       player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
     }
   }

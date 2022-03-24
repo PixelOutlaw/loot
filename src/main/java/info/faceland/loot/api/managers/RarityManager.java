@@ -43,4 +43,6 @@ public interface RarityManager {
     ItemRarity getRandomIdRarity();
 
     ItemRarity getRandomRarityWithBonus(double bonus);
+
+    ItemRarity getRandomRarityWithMinimum(double bonus);
 }

@@ -20,6 +20,7 @@ package info.faceland.loot.managers;
 
 import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.math.LootRandom;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -46,6 +47,10 @@ public final class EnchantTomeManager {
       return tomeMap.get(name.toLowerCase().replace("_", " "));
     }
     return null;
+  }
+
+  public Collection<EnchantmentTome> getEnchantmentTomes() {
+    return tomeMap.values();
   }
 
   public void addEnchantTome(EnchantmentTome gem) {

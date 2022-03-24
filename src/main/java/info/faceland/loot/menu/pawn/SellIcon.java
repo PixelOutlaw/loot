@@ -33,6 +33,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.nunnerycode.mint.MintPlugin;
 
 public class SellIcon extends MenuItem {
 
@@ -60,9 +61,9 @@ public class SellIcon extends MenuItem {
     int modifiedTotal = getModifiedTotal(total, tradeLevel);
     String priceString;
     if (tradeLevel < 5 || modifiedTotal == total) {
-      priceString = LootPlugin.getInstance().getEconomy().format(total);
+      priceString = MintPlugin.getInstance().getEconomy().format(total);
     } else {
-      priceString = TextUtils.color("&7&m" + total + "&r &e&l" + LootPlugin.getInstance().getEconomy().format(modifiedTotal));
+      priceString = TextUtils.color("&7&m" + total + "&r &e&l" + MintPlugin.getInstance().getEconomy().format(modifiedTotal));
     }
     for (String s : lore) {
       newLore.add(s.replace("{total}", priceString));
@@ -93,9 +94,9 @@ public class SellIcon extends MenuItem {
     total = getModifiedTotal(total, tradeLevel);
     menu.update(event.getPlayer());
     if (total != 0) {
-      LootPlugin.getInstance().getEconomy().depositPlayer(event.getPlayer(), total);
+      MintPlugin.getInstance().getEconomy().depositPlayer(event.getPlayer(), total);
       event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.BLOCK_CHAIN_PLACE, 1.0F, 1.3F);
-      MessageUtils.sendMessage(event.getPlayer(), "&e  +" + LootPlugin.getInstance().getEconomy().format(total));
+      MessageUtils.sendMessage(event.getPlayer(), "&e  +" + MintPlugin.getInstance().getEconomy().format(total));
     }
     if (menu.getTotal() > 0) {
       MessageUtils.sendMessage(event.getPlayer(),

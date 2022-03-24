@@ -52,12 +52,10 @@ public final class ItemListListener implements Listener {
   @EventHandler(priority = EventPriority.MONITOR)
   public void onMarketList(ListItemEvent event) {
     ItemStack stack = event.getListing().getItemStack();
-    Bukkit.getLogger().info("Item: " + stack.toString());
     if (stack.getType() == Material.TRIPWIRE_HOOK && stack.hasItemMeta()) {
       event.getListing().setCategory(Category.CATEGORY_3);
       event.getListing().setFlagA(FilterFlagA.ALL);
       event.getListing().setFlagB(FilterFlagB.ALL);
-      Bukkit.getLogger().info(" key!");
       return;
     }
     SocketGem gem = plugin.getSocketGemManager().getSocketGem(stack);
@@ -65,28 +63,24 @@ public final class ItemListListener implements Listener {
       event.getListing().setCategory(Category.CATEGORY_2);
       event.getListing().setFlagA(FilterFlagA.FLAG_2);
       event.getListing().setFlagB(FilterFlagB.ALL);
-      Bukkit.getLogger().info(" gem!");
       return;
     }
     if (PurifyingScroll.get().isSimilar(stack)) {
       event.getListing().setCategory(Category.CATEGORY_2);
       event.getListing().setFlagA(FilterFlagA.FLAG_5);
       event.getListing().setFlagB(FilterFlagB.ALL);
-      Bukkit.getLogger().info(" pscroll!");
       return;
     }
-    if (ArcaneEnhancer.get().isSimilar(stack)) {
+    if (ArcaneEnhancer.isSimilar(stack)) {
       event.getListing().setCategory(Category.CATEGORY_2);
       event.getListing().setFlagA(FilterFlagA.FLAG_6);
       event.getListing().setFlagB(FilterFlagB.ALL);
-      Bukkit.getLogger().info(" enhancer!");
       return;
     }
     if (TinkerersGear.get().isSimilar(stack)) {
       event.getListing().setCategory(Category.CATEGORY_2);
       event.getListing().setFlagA(FilterFlagA.FLAG_6);
       event.getListing().setFlagB(FilterFlagB.ALL);
-      Bukkit.getLogger().info(" tinker!");
       return;
     }
     if (SocketExtender.EXTENDER.isSimilar(stack)) {
@@ -100,7 +94,6 @@ public final class ItemListListener implements Listener {
       event.getListing().setCategory(Category.CATEGORY_2);
       event.getListing().setFlagA(FilterFlagA.FLAG_1);
       event.getListing().setFlagB(FilterFlagB.ALL);
-      Bukkit.getLogger().info(" uscroll!");
       return;
     }
     EnchantmentTome tome = MaterialUtil.getEnchantmentItem(stack);
@@ -109,7 +102,6 @@ public final class ItemListListener implements Listener {
       event.getListing().setFlagA(FilterFlagA.FLAG_3);
       //TODO IMPROVE FLAG B LOGIC
       event.getListing().setFlagB(FilterFlagB.ALL);
-      Bukkit.getLogger().info(" etome!");
       return;
     }
     Tier tier = MaterialUtil.getTierFromStack(stack);
@@ -123,7 +115,6 @@ public final class ItemListListener implements Listener {
           break;
         }
       }
-      Bukkit.getLogger().info(" tier!");
       return;
     }
     if (stack.getType() == Material.TRIPWIRE_HOOK && ItemStackExtensionsKt
@@ -131,7 +122,6 @@ public final class ItemListListener implements Listener {
       event.getListing().setCategory(Category.CATEGORY_3);
       event.getListing().setFlagA(FilterFlagA.FLAG_3);
       event.getListing().setFlagB(FilterFlagB.ALL);
-      Bukkit.getLogger().info(" key!");
       return;
     }
     if (plugin.getCraftMatManager().getCraftMaterials().containsKey(stack.getType()) && stack
@@ -145,7 +135,6 @@ public final class ItemListListener implements Listener {
           break;
         }
       }
-      Bukkit.getLogger().info(" material!");
       return;
     }
     if (MaterialUtil.isEssence(stack)) {
@@ -158,7 +147,6 @@ public final class ItemListListener implements Listener {
           break;
         }
       }
-      Bukkit.getLogger().info(" essence!");
       return;
     }
   }

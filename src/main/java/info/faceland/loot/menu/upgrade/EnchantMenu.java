@@ -222,24 +222,6 @@ public class EnchantMenu extends ItemMenu {
       TextUtils.setLore(confirmIcon.getIcon(), lore);
       return;
     }
-    if (MaterialUtil.isNormalHead(selectedUpgradeItem)) {
-      if (LootPlugin.getInstance().getPlayerPointsAPI() == null) {
-        confirmIcon.setDisplayName(ChatColor.RED + "UNAVAILABLE");
-        TextUtils.setLore(confirmIcon.getIcon(), new ArrayList<>());
-        return;
-      }
-      if (!MaterialUtil.isHelmet(selectedEquipment)) {
-        confirmIcon.setDisplayName(noHelmetMerge);
-        lore.addAll(noHelmetMergeLore);
-        TextUtils.setLore(confirmIcon.getIcon(), lore);
-        return;
-      }
-      confirmIcon.setDisplayName(validHelmetMerge);
-      confirmIcon.getIcon().setType(Material.NETHER_STAR);
-      lore.addAll(validHelmetMergeLore);
-      TextUtils.setLore(confirmIcon.getIcon(), lore);
-      return;
-    }
     if (MaterialUtil.isEnchantmentItem(selectedUpgradeItem)) {
       if (!MaterialUtil.hasEnchantmentTag(selectedEquipment)) {
         confirmIcon.setDisplayName(invalidEnchant);
@@ -315,7 +297,7 @@ public class EnchantMenu extends ItemMenu {
       TextUtils.setLore(confirmIcon.getIcon(), lore);
       return;
     }
-    if (selectedUpgradeItem.isSimilar(ArcaneEnhancer.get())) {
+    if (ArcaneEnhancer.isSimilar(selectedUpgradeItem)) {
       if (!MaterialUtil.isEnchanted(selectedEquipment)) {
         confirmIcon.setDisplayName(itemNotEnchanted);
         lore.addAll(itemNotEnchantedLore);
@@ -422,15 +404,7 @@ public class EnchantMenu extends ItemMenu {
       player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
       return false;
     }
-    if (MaterialUtil.isNormalHead(selectedUpgradeItem) && MaterialUtil
-        .isHelmet(selectedEquipment)) {
-      if (plugin.getPlayerPointsAPI() == null) {
-        MessageUtils.sendMessage(player, "&eSorry! FaceGems are on strike?!");
-        return false;
-      }
-      MaterialUtil.convertToHead(player, selectedUpgradeItem, selectedEquipment);
-      setSelectedUpgradeItem(player, selectedUpgradeItem);
-    } else if (MaterialUtil.isEnchantmentItem(selectedUpgradeItem)) {
+    if (MaterialUtil.isEnchantmentItem(selectedUpgradeItem)) {
       MaterialUtil.enchantItem(player, selectedUpgradeItem, selectedEquipment);
       setSelectedUpgradeItem(player, new ItemStack(Material.AIR));
     } else if (plugin.getScrollManager().getScroll(selectedUpgradeItem) != null) {
@@ -439,7 +413,7 @@ public class EnchantMenu extends ItemMenu {
     } else if (MaterialUtil.isExtender(selectedUpgradeItem)) {
       MaterialUtil.extendItem(player, selectedEquipment, selectedUpgradeItem);
       setSelectedUpgradeItem(player, selectedUpgradeItem);
-    } else if (selectedUpgradeItem.isSimilar(ArcaneEnhancer.get())) {
+    } else if (ArcaneEnhancer.isSimilar(selectedUpgradeItem)) {
       MaterialUtil.enhanceEnchantment(player, selectedEquipment, selectedUpgradeItem);
       setSelectedUpgradeItem(player, selectedUpgradeItem);
     } else if (selectedUpgradeItem.isSimilar(PurifyingScroll.get())) {
