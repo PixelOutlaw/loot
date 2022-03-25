@@ -170,18 +170,6 @@ public class DropUtil implements Listener {
 
       ItemStack tierItem = builtItem.getStack();
 
-      int qualityBonus = 1;
-      double qualityChance = plugin.getSettings().getDouble("config.random-quality-chance", 0.1);
-      double multiQualityChance = plugin.getSettings()
-          .getDouble("config.multi-quality-chance", 0.1);
-
-      if (random.nextDouble() <= qualityChance) {
-        while (random.nextDouble() <= multiQualityChance && qualityBonus < 5) {
-          qualityBonus++;
-        }
-        upgradeItemQuality(tierItem, qualityBonus);
-      }
-
       int upgradeBonus = 1;
       double upgradeChance = plugin.getSettings().getDouble("config.random-upgrade-chance", 0.1);
       double multiUpgradeChance = plugin.getSettings()
@@ -194,7 +182,7 @@ public class DropUtil implements Listener {
         upgradeItem(tierItem, upgradeBonus);
       }
 
-      boolean broadcast = rarity.isBroadcast() || upgradeBonus > 4 || qualityBonus > 2;
+      boolean broadcast = rarity.isBroadcast() || upgradeBonus > 4;
       ChatColor glowColor = rarity.isBroadcast() ? rarity.getColor() : null;
       dropItem(event.getLocation(), tierItem, killer, builtItem.getTicksLived(), broadcast, glowColor);
       if (distort && rarity.getPower() > 1.5) {
@@ -276,20 +264,7 @@ public class DropUtil implements Listener {
 
       ItemStack stack = ci.toItemStack(1);
 
-      int qualityBonus = 1;
-      if (ci.canBeQuality()) {
-        double qualityChance = plugin.getSettings().getDouble("config.random-quality-chance", 0.1);
-        double multiQualityChance = plugin.getSettings()
-            .getDouble("config.multi-quality-chance", 0.1);
-
-        if (random.nextDouble() <= qualityChance) {
-          while (random.nextDouble() <= multiQualityChance && qualityBonus < 5) {
-            qualityBonus++;
-          }
-          upgradeItemQuality(stack, qualityBonus);
-        }
-      }
-      boolean broadcast = ci.isBroadcast() || qualityBonus > 2;
+      boolean broadcast = ci.isBroadcast();
       dropItem(event.getLocation(), stack, killer, broadcast, broadcast ? ChatColor.GOLD : null);
     }
     if (random.nextDouble() < plugin.getSettings().getDouble("config.drops.socket-extender", 0D)) {
@@ -364,7 +339,7 @@ public class DropUtil implements Listener {
     }
   }
 
-  private static void upgradeItem(ItemStack his, int upgradeBonus) {
+  public static void upgradeItem(ItemStack his, int upgradeBonus) {
     int currentLevel = MaterialUtil.getUpgradeLevel(his);
     if (his.getType().getMaxDurability() <= 1) {
       int upgrade = (int) (Math.ceil((double) upgradeBonus / 3));
@@ -373,33 +348,6 @@ public class DropUtil implements Listener {
     } else {
       MaterialUtil.bumpItemPlus(his, currentLevel, upgradeBonus, upgradeBonus);
     }
-  }
-
-  private static ItemStack upgradeItemQuality(ItemStack his, int upgradeBonus) {
-    boolean succeed = false;
-    List<String> lore = TextUtils.getLore(his);
-    for (int i = 0; i < lore.size(); i++) {
-      String s = lore.get(i);
-      String ss = ChatColor.stripColor(s);
-      if (!ss.startsWith("+")) {
-        continue;
-      }
-      succeed = true;
-      String loreLev = CharMatcher.digit().or(CharMatcher.is('-')).retainFrom(ss);
-      int loreLevel = NumberUtils.toInt(loreLev);
-      lore.set(i, s.replace("+" + loreLevel, "+" + (loreLevel + upgradeBonus)));
-      String qualityEnhanceName = plugin.getSettings()
-          .getString("language.quality." + upgradeBonus, "");
-      String name =
-          getFirstColor(Objects.requireNonNull(ItemStackExtensionsKt.getDisplayName(his))) +
-              qualityEnhanceName + " " + ItemStackExtensionsKt.getDisplayName(his);
-      ItemStackExtensionsKt.setDisplayName(his, name);
-      break;
-    }
-    if (succeed) {
-      TextUtils.setLore(his, lore);
-    }
-    return his;
   }
 
   private static void dropItem(Location loc, ItemStack itemStack, Player looter, boolean broadcast,
