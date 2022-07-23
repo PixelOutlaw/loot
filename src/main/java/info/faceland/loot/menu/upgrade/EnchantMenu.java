@@ -16,16 +16,18 @@
  */
 package info.faceland.loot.menu.upgrade;
 
-import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.tuple.Pair;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
+import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.managers.StatManager.RollStyle;
-import info.faceland.loot.menu.BlankIcon;
 import info.faceland.loot.utils.MaterialUtil;
 import info.faceland.loot.utils.NumberUtil;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
@@ -35,11 +37,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import land.face.strife.data.champion.LifeSkillType;
-import land.face.strife.util.ItemUtil;
 import land.face.strife.util.PlayerDataUtil;
 import ninja.amp.ampmenus.menus.ItemMenu;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -63,37 +62,14 @@ public class EnchantMenu extends ItemMenu {
   private EquipmentIcon equipmentIcon;
   private UpgradeItemIcon upgradeItemIcon;
 
-  private String validEnchant;
-  private String invalidEnchant;
-  private String validUpgrade;
-  private String invalidUpgrade;
-  private String validExtend;
-  private String invalidExtend;
-  private String itemNotEnchanted;
-  private String alreadyEnhanced;
-  private String noEnhanceLevel;
-  private String validEnhance;
-  private String validPurity;
-  private String noHelmetMerge;
-  private String validHelmetMerge;
-  private List<String> noEquipmentLore;
-  private List<String> noUpgradeItemLore;
-  private List<String> validEnchantLore;
-  private List<String> noEnchantTagLore;
-  private List<String> badTomeTypeLore;
-  private List<String> invalidUpgradeLore;
-  private List<String> badScrollRangeLore;
-  private List<String> validUpgradeLore;
-  private List<String> validExtendLore;
-  private List<String> invalidExtendLore;
-  private List<String> itemNotEnchantedLore;
-  private List<String> alreadyEnhancedLore;
-  private List<String> noEnhanceLevelLore;
-  private List<String> validEnhanceLore;
-  private List<String> validPurityLore;
-  private List<String> noHelmetMergeLore;
-  private List<String> validHelmetMergeLore;
-  private List<String> breakWarning;
+  private final String validEnchant, invalidEnchant, validUpgrade, invalidUpgrade, validExtend,
+      invalidExtend, itemNotEnchanted, alreadyEnhanced, noEnhanceLevel, validEnhance,
+      validPurity, cannotRefill, validRefill;
+  private final List<String> noEquipmentLore, noUpgradeItemLore, validEnchantLore, noEnchantTagLore,
+      badTomeTypeLore, invalidUpgradeLore, badScrollRangeLore, validUpgradeLore, validExtendLore,
+      invalidExtendLore, itemNotEnchantedLore, alreadyEnhancedLore, noEnhanceLevelLore,
+      validEnhanceLore, validPurityLore, breakWarning, arcaneEnchanted, fullEnchantment,
+      validRefillLore;
 
   private ItemStack blankItem;
 
@@ -108,7 +84,7 @@ public class EnchantMenu extends ItemMenu {
     baseEnhanceRequirement = plugin.getSettings().getInt("config.enhancement.base-level-req", 6);
     playerPointHelmetMergeCost = plugin.getSettings().getInt("config.helmet-merge-cost", 320);
     enhanceReqPerTwenty = plugin.getSettings()
-        .getInt("config.enhancement.level-req-per-ten-levels", 9);
+        .getInt("config.enhancement.level-req-per-ten-levels", 8);
 
     validEnchant = TextUtils.color(plugin.getSettings()
         .getString("language.menu.valid-enchant-name", "aaaa"));
@@ -132,10 +108,10 @@ public class EnchantMenu extends ItemMenu {
         .getString("language.menu.valid-enhance-name", "aaaa"));
     validPurity = TextUtils.color(plugin.getSettings()
         .getString("language.menu.valid-purity-name", "aaaa"));
-    noHelmetMerge = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.no-helmet-merge", "aaaa"));
-    validHelmetMerge = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.valid-helmet-merge", "aaaa"));
+    cannotRefill = TextUtils.color(plugin.getSettings()
+        .getString("language.menu.cannot-refill", "aaaa"));
+    validRefill = TextUtils.color(plugin.getSettings()
+        .getString("language.menu.valid-refill", "aaaa"));
 
     noEquipmentLore = TextUtils.color(plugin.getSettings()
         .getStringList("language.menu.no-equipment"));
@@ -167,12 +143,14 @@ public class EnchantMenu extends ItemMenu {
         .getStringList("language.menu.valid-enhance-lore"));
     validPurityLore = TextUtils.color(plugin.getSettings()
         .getStringList("language.menu.valid-purity-lore"));
-    noHelmetMergeLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.no-helmet-merge-lore"));
-    validHelmetMergeLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.valid-helmet-merge-lore"));
     breakWarning = ListExtensionsKt.chatColorize(plugin.getSettings()
         .getStringList("language.menu.break-warning"));
+    arcaneEnchanted = ListExtensionsKt.chatColorize(plugin.getSettings()
+        .getStringList("language.menu.arcane-enchanted"));
+    fullEnchantment = ListExtensionsKt.chatColorize(plugin.getSettings()
+        .getStringList("language.menu.full-enchantment"));
+    validRefillLore = ListExtensionsKt.chatColorize(plugin.getSettings()
+        .getStringList("language.menu.valid-refill-lore"));
 
     blankItem = new ItemStack(Material.AIR);
 
@@ -180,10 +158,9 @@ public class EnchantMenu extends ItemMenu {
     equipmentIcon = new EquipmentIcon(this);
     upgradeItemIcon = new UpgradeItemIcon(this);
 
-    fillEmptySlots(new BlankIcon());
-    setItem(10, equipmentIcon);
-    setItem(12, upgradeItemIcon);
-    setItem(16, confirmIcon);
+    setItem(3, equipmentIcon);
+    setItem(5, upgradeItemIcon);
+    setItem(22, confirmIcon);
   }
 
   public void setSelectedEquipment(Player player, ItemStack selectedEquipment) {
@@ -208,7 +185,7 @@ public class EnchantMenu extends ItemMenu {
   }
 
   private void updateConfirmIcon(Player player) {
-    confirmIcon.getIcon().setType(Material.BARRIER);
+    ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 61);
     List<String> lore = new ArrayList<>();
     if (selectedEquipment == null || selectedEquipment.getType() == Material.AIR) {
       confirmIcon.setDisplayName(StringExtensionsKt.chatColorize("&eNo Equipment Item..."));
@@ -226,20 +203,20 @@ public class EnchantMenu extends ItemMenu {
       if (!MaterialUtil.hasEnchantmentTag(selectedEquipment)) {
         confirmIcon.setDisplayName(invalidEnchant);
         lore.addAll(noEnchantTagLore);
+        ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
         TextUtils.setLore(confirmIcon.getIcon(), lore);
         return;
       }
-      if (!MaterialUtil.isMatchingGroup(MaterialUtil.getEnchantmentItem(selectedUpgradeItem),
-          selectedEquipment.getType())) {
+      EnchantmentTome tome = MaterialUtil.getEnchantmentItem(selectedUpgradeItem);
+      if (!MaterialUtil.matchesGroups(selectedEquipment, tome.getItemGroups())) {
         confirmIcon.setDisplayName(invalidEnchant);
         lore.addAll(badTomeTypeLore);
+        ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
         TextUtils.setLore(confirmIcon.getIcon(), lore);
         return;
       }
       confirmIcon.setDisplayName(validEnchant);
-      confirmIcon.getIcon().setType(Material.NETHER_STAR);
-
-      EnchantmentTome tome = MaterialUtil.getEnchantmentItem(selectedUpgradeItem);
+      ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 60);
 
       if (StringUtils.isNotBlank(tome.getStat())) {
         int itemLevel = MaterialUtil.getLevelRequirement(selectedEquipment);
@@ -283,30 +260,34 @@ public class EnchantMenu extends ItemMenu {
       TextUtils.setLore(confirmIcon.getIcon(), ListExtensionsKt.chatColorize(lore));
       return;
     }
-    if (MaterialUtil.isExtender(selectedUpgradeItem)) {
+    if (SocketExtender.isSimilar(selectedUpgradeItem)) {
       if (!MaterialUtil.canBeExtended(new ArrayList<>(TextUtils.getLore(selectedEquipment)))) {
         confirmIcon.setDisplayName(invalidExtend);
         lore.addAll(invalidExtendLore);
+        ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
         TextUtils.setLore(confirmIcon.getIcon(), lore);
         return;
       }
       confirmIcon.setDisplayName(validExtend);
-      confirmIcon.getIcon().setType(Material.NETHER_STAR);
+      ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 60);
       lore.addAll(validExtendLore);
 
       TextUtils.setLore(confirmIcon.getIcon(), lore);
       return;
     }
     if (ArcaneEnhancer.isSimilar(selectedUpgradeItem)) {
-      if (!MaterialUtil.isEnchanted(selectedEquipment)) {
+      Pair<String, Integer> enchantBar = MaterialUtil.getEnchantBar(selectedEquipment);
+      if (MaterialUtil.getEnchantBar(selectedEquipment) == null) {
         confirmIcon.setDisplayName(itemNotEnchanted);
         lore.addAll(itemNotEnchantedLore);
+        ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
         TextUtils.setLore(confirmIcon.getIcon(), lore);
         return;
       }
-      if (MaterialUtil.isArcaneEnchanted(selectedEquipment)) {
+      if (MaterialUtil.isArcaneEnchanted(enchantBar.getLeft())) {
         confirmIcon.setDisplayName(alreadyEnhanced);
         lore.addAll(alreadyEnhancedLore);
+        ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
         TextUtils.setLore(confirmIcon.getIcon(), lore);
         return;
       }
@@ -316,35 +297,40 @@ public class EnchantMenu extends ItemMenu {
       if (enchantingLevel < getEnhanceRequirement(MaterialUtil.getItemLevel(selectedEquipment))) {
         confirmIcon.setDisplayName(noEnhanceLevel);
         lore.addAll(noEnhanceLevelLore);
+        ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
         TextUtils.setLore(confirmIcon.getIcon(), lore);
         return;
       }
       confirmIcon.setDisplayName(validEnhance);
-      confirmIcon.getIcon().setType(Material.NETHER_STAR);
+      ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 60);
       lore.addAll(validEnhanceLore);
 
       TextUtils.setLore(confirmIcon.getIcon(), lore);
       return;
     }
-    if (selectedUpgradeItem.isSimilar(PurifyingScroll.get())) {
-      if (!MaterialUtil.isEnchanted(selectedEquipment)) {
+    if (PurifyingScroll.isSimilar(selectedUpgradeItem)) {
+      Pair<String, Integer> enchantBar = MaterialUtil.getEnchantBar(selectedEquipment);
+      if (enchantBar == null) {
         confirmIcon.setDisplayName(itemNotEnchanted);
         lore.addAll(itemNotEnchantedLore);
+        ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
         TextUtils.setLore(confirmIcon.getIcon(), lore);
         return;
       }
       confirmIcon.setDisplayName(validPurity);
-      confirmIcon.getIcon().setType(Material.NETHER_STAR);
+      ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 60);
       lore.addAll(validPurityLore);
 
       TextUtils.setLore(confirmIcon.getIcon(), lore);
       return;
     }
+
     UpgradeScroll scroll = plugin.getScrollManager().getScroll(selectedUpgradeItem);
     if (scroll != null) {
       if (!MaterialUtil.isUpgradePossible(selectedEquipment)) {
         confirmIcon.setDisplayName(invalidUpgrade);
         lore.addAll(invalidUpgradeLore);
+        ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
         TextUtils.setLore(confirmIcon.getIcon(), lore);
         return;
       }
@@ -353,11 +339,12 @@ public class EnchantMenu extends ItemMenu {
       if (!MaterialUtil.meetsUpgradeRange(scroll, itemPlus)) {
         confirmIcon.setDisplayName(invalidUpgrade);
         lore.addAll(badScrollRangeLore);
+        ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
         TextUtils.setLore(confirmIcon.getIcon(), lore);
         return;
       }
       confirmIcon.setDisplayName(validUpgrade);
-      confirmIcon.getIcon().setType(Material.NETHER_STAR);
+      ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 60);
       if (selectedEquipment.getType().getMaxDurability() < 5) {
         itemPlus += 3;
       } else {
@@ -397,10 +384,41 @@ public class EnchantMenu extends ItemMenu {
 
       TextUtils.setLore(confirmIcon.getIcon(), lore);
     }
+
+    if ("Magic Crystal".equals(ChatColor.stripColor(
+        ItemStackExtensionsKt.getDisplayName(selectedUpgradeItem)))) {
+      if (!MaterialUtil.isEnchanted(selectedEquipment)) {
+        confirmIcon.setDisplayName(itemNotEnchanted);
+        lore.addAll(itemNotEnchantedLore);
+        ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
+        TextUtils.setLore(confirmIcon.getIcon(), lore);
+        return;
+      }
+      if (MaterialUtil.isArcaneEnchanted(selectedEquipment)) {
+        confirmIcon.setDisplayName(cannotRefill);
+        lore.addAll(arcaneEnchanted);
+        ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
+        TextUtils.setLore(confirmIcon.getIcon(), lore);
+        return;
+      }
+      if (MaterialUtil.getMissingEnchantmentPower(selectedEquipment) < 1) {
+        confirmIcon.setDisplayName(cannotRefill);
+        lore.addAll(fullEnchantment);
+        ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
+        TextUtils.setLore(confirmIcon.getIcon(), lore);
+        return;
+      }
+      confirmIcon.setDisplayName(validRefill);
+      ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 60);
+      lore.addAll(validRefillLore);
+
+      TextUtils.setLore(confirmIcon.getIcon(), lore);
+    }
   }
 
   boolean doUpgrade(Player player) {
-    if (selectedEquipment == null || selectedEquipment.getType() == Material.AIR) {
+    if (selectedEquipment == null || selectedEquipment.getType() == Material.AIR ||
+        selectedEquipment.getAmount() > 1) {
       player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
       return false;
     }
@@ -410,14 +428,18 @@ public class EnchantMenu extends ItemMenu {
     } else if (plugin.getScrollManager().getScroll(selectedUpgradeItem) != null) {
       MaterialUtil.upgradeItem(player, selectedUpgradeItem, selectedEquipment);
       setSelectedUpgradeItem(player, new ItemStack(Material.AIR));
-    } else if (MaterialUtil.isExtender(selectedUpgradeItem)) {
+    } else if (SocketExtender.isSimilar(selectedUpgradeItem)) {
       MaterialUtil.extendItem(player, selectedEquipment, selectedUpgradeItem);
       setSelectedUpgradeItem(player, selectedUpgradeItem);
     } else if (ArcaneEnhancer.isSimilar(selectedUpgradeItem)) {
       MaterialUtil.enhanceEnchantment(player, selectedEquipment, selectedUpgradeItem);
       setSelectedUpgradeItem(player, selectedUpgradeItem);
-    } else if (selectedUpgradeItem.isSimilar(PurifyingScroll.get())) {
+    } else if (PurifyingScroll.isSimilar(selectedUpgradeItem)) {
       MaterialUtil.purifyItem(player, selectedEquipment, selectedUpgradeItem);
+      setSelectedUpgradeItem(player, selectedUpgradeItem);
+    } else if ("Magic Crystal".equals(ChatColor
+        .stripColor(ItemStackExtensionsKt.getDisplayName(selectedUpgradeItem)))) {
+      MaterialUtil.refillEnchantment(player, selectedEquipment, selectedUpgradeItem);
       setSelectedUpgradeItem(player, selectedUpgradeItem);
     } else {
       player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);

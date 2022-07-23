@@ -16,10 +16,14 @@
  */
 package info.faceland.loot.menu.gemcutter;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.menu.BlankIcon;
+import info.faceland.loot.menu.TransparentIcon;
+import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,9 +34,7 @@ import land.face.strife.StrifePlugin;
 import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.util.ItemUtil;
 import land.face.strife.util.PlayerDataUtil;
-import lombok.Getter;
 import ninja.amp.ampmenus.menus.ItemMenu;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -54,7 +56,7 @@ public class GemcutterMenu extends ItemMenu {
     setItem(13, selectedItemIcon);
     setItem(31, cutConfirmIcon);
 
-    fillEmptySlots(new BlankIcon());
+    setItem(34, new TransparentIcon(FaceColor.TAN + "I made a crazy risk, a gamble, and it's about to pay off"));
   }
 
   public ItemStack getSelectedStack(Player player) {
@@ -113,23 +115,31 @@ public class GemcutterMenu extends ItemMenu {
     ItemStack result = new ItemStack(material);
     float upgradeChance = 0.3f * ((effectiveCraftLevel + 100) / (itemLevel + 100));
     int quality = 1;
-    while (Math.random() < upgradeChance && quality < 6) {
+    while ( quality < 4 && Math.random() < upgradeChance) {
       quality++;
     }
-    ChatColor color = switch (quality) {
-      case 1 -> ChatColor.WHITE;
-      case 2 -> ChatColor.BLUE;
-      case 3 -> ChatColor.DARK_PURPLE;
-      case 4 -> ChatColor.RED;
-      case 5 -> ChatColor.GOLD;
+    FaceColor color = switch (quality) {
+      case 1 -> FaceColor.WHITE;
+      case 2 -> FaceColor.BLUE;
+      case 3 -> FaceColor.PURPLE;
+      case 4 -> FaceColor.RED;
+      case 5 -> FaceColor.ORANGE;
+      default -> throw new IllegalStateException("Unexpected value: " + quality);
+    };
+    String tag = switch (quality) {
+      case 1 -> MaterialUtil.TAG_COMMON;
+      case 2 -> MaterialUtil.TAG_UNCOMMON;
+      case 3 -> MaterialUtil.TAG_RARE;
+      case 4 -> MaterialUtil.TAG_EPIC;
+      case 5 -> MaterialUtil.TAG_UNIQUE;
       default -> throw new IllegalStateException("Unexpected value: " + quality);
     };
     ItemStackExtensionsKt.setDisplayName(result, color + name);
     List<String> lore = new ArrayList<>();
-    lore.add(ChatColor.WHITE + "Item Level: " + itemLevel);
-    lore.add(ChatColor.WHITE + "Quality: " + color + StringUtils.repeat("✪", quality));
-    lore.add(ChatColor.GRAY + "A very pretty jewel!");
-    lore.add(ChatColor.YELLOW + "[ Crafting Component ]");
+    lore.add(FaceColor.WHITE + "Item Level: " + itemLevel);
+    lore.add(FaceColor.WHITE + tag + "\uD86D\uDFF5");
+    lore.add("");
+    lore.add(FaceColor.GRAY + "A very pretty jewel!");
     TextUtils.setLore(result, lore);
     HashMap<Integer, ItemStack> leftovers = player.getInventory().addItem(result);
     for (ItemStack leftover : leftovers.values()) {

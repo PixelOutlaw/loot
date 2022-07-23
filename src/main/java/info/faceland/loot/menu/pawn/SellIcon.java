@@ -41,6 +41,7 @@ public class SellIcon extends MenuItem {
   private final List<String> lore = new ArrayList<>();
 
   private static final DecimalFormat DF = new DecimalFormat("###.#");
+  private static final ItemStack defaultStack = buildStack();
 
   SellIcon(PawnMenu menu) {
     super(TextUtils.color("&e&lSell Items"), new ItemStack(Material.GOLD_INGOT));
@@ -53,7 +54,7 @@ public class SellIcon extends MenuItem {
 
   @Override
   public ItemStack getFinalIcon(Player player) {
-    ItemStack stack = getIcon().clone();
+    ItemStack stack = defaultStack.clone();
     ItemStackExtensionsKt.setDisplayName(stack, getDisplayName());
     List<String> newLore = new ArrayList<>();
     int tradeLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.TRADING);
@@ -105,5 +106,11 @@ public class SellIcon extends MenuItem {
           .playSound(event.getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1, 0.5f);
     }
     event.setWillUpdate(true);
+  }
+
+  private static ItemStack buildStack() {
+    ItemStack stack = new ItemStack(Material.BARRIER);
+    ItemStackExtensionsKt.setCustomModelData(stack, 50);
+    return stack;
   }
 }

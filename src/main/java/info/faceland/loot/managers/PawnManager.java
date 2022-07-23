@@ -100,6 +100,7 @@ public class PawnManager {
       double itemLevel = MaterialUtil.getLevelRequirement(stack);
       int itemPlus = MaterialUtil.getUpgradeLevel(ItemStackExtensionsKt.getDisplayName(stack));
       price = (int) (baseEquipmentPrice + itemLevel * equipPricePerLevel);
+      price *= Math.pow(1.1, itemPlus);
       return new PriceData(amount * price, itemPlus > 4 || unique);
     }
     double quality = MaterialUtil.getQuality(stack);

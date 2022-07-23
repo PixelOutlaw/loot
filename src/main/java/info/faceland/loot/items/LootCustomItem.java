@@ -19,6 +19,7 @@
 package info.faceland.loot.items;
 
 import com.destroystokyo.paper.Namespaced;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.api.items.CustomItem;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -90,8 +91,8 @@ public final class LootCustomItem implements CustomItem {
       return itemStack;
     }
     itemStack.setAmount(amount);
-    ItemStackExtensionsKt.setDisplayName(itemStack, TextUtils.color(this.displayName));
-    TextUtils.setLore(itemStack, TextUtils.color(this.lore));
+    ItemStackExtensionsKt.setDisplayName(itemStack, PaletteUtil.color(this.displayName));
+    TextUtils.setLore(itemStack, PaletteUtil.color(lore));
     itemStack.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 
     if (material.getMaxStackSize() == 1 && customDataNumber > 8000) {

@@ -19,7 +19,7 @@
 package info.faceland.loot.enchantments;
 
 import info.faceland.loot.api.enchantments.EnchantmentTomeBuilder;
-import info.faceland.loot.api.groups.ItemGroup;
+import info.faceland.loot.groups.ItemGroup;
 import java.util.List;
 import java.util.Map;
 import org.bukkit.enchantments.Enchantment;

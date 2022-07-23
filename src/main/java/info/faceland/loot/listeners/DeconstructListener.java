@@ -6,6 +6,7 @@ import static info.faceland.loot.utils.MaterialUtil.getDigit;
 import static info.faceland.loot.utils.MaterialUtil.getLevelRequirement;
 import static info.faceland.loot.utils.MaterialUtil.getToolLevel;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
@@ -44,9 +45,13 @@ public class DeconstructListener implements Listener {
   private final LootPlugin plugin;
   private final LootRandom random;
 
+  private final double QUALITY_UP_CHANCE;
+
   public DeconstructListener(LootPlugin plugin) {
     this.plugin = plugin;
     this.random = new LootRandom();
+
+    QUALITY_UP_CHANCE = plugin.getSettings().getDouble("config.drops.material-quality-up", 0.1D);
   }
 
   @EventHandler(priority = EventPriority.LOWEST)
@@ -144,7 +149,7 @@ public class DeconstructListener implements Listener {
 
     int toolQuality = 1;
     if (cursorItem.hasItemMeta()) {
-      toolQuality = (int) TextUtils.getLore(cursorItem).get(1).chars().filter(ch -> ch == '✪').count();
+      toolQuality = MaterialUtil.getQuality(cursorItem);
     }
 
     double levelAdvantage = getLevelAdvantage(craftingLevel, itemLevel);
@@ -160,19 +165,21 @@ public class DeconstructListener implements Listener {
     double effectiveLevelAdvantage = getLevelAdvantage((int) effectiveCraftLevel, itemLevel);
     List<String> lore = TextUtils.getLore(targetItem);
     List<String> possibleStats = new ArrayList<>();
-    for (String str : lore) {
-      if (!ChatColor.stripColor(str).startsWith("+")) {
+    for (String s : lore) {
+      if (!ChatColor.stripColor(s).startsWith("+")) {
         continue;
       }
-      net.md_5.bungee.api.ChatColor color = getHexFromString(str);
+      net.md_5.bungee.api.ChatColor color = getHexFromString(s);
       if (color != null) {
         if (isValidStealColor(color.getColor())) {
-          possibleStats.add(str);
+          possibleStats.add(s);
         }
         continue;
       }
-      if (str.startsWith(ChatColor.GREEN + "") || str.startsWith(ChatColor.YELLOW + "")) {
-        possibleStats.add(str);
+      if (s.startsWith(ChatColor.GREEN + "") || s.startsWith(ChatColor.YELLOW + "")) {
+        possibleStats.add(s);
+      } else if (s.startsWith(FaceColor.LIGHT_GREEN.s()) || s.startsWith(FaceColor.YELLOW.s())) {
+        possibleStats.add(s);
       }
     }
 
@@ -184,16 +191,13 @@ public class DeconstructListener implements Listener {
       return;
     }
     float quality = 1;
-    while (random.nextDouble() <= plugin.getSettings().getDouble("config.drops.material-quality-up", 0.1D)
-        && quality < 5) {
+    float qualityUpBonus = (float) (effectiveLevelAdvantage / 300);
+    while (random.nextDouble() <= (QUALITY_UP_CHANCE + qualityUpBonus) && quality < 4) {
       quality++;
     }
-    quality += Math.max(0, effectiveCraftLevel - itemLevel) / 100;
-    quality += (toolQuality - 1) * 0.1;
-    quality = Math.floor(quality) + Math.random() <= quality % 1 ? 1 : 0;
-
-    quality = Math.max(MaterialUtil.getItemRarity(targetItem) - 1, quality);
-    quality = Math.min(5, Math.max(1, quality));
+    float rarityAndTool = ((float) (toolQuality + MaterialUtil.getItemRarity(targetItem))) / 2;
+    quality = Math.max(quality, rarityAndTool - 1);
+    quality = Math.min(4, Math.max(1, quality));
 
     ItemStack craftMaterial = MaterialUtil.buildMaterial(material, plugin.getCraftMatManager()
         .getCraftMaterials().get(material), itemLevel, (int) quality);
@@ -211,8 +215,8 @@ public class DeconstructListener implements Listener {
       player.playSound(player.getEyeLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.4F, 2F);
       Tier tier = MaterialUtil.getTierFromStack(targetItem);
 
-      ItemStack essence = buildEssence(tier, itemLevel, effectiveLevelAdvantage, toolQuality, possibleStats,
-          player.hasPotionEffect(PotionEffectType.LUCK));
+      ItemStack essence = buildEssence(tier, itemLevel, effectiveLevelAdvantage, toolQuality,
+          possibleStats, player.hasPotionEffect(PotionEffectType.LUCK));
 
       if (player.getInventory().firstEmpty() != -1) {
         player.getInventory().addItem(essence);
@@ -270,7 +274,7 @@ public class DeconstructListener implements Listener {
 
   public static boolean isValidStealColor(Color color) {
     float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
-    return hsb[0] >= 0.14 && hsb[0] <= 0.34 && hsb[1] >= 0.7 && hsb[1] <= 0.72 && hsb[2] >= 0.99 && hsb[2] <= 1.01;
+    return hsb[0] >= 0.11 && hsb[0] <= 0.34 && hsb[1] >= 0.7 && hsb[1] <= 0.83 && hsb[2] > 0.905 && hsb[2] < 1.001;
   }
 
   private static final Pattern hexPattern = Pattern.compile("§x(§[A-Fa-f0-9]){6}");

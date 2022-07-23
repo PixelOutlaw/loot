@@ -16,10 +16,8 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package info.faceland.loot.menu.upgrade;
+package info.faceland.loot.menu;
 
-import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
-import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import ninja.amp.ampmenus.events.ItemClickEvent;
 import ninja.amp.ampmenus.items.MenuItem;
@@ -27,31 +25,35 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public class ConfirmIcon extends MenuItem {
+public class TransparentIcon extends MenuItem {
 
-  private final EnchantMenu menu;
-  private String displayName = FaceColor.YELLOW + "Click Items To Begin!";
+  private final ItemStack stack;
 
-  ConfirmIcon(EnchantMenu menu) {
-    super("", new ItemStack(Material.PAPER));
-    ItemStackExtensionsKt.setCustomModelData(getIcon(), 61);
-    this.menu = menu;
+  public TransparentIcon() {
+    super(" ", new ItemStack(Material.BARRIER));
+    stack = buildStack(" ");
+  }
+
+  public TransparentIcon(String name) {
+    super(name, new ItemStack(Material.BARRIER));
+    stack = buildStack(name);
   }
 
   @Override
   public ItemStack getFinalIcon(Player player) {
-    ItemStack stack = this.getIcon().clone();
-    ItemStackExtensionsKt.setDisplayName(stack, displayName);
     return stack;
   }
 
   @Override
   public void onItemClick(ItemClickEvent event) {
     super.onItemClick(event);
-    event.setWillUpdate(menu.doUpgrade(event.getPlayer()));
+    event.setWillUpdate(false);
   }
 
-  public void setDisplayName(String displayName) {
-    this.displayName = displayName;
+  private static ItemStack buildStack(String name) {
+    ItemStack stack = new ItemStack(Material.BARRIER);
+    ItemStackExtensionsKt.setCustomModelData(stack, 50);
+    ItemStackExtensionsKt.setDisplayName(stack, name);
+    return stack;
   }
 }

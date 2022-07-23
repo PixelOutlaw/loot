@@ -18,28 +18,45 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.Arrays;
-import org.bukkit.ChatColor;
+import land.face.strife.util.ItemUtil;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
-public final class SocketExtender extends ItemStack {
+public final class SocketExtender {
 
-  public static ItemStack EXTENDER = new SocketExtender();
+  public static String name = "Socket Extender";
+  public static ItemStack EXTENDER = build();
 
-  public SocketExtender() {
-    super(Material.NETHER_STAR);
-    setAmount(1);
-    ItemStackExtensionsKt.setDisplayName(this, ChatColor.DARK_AQUA + "Socket Extender");
-    TextUtils.setLore(this, TextUtils.color(Arrays.asList(
-        "&7An upgrade item that can",
-        "&7be used on equipment with",
-        "&7a &3(+) &7in the description",
-        "&7to add an extra &6(Socket)")
+  public static ItemStack build() {
+    ItemStack stack = new ItemStack(Material.NETHER_STAR);
+    ItemStackExtensionsKt.setDisplayName(stack, FaceColor.PURPLE + name);
+    TextUtils.setLore(stack, PaletteUtil.color(Arrays.asList(
+        "|white|\uD86D\uDFE8Ս",
+        "",
+        "|lgray|An upgrade item that can",
+        "|lgray|be used on equipment with",
+        "|lgray|a |teal|(+) |lgray|in the description",
+        "|lgray|to add an extra |orange|(Socket)")
     ));
-    setDurability((short) 11);
+    ItemStackExtensionsKt.setCustomModelData(stack, 10);
+    stack.setDurability((short) 11);
+    return stack;
   }
 
+  public static boolean isSimilar(ItemStack stack) {
+    if (stack.getType() != Material.NETHER_STAR) {
+      return false;
+    }
+    if (!name.equals(ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)))) {
+      return false;
+    }
+    return stack.getDurability() == (short) 11;
+  }
 }

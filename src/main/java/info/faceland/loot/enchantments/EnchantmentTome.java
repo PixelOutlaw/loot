@@ -18,16 +18,16 @@
  */
 package info.faceland.loot.enchantments;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
-import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.text.WordUtils;
-import info.faceland.loot.api.groups.ItemGroup;
+import info.faceland.loot.groups.ItemGroup;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -123,25 +123,25 @@ public class EnchantmentTome {
   }
 
   public static List<String> UNCOLORED_TOME_DESC = Arrays.asList(
-      "&7Use this at an &dEnchantment Table",
-      "&7to upgrade an &9(Enchantable) &7item!",
-      "&bBonuses Applied:"
+      "",
+      "|lgray|Use this at an |purple|Enchantment Table",
+      "|lgray|to upgrade an |blue|(Enchantable) |lgray|item!",
+      "",
+      "|cyan|Bonuses Applied:"
   );
-
-  public static List<String> TOME_DESC = TextUtils.color(UNCOLORED_TOME_DESC);
 
   public ItemStack toItemStack(int amount) {
     ItemStack is = new ItemStack(Material.BOOK);
     is.setAmount(amount);
-    ItemStackExtensionsKt.setDisplayName(is, ChatColor.BLUE + "Enchantment Tome - " + getName());
+    ItemStackExtensionsKt.setDisplayName(is, FaceColor.BLUE + "Enchantment Tome - " + getName());
     List<String> lore = new ArrayList<>();
-    lore.add(ChatColor.WHITE + "Type: " + (itemGroups.isEmpty() ? "Any" : itemGroupsToString()));
-    lore.addAll(TOME_DESC);
+    lore.add(FaceColor.WHITE + itemGroupsToString() + "Ս");
+    lore.addAll(UNCOLORED_TOME_DESC);
 
     if (description != null && !description.isEmpty()) {
       lore.add(description);
     }
-    TextUtils.setLore(is, TextUtils.color(lore));
+    TextUtils.setLore(is, PaletteUtil.color(lore));
     is.setDurability((short) 11);
     return is;
   }
@@ -149,9 +149,9 @@ public class EnchantmentTome {
   private String itemGroupsToString() {
     StringBuilder sb = new StringBuilder();
     for (ItemGroup ig : getItemGroups()) {
-      sb.append(ig.getName()).append(" ");
+      sb.append(ig.getTag());
     }
-    return WordUtils.capitalizeFully(sb.toString().trim());
+    return sb.toString();
   }
 
   public boolean isBroadcast() {

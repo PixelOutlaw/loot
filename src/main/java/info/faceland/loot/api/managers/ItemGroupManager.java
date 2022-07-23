@@ -22,10 +22,9 @@
  */
 package info.faceland.loot.api.managers;
 
-import info.faceland.loot.api.groups.ItemGroup;
 import info.faceland.loot.data.MatchMaterial;
+import info.faceland.loot.groups.ItemGroup;
 import info.faceland.loot.tier.Tier;
-import java.util.Map;
 import java.util.Set;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;

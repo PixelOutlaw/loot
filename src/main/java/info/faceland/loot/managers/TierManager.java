@@ -18,27 +18,36 @@
  */
 package info.faceland.loot.managers;
 
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.tier.Tier;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.StringUtils;
 
 public final class TierManager {
 
   private final Set<Tier> loadedTiers = new HashSet<>();
   private final LootRandom random = new LootRandom();
 
-  public Tier getTier(String name) {
-    if (StringUtils.isBlank(name)) {
+  public Tier getTierFromName(String id) {
+    if (StringUtils.isBlank(id)) {
       return null;
     }
     for (Tier t : getLoadedTiers()) {
-      if (name.equalsIgnoreCase(t.getName())) {
+      if (t.getName().equals(id)) {
         return t;
       }
-      if (t.getId().replace(" ", "").equalsIgnoreCase(name.replace(" ", ""))) {
+    }
+    return null;
+  }
+
+  public Tier getTier(String id) {
+    if (StringUtils.isBlank(id)) {
+      return null;
+    }
+    for (Tier t : getLoadedTiers()) {
+      if (t.getId().replace(" ", "").equalsIgnoreCase(id.replace(" ", ""))) {
         return t;
       }
     }

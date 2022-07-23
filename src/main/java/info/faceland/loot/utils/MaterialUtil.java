@@ -21,17 +21,20 @@ package info.faceland.loot.utils;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
 import static org.bukkit.ChatColor.stripColor;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.tuple.Pair;
 import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.data.MatchMaterial;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.events.LootEnchantEvent;
+import info.faceland.loot.groups.ItemGroup;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.math.LootRandom;
@@ -41,6 +44,7 @@ import info.faceland.loot.tier.Tier;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -50,8 +54,8 @@ import land.face.dinvy.events.EquipmentUpdateEvent;
 import land.face.dinvy.pojo.PlayerData;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.util.ItemUtil;
 import land.face.strife.util.PlayerDataUtil;
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -59,14 +63,13 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
+import org.bukkit.entity.Parrot;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.material.Colorable;
-import org.jetbrains.annotations.NotNull;
 
 public final class MaterialUtil {
 
@@ -95,6 +98,19 @@ public final class MaterialUtil {
   private static boolean enchantmentsStack;
 
   public static final String FAILURE_BONUS = ChatColor.RED + "Failure Bonus";
+
+  private static final String enchantBarStart = "τ\uF801";
+  private static final String arcaneBarStart = "ψ\uF801";
+  private static final String enchantBarEmpty = "φ\uF801";
+  private static final String enchantBarFull = "υ\uF801";
+  private static final String arcaneBarFull = "ω\uF801";
+  private static final String enchantBarEnd = "χ";
+
+  public static final String TAG_COMMON = "\uD86D\uDFE6";
+  public static final String TAG_UNCOMMON = "\uD86D\uDFE7";
+  public static final String TAG_RARE = "\uD86D\uDFE8";
+  public static final String TAG_EPIC = "\uD86D\uDFE9";
+  public static final String TAG_UNIQUE = "\uD86D\uDFEA";
 
   public static void refreshConfig() {
     upgradeFailureMsg = LootPlugin.getInstance().getSettings()
@@ -177,7 +193,7 @@ public final class MaterialUtil {
       return;
     }
     int index = strippedLore.indexOf("(+)");
-    lore.set(index, ChatColor.GOLD + "(Socket)");
+    lore.set(index, FaceColor.ORANGE + "(Socket)");
     TextUtils.setLore(stack, lore);
 
     sendMessage(player, extendSuccessMsg);
@@ -368,24 +384,53 @@ public final class MaterialUtil {
     return meetsUpgradeRange(scroll, getUpgradeLevel(ItemStackExtensionsKt.getDisplayName(stack)));
   }
 
+  public static boolean matchesGroups(ItemStack stack, List<ItemGroup> groups) {
+    int modelData = ItemUtil.getCustomData(stack);
+    Material material = stack.getType();
+    for (ItemGroup ig : groups) {
+      if (ig.isInverse()) {
+        if (ig.getMaterials().contains(material)) {
+          return false;
+        }
+        if (ig.getMinimumCustomData() != -1 && modelData >= ig.getMinimumCustomData()) {
+          return false;
+        }
+        if (ig.getMaximumCustomData() != -1 && modelData <= ig.getMaximumCustomData()) {
+          return false;
+        }
+      } else {
+        if (!ig.getMaterials().contains(material)) {
+          return false;
+        }
+        if (ig.getMinimumCustomData() != -1 && modelData < ig.getMinimumCustomData()) {
+          return false;
+        }
+        if (ig.getMaximumCustomData() != -1 && modelData > ig.getMaximumCustomData()) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   public static boolean hasEnchantmentTag(ItemStack stack) {
     List<String> lore = new ArrayList<>(TextUtils.getLore(stack));
     List<String> strippedLore = InventoryUtil.stripColor(lore);
     return strippedLore.contains("(Enchantable)");
   }
 
-  public static boolean isMatchingGroup(EnchantmentTome tome, Material material) {
-    return LootPlugin.getInstance().getItemGroupManager().getMatchingItemGroups(material)
-        .containsAll(tome.getItemGroups());
-  }
-
   public static void purifyItem(Player player, ItemStack item, ItemStack purifyScroll) {
-    if (!isEnchanted(item)) {
-      MessageUtils.sendMessage(player,
-          "&eYou can only remove enchantments from items that have an enchantment ya ding dong");
+    Pair<String, Integer> enchantBar = getEnchantBar(item);
+    if (enchantBar == null) {
+      MessageUtils.sendMessage(player, "&eYou can only remove enchantments from items that have an enchantment ya ding dong");
       return;
     }
-    MaterialUtil.removeEnchantment(item);
+
+    List<String> lore = TextUtils.getLore(item);
+    lore.set(enchantBar.getRight(), FaceColor.BLUE + "(Enchantable)");
+    lore.remove(enchantBar.getRight() - 1);
+    TextUtils.setLore(item, lore);
+
     purifyScroll.setAmount(purifyScroll.getAmount() - 1);
     StrifePlugin.getInstance().getSkillExperienceManager()
         .addExperience(player, LifeSkillType.ENCHANTING, 68, false, false);
@@ -393,7 +438,8 @@ public final class MaterialUtil {
   }
 
   public static void enhanceEnchantment(Player player, ItemStack item, ItemStack enhancer) {
-    if (!MaterialUtil.isEnchanted(item) || MaterialUtil.isArcaneEnchanted(item)) {
+    Pair<String, Integer> enchantBar = getEnchantBar(item);
+    if (enchantBar == null || enchantBar.getLeft().contains(arcaneBarStart)) {
       MessageUtils.sendMessage(player, "&eThis item cannot be enhanced.");
       return;
     }
@@ -406,26 +452,13 @@ public final class MaterialUtil {
       return;
     }
 
-    int index = -1;
-    for (int i = 0; i < TextUtils.getLore(item).size(); i++) {
-      String string = TextUtils.getLore(item).get(i);
-      if (!isEnchantBar(string)) {
-        continue;
-      }
-      index = i;
-      break;
-    }
-    if (index == -1) {
-      return;
-    }
+    List<String> lore = TextUtils.getLore(item);
+    lore.set(enchantBar.getRight(),enchantBar.getLeft()
+        .replace(enchantBarStart, arcaneBarStart).replaceAll(enchantBarFull, arcaneBarFull));
+    String enchantmentStatString = ChatColor.stripColor(lore.get(enchantBar.getRight() - 1));
 
-    degradeItemEnchantment(item, null, player);
-
-    List<String> lore = new ArrayList<>(TextUtils.getLore(item));
-    String enchantmentStatString = ChatColor.stripColor(lore.get(index - 1));
-
-    int statValue = NumberUtils
-        .toInt(CharMatcher.digit().or(CharMatcher.is('-')).retainFrom(enchantmentStatString));
+    int statValue = NumberUtils.toInt(CharMatcher.digit()
+        .or(CharMatcher.is('-')).retainFrom(enchantmentStatString));
 
     itemLevel = Math.max(1, Math.min(100, itemLevel));
     double enchantingLevel = PlayerDataUtil.getEffectiveLifeSkill(player,
@@ -437,33 +470,14 @@ public final class MaterialUtil {
     int newValue = statValue + (int) (statValue * enhanceRoll * enchantingBonus);
     newValue++;
 
-    lore.set(index - 1,
-        ChatColor.BLUE + enchantmentStatString
+    lore.set(enchantBar.getRight() - 1, ChatColor.BLUE + enchantmentStatString
             .replace(Integer.toString(statValue), Integer.toString(newValue)));
-    lore.set(index, lore.get(index).replace(ChatColor.BLACK + "", ChatColor.DARK_RED + ""));
     TextUtils.setLore(item, lore);
+
     enhancer.setAmount(enhancer.getAmount() - 1);
     StrifePlugin.getInstance().getSkillExperienceManager()
         .addExperience(player, LifeSkillType.ENCHANTING, 400, false, false);
     player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 0.8f);
-  }
-
-
-  public static void removeEnchantment(ItemStack item) {
-    if (!MaterialUtil.isEnchanted(item)) {
-      return;
-    }
-    List<String> lore = new ArrayList<>();
-    for (int i = 0; i < TextUtils.getLore(item).size(); i++) {
-      String string = TextUtils.getLore(item).get(i);
-      if (!string.startsWith(ChatColor.BLUE + "[")) {
-        lore.add(string);
-        continue;
-      }
-      lore.remove(lore.size() - 1);
-      lore.add(ChatColor.BLUE + "(Enchantable)");
-    }
-    TextUtils.setLore(item, lore);
   }
 
   public static boolean canBeEnchanted(Player player, ItemStack tomeStack, ItemStack stack) {
@@ -471,7 +485,7 @@ public final class MaterialUtil {
     if (tome == null) {
       return false;
     }
-    if (!isMatchingGroup(tome, stack.getType())) {
+    if (!matchesGroups(stack, tome.getItemGroups())) {
       sendMessage(player, enchantFailureMsg);
       player.playSound(player.getEyeLocation(), Sound.BLOCK_LAVA_POP, 1F, 0.5F);
       return false;
@@ -485,82 +499,180 @@ public final class MaterialUtil {
     return true;
   }
 
-  public static boolean isEnchantBar(String string) {
-    String stripped = ChatColor.stripColor(string);
-    return stripped.startsWith("[") && stripped.endsWith("]") && stripped.contains("||");
+  public static int getMissingEnchantmentPower(ItemStack stack) {
+    if (!isEnchanted(stack)) {
+      return 0;
+    }
+    Pair<String, Integer> bar = getEnchantBar(stack);
+    String stripped = ChatColor.stripColor(bar.getKey());
+    if (stripped.startsWith("[|")) {
+      return 1;
+    } else if (stripped.startsWith(enchantBarStart)) {
+      int current = StringUtils.countMatches(stripped, "υ");
+      int max = current + StringUtils.countMatches(stripped, "φ");
+      return max - current;
+    } else if (stripped.startsWith(arcaneBarStart)) {
+      int current = StringUtils.countMatches(stripped, "ω");
+      int max = current +  StringUtils.countMatches(stripped, "φ");
+      return max - current;
+    } else {
+      return 0;
+    }
   }
 
   public static boolean isEnchanted(ItemStack stack) {
-    for (String string : TextUtils.getLore(stack)) {
-      String s = net.md_5.bungee.api.ChatColor.stripColor(string);
-      if (!(s.startsWith("[") && string.endsWith("]") && s.contains("||"))) {
-        return true;
-      }
-    }
-    return false;
+    return getEnchantBar(stack) != null;
   }
 
   public static boolean isArcaneEnchanted(ItemStack stack) {
-    if (!isEnchanted(stack)) {
-      return false;
-    }
-    for (String string : TextUtils.getLore(stack)) {
-      if (isEnchantBar(string) && string.contains("" + ChatColor.DARK_RED)) {
-        return true;
-      }
-    }
-    return false;
+    Pair<String, Integer> bar = getEnchantBar(stack);
+    return bar != null && isArcaneEnchanted(bar.getKey());
   }
 
-  public static void degradeItemEnchantment(ItemStack item, PlayerData data, Player player) {
-    if (!MaterialUtil.isEnchanted(item)) {
+  public static boolean isArcaneEnchanted(String enchantBarString) {
+    return enchantBarString.contains(arcaneBarStart);
+  }
+
+  public static void refillEnchantment(Player player, ItemStack equipment, ItemStack crystal) {
+    if (!isEnchanted(equipment) || isArcaneEnchanted(equipment)) {
       return;
     }
-    List<String> lore = new ArrayList<>();
-    for (int i = 0; i < TextUtils.getLore(item).size(); i++) {
-      String barString = TextUtils.getLore(item).get(i);
-      if (!isEnchantBar(barString)) {
-        lore.add(barString);
-        continue;
-      }
-      if (data != null) {
-        EquipmentUpdateEvent e = new EquipmentUpdateEvent(player, data, false);
-        Bukkit.getServer().getPluginManager().callEvent(e);
-      }
-      barString = barString.replace("" + ChatColor.BLUE, "");
-      ChatColor incompleteBarColor;
-      int index;
-      if (barString.contains("" + ChatColor.DARK_RED)) {
-        index = barString.indexOf("" + ChatColor.DARK_RED);
-        incompleteBarColor = ChatColor.DARK_RED;
-      } else if (barString.contains("" + ChatColor.BLACK)) {
-        index = barString.indexOf("" + ChatColor.BLACK);
-        incompleteBarColor = ChatColor.BLACK;
+
+    Pair<String, Integer> enchantBar = getEnchantBar(equipment);
+    double enchantLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.ENCHANTING);
+    double itemLevel = MaterialUtil.getLevelRequirement(equipment);
+    int addAmount = 2 + (int) (random.nextDouble() *
+        (2 + Math.max(0, (enchantLevel - itemLevel) * 0.2)));
+    Pair<String, Integer> result = refillEnchantBar(enchantBar.getLeft(), addAmount);
+    List<String> lore = TextUtils.getLore(equipment);
+    lore.set(enchantBar.getRight(), result.getLeft());
+    TextUtils.setLore(equipment, lore);
+
+    StrifePlugin.getInstance().getSkillExperienceManager().addExperience(player,
+        LifeSkillType.ENCHANTING, 10f + addAmount, false, false);
+    player.playSound(player.getEyeLocation(), Sound.BLOCK_GLASS_BREAK, 1F, 1.2F);
+    player.playSound(player.getEyeLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 1F, 1F);
+    crystal.setAmount(crystal.getAmount() - 1);
+  }
+
+  public static Pair<String, Integer> refillEnchantBar(String string, int amount) {
+    String stripped = ChatColor.stripColor(string);
+    if (stripped.startsWith("[|")) {
+      int current = StringUtils.countMatches(stripped, "|");
+      if (string.contains("" + ChatColor.DARK_RED)) {
+        return buildArcaneBar(current, current);
       } else {
-        index = barString.indexOf("]");
-        incompleteBarColor = ChatColor.BLACK;
+        return buildEnchantmentBar(current, current);
       }
-      if (index <= 2) {
-        lore.remove(lore.size() - 1);
-        lore.add(ChatColor.BLUE + "(Enchantable)");
-        sendMessage(player, LootPlugin.getInstance()
-            .getSettings().getString("language.enchant.degrade", ""));
-        if (data != null) {
-          EquipmentUpdateEvent e = new EquipmentUpdateEvent(player, data, true);
-          Bukkit.getServer().getPluginManager().callEvent(e);
-        }
-        continue;
-      } else if (index <= 5) {
-        sendMessage(player,
-            LootPlugin.getInstance().getSettings().getString("language.enchant.bar-low", ""));
-      }
-      barString = barString.replace("" + incompleteBarColor, "");
-      barString = new StringBuilder(barString).insert(index - 1, incompleteBarColor + "")
-          .toString();
-      barString = barString.replace("[", ChatColor.BLUE + "[").replace("]", ChatColor.BLUE + "]");
-      lore.add(barString);
+    } else if (stripped.startsWith(enchantBarStart)) {
+      int current = StringUtils.countMatches(stripped, "υ");
+      int max = current + StringUtils.countMatches(stripped, "φ");
+      current = Math.min(current + amount, max);
+      return buildEnchantmentBar(current, max);
+    } else if (stripped.startsWith(arcaneBarStart)) {
+      int current = StringUtils.countMatches(stripped, "ω");
+      int max = current +  StringUtils.countMatches(stripped, "φ");
+      current = Math.min(current + amount, max);
+      return buildArcaneBar(current, max);
+    } else {
+      return null;
     }
-    TextUtils.setLore(item, lore);
+  }
+
+  public static Pair<String, Integer> depleteEnchantBar(String string) {
+    String stripped = ChatColor.stripColor(string);
+    if (stripped.startsWith("[|")) {
+      int current = StringUtils.countMatches(stripped, "|");
+      int max = current;
+      current--;
+      if (string.contains("" + ChatColor.DARK_RED)) {
+        return buildArcaneBar(current, max);
+      } else {
+        return buildEnchantmentBar(current, max);
+      }
+    } else if (stripped.startsWith(enchantBarStart)) {
+      int current = StringUtils.countMatches(stripped, "υ");
+      int max = current + StringUtils.countMatches(stripped, "φ");
+      current--;
+      return buildEnchantmentBar(current, max);
+    } else if (stripped.startsWith(arcaneBarStart)) {
+      int current = StringUtils.countMatches(stripped, "ω");
+      int max = current +  StringUtils.countMatches(stripped, "φ");
+      current--;
+      return buildArcaneBar(current, max);
+    } else {
+      return null;
+    }
+  }
+
+  public static Pair<String, Integer> buildEnchantmentBar(int current, int max) {
+    if (current == 0) {
+      Bukkit.getLogger().info("revert " + current);
+      return Pair.of(FaceColor.BLUE + "(Enchantable)", 0);
+    }
+    String bar = ChatColor.WHITE + enchantBarStart;
+    bar += StringUtils.repeat(enchantBarFull, current);
+    bar += StringUtils.repeat(enchantBarEmpty, max - current);
+    bar += enchantBarEnd;
+    Bukkit.getLogger().info("bar " + bar);
+    return Pair.of(bar, current);
+  }
+
+  public static Pair<String, Integer> buildArcaneBar(int current, int max) {
+    if (current == 0) {
+      return Pair.of(FaceColor.BLUE + "(Enchantable)", 0);
+    }
+    String bar = ChatColor.WHITE + arcaneBarStart;
+    bar += StringUtils.repeat(arcaneBarFull, current);
+    bar += StringUtils.repeat(enchantBarEmpty, max - current);
+    bar += enchantBarEnd;
+    return Pair.of(bar, current);
+  }
+
+  // Left is the bar, right is the lore line index
+  public static Pair<String, Integer> getEnchantBar(ItemStack stack) {
+    int index = 0;
+    for (String string : TextUtils.getLore(stack)) {
+      index++;
+      String s = net.md_5.bungee.api.ChatColor.stripColor(string);
+      if (s.startsWith("[") && string.endsWith("]") && s.contains("||")) {
+        return Pair.of(string, index - 1);
+      }
+      if (s.startsWith(enchantBarStart) || s.startsWith(arcaneBarStart)) {
+        return Pair.of(string, index - 1);
+      }
+    }
+    return null;
+  }
+
+  public static void depleteEnchantment(ItemStack stack, Player player) {
+    depleteEnchantment(stack, player, null);
+  }
+
+  public static void depleteEnchantment(ItemStack stack, Player player, PlayerData data) {
+    Pair<String, Integer> enchantBar = getEnchantBar(stack);
+    if (enchantBar == null) {
+      return;
+    }
+    List<String> lore = TextUtils.getLore(stack);
+    Pair<String, Integer> depletionResult = depleteEnchantBar(enchantBar.getLeft());
+    if (depletionResult.getRight() == 0) {
+      sendMessage(player, LootPlugin.getInstance().getSettings().getString("language.enchant.degrade", ""));
+      lore.set(enchantBar.getRight(), depletionResult.getLeft());
+      lore.remove(enchantBar.getRight() - 1);
+      TextUtils.setLore(stack, lore);
+    } else if (depletionResult.getRight() < 5) {
+      sendMessage(player, LootPlugin.getInstance().getSettings().getString("language.enchant.bar-low", ""));
+      lore.set(enchantBar.getRight(), depletionResult.getLeft());
+      TextUtils.setLore(stack, lore);
+    } else {
+      lore.set(enchantBar.getRight(), depletionResult.getLeft());
+      TextUtils.setLore(stack, lore);
+    }
+    if (data != null) {
+      EquipmentUpdateEvent e = new EquipmentUpdateEvent(player, data, new HashSet<>(), false);
+      Bukkit.getServer().getPluginManager().callEvent(e);
+    }
   }
 
   public static boolean enchantItem(Player player, ItemStack tomeStack, ItemStack targetItem) {
@@ -600,17 +712,15 @@ public final class MaterialUtil {
       double rarity = MaterialUtil.getBaseEnchantBonus(enchantSkill);
 
       ItemStat stat = LootPlugin.getInstance().getStatManager().getStat(tome.getStat());
-      added.add(LootPlugin.getInstance().getStatManager().getFinalStat(stat, eLevel, rarity, false)
-          .getStatString());
+      added.add(LootPlugin.getInstance().getStatManager()
+          .getFinalStat(stat, eLevel, rarity, false).getStatString());
     }
 
     if (tome.getBar()) {
       double skillRatio = Math.min(1, enchantSkill / 100);
       double roll = skillRatio * Math.random() + (1 - skillRatio) * Math.pow(Math.random(), 2.5);
       double size = 8 + 22 * roll;
-      String bars = IntStream.range(0, (int) size).mapToObj(i -> "|")
-          .collect(Collectors.joining(""));
-      added.add(ChatColor.BLUE + "[" + bars + "]");
+      added.add(buildEnchantmentBar((int) size, (int) size).getLeft());
     }
 
     lore.addAll(index, added);
@@ -678,7 +788,7 @@ public final class MaterialUtil {
     if (StringUtils.isBlank(name)) {
       return null;
     }
-    if (!name.startsWith(ChatColor.BLUE + "Enchantment Tome - ")) {
+    if (!net.md_5.bungee.api.ChatColor.stripColor(name).startsWith("Enchantment Tome - ")) {
       return null;
     }
     return getEnchantmentItem(name);
@@ -727,60 +837,64 @@ public final class MaterialUtil {
     head.setAmount(head.getAmount() - 1);
   }
 
-  public static boolean isExtender(ItemStack stack) {
-    return ItemStackExtensionsKt.getDisplayName(SocketExtender.EXTENDER)
-        .equals(ItemStackExtensionsKt.getDisplayName(stack));
-  }
-
   public static ItemStack buildMaterial(Material m, String name, int level, int quality) {
     ItemStack his = new ItemStack(m);
-    ChatColor color;
+    FaceColor color;
     String prefix;
+    String tag;
     switch (quality) {
       case 2 -> {
-        prefix = "Quality";
-        color = ChatColor.BLUE;
+        prefix = "";
+        color = FaceColor.BLUE;
+        tag = TAG_UNCOMMON;
       }
       case 3 -> {
-        prefix = "Rare";
-        color = ChatColor.DARK_PURPLE;
+        prefix = "Quality ";
+        color = FaceColor.PURPLE;
+        tag = TAG_RARE;
       }
       case 4 -> {
-        prefix = "Grand";
-        color = ChatColor.RED;
-      }
-      case 5 -> {
-        prefix = "Perfect";
-        color = ChatColor.GOLD;
+        prefix = "Superb ";
+        color = FaceColor.RED;
+        tag = TAG_EPIC;
       }
       default -> {
-        prefix = "Old";
-        color = ChatColor.WHITE;
+        prefix = "Crappy ";
+        color = FaceColor.WHITE;
+        tag = TAG_COMMON;
       }
     }
-    ItemStackExtensionsKt.setDisplayName(his, color + prefix + " " + name);
+    ItemStackExtensionsKt.setDisplayName(his, color + prefix + name);
     List<String> lore = new ArrayList<>();
-    lore.add(ChatColor.WHITE + "Item Level: " + Math.min(100, Math.max(1, 3 * (level / 3))));
-    lore.add(ChatColor.WHITE + "Quality: " + color + IntStream.range(0, quality).mapToObj(i -> "✪")
-        .collect(Collectors.joining("")));
-    lore.add(ChatColor.YELLOW + "[ Crafting Component ]");
-    TextUtils.setLore(his, lore);
+    lore.add(FaceColor.WHITE + "Item Level: " + Math.min(100, Math.max(1, 4 * (level / 4))));
+    lore.add(FaceColor.WHITE + tag + "\uD86D\uDFF5");
+    lore.add("");
+    lore.add(FaceColor.LIGHT_GRAY + "Materials for crafting");
+    TextUtils.setLore(his, lore, false);
     his.setDurability((short) 11);
     return his;
   }
 
   public static int getQuality(ItemStack stack) {
     for (String line : TextUtils.getLore(stack)) {
-      if (ChatColor.stripColor(line).startsWith("Quality:")) {
-        return (int) line.chars().filter(ch -> ch == '✪').count();
+      if (line.contains(TAG_COMMON)) {
+        return 1;
+      }
+      if (line.contains(TAG_UNCOMMON)) {
+        return 2;
+      }
+      if (line.contains(TAG_RARE)) {
+        return 3;
+      }
+      if (line.contains(TAG_EPIC)) {
+        return 4;
       }
     }
     return 0;
   }
 
   public static ItemStack buildEssence(Tier tier, double itemLevel, double craftLevelAdvantage,
-      int toolQuality,
-      List<String> possibleStats, boolean lucky) {
+      int toolQuality, List<String> possibleStats, boolean lucky) {
 
     int essLevel = Math.max(1, (int) (Math.floor(itemLevel) / 10) * 10);
 
@@ -799,17 +913,19 @@ public final class MaterialUtil {
         String.valueOf((int) Math.max(1, statVal * essMult)));
 
     ItemStack shard = new ItemStack(Material.PRISMARINE_SHARD);
-    ItemStackExtensionsKt.setDisplayName(shard, ChatColor.YELLOW + "Item Essence");
+    ItemStackExtensionsKt.setDisplayName(shard, FaceColor.CYAN + "Item Essence");
 
     List<String> esslore = new ArrayList<>();
-    esslore.add("&fItem Level Requirement: " + essLevel);
-    esslore.add("&fItem Type: " + tier.getName());
-    esslore.add("&e" + newStatString);
-    esslore.add("&7&oCraft this together with");
-    esslore.add("&7&oan unfinished item to fill");
-    esslore.add("&7&oan &b&oEssence Slot&7&o!");
-    esslore.add("&e[ Crafting Component ]");
-    TextUtils.setLore(shard, ListExtensionsKt.chatColorize(esslore));
+    esslore.add(FaceColor.WHITE + "Item Level Requirement: " + essLevel);
+    esslore.add(FaceColor.WHITE + tier.getName() + "\u0588");
+    esslore.add("");
+    esslore.add(FaceColor.CYAN + newStatString);
+    esslore.add("");
+    esslore.add(FaceColor.LIGHT_GRAY + "Craft this together with");
+    esslore.add(FaceColor.LIGHT_GRAY + "an unfinished item to fill");
+    esslore.add(FaceColor.LIGHT_GRAY + "an " + FaceColor.CYAN +
+        "Essence Slot" + FaceColor.LIGHT_GRAY + "!");
+    TextUtils.setLore(shard, esslore, false);
     ItemStackExtensionsKt.setCustomModelData(shard, 501);
 
     return shard;
@@ -844,12 +960,10 @@ public final class MaterialUtil {
   }
 
   public static boolean isEssence(ItemStack itemStack) {
-    if (itemStack.getType() != Material.PRISMARINE_SHARD || StringUtils
-            .isBlank(ItemStackExtensionsKt.getDisplayName(itemStack))) {
+    if (itemStack.getType() != Material.PRISMARINE_SHARD || StringUtils.isBlank(ItemStackExtensionsKt.getDisplayName(itemStack))) {
       return false;
     }
-    if (!ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(itemStack))
-            .equals("Item Essence")) {
+    if (!ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(itemStack)).equals("Item Essence")) {
       return false;
     }
     List<String> lore = TextUtils.getLore(itemStack);
@@ -866,26 +980,16 @@ public final class MaterialUtil {
     return true;
   }
 
-  public static Tier getEssenceTier(ItemStack itemStack) {
-    String str = ChatColor.stripColor(TextUtils.getLore(itemStack).get(1))
-            .replace("Item Type: ", "");
-    return LootPlugin.getInstance().getTierManager().getTier(str);
+  public static String getEssenceTag(ItemStack stack) {
+    return ChatColor.stripColor(TextUtils.getLore(stack).get(1)).replace("\u0588", "");
   }
 
-  public static boolean isEssenceTypeAny(ItemStack itemStack) {
-    String str = ChatColor.stripColor(TextUtils.getLore(itemStack).get(1))
-            .replace("Item Type: ", "");
-    return "Any".equalsIgnoreCase(str);
+  public static Tier getEssenceTier(String tag) {
+    return LootPlugin.getInstance().getTierManager().getTierFromName(tag);
   }
 
   public static String getEssenceStat(ItemStack itemStack) {
     return TextUtils.getLore(itemStack).get(2);
-  }
-
-  public static boolean hasQuality(ItemStack h) {
-    return !StringUtils.isBlank(ItemStackExtensionsKt.getDisplayName(h)) && h.hasItemMeta()
-            && TextUtils.getLore(h).get(1) != null &&
-            ChatColor.stripColor(TextUtils.getLore(h).get(1)).startsWith("Quality: ");
   }
 
   public static boolean hasItemLevel(ItemStack h) {
@@ -925,22 +1029,19 @@ public final class MaterialUtil {
       return 0;
     }
     String tierString = ChatColor.stripColor(TextUtils.getLore(stack).get(1));
-    if (!tierString.startsWith("Tier:")) {
-      return 0;
-    }
-    if (tierString.contains("Common")) {
+    if (tierString.contains(TAG_COMMON)) {
       return 1;
     }
-    if (tierString.contains("Uncommon")) {
+    if (tierString.contains(TAG_UNCOMMON)) {
       return 2;
     }
-    if (tierString.contains("Rare")) {
+    if (tierString.contains(TAG_RARE)) {
       return 3;
     }
-    if (tierString.contains("Epic")) {
+    if (tierString.contains(TAG_EPIC)) {
       return 4;
     }
-    if (tierString.contains("Unique")) {
+    if (tierString.contains(TAG_UNIQUE)) {
       return 4;
     }
     return 1;
@@ -1012,7 +1113,8 @@ public final class MaterialUtil {
 
   private static boolean isBannedUpgradeMaterial(ItemStack item) {
     return switch (item.getType()) {
-      case EMERALD, PAPER, NETHER_STAR, DIAMOND, GHAST_TEAR, ENCHANTED_BOOK, NAME_TAG, QUARTZ -> true;
+      case EMERALD, PAPER, NETHER_STAR, DIAMOND, GHAST_TEAR,
+          ENCHANTED_BOOK, NAME_TAG, QUARTZ, TNT_MINECART -> true;
       default -> false;
     };
   }

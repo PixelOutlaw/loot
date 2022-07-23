@@ -18,9 +18,9 @@
  */
 package info.faceland.loot.managers;
 
-import info.faceland.loot.api.groups.ItemGroup;
 import info.faceland.loot.api.managers.ItemGroupManager;
 import info.faceland.loot.data.MatchMaterial;
+import info.faceland.loot.groups.ItemGroup;
 import info.faceland.loot.tier.Tier;
 import java.util.HashMap;
 import java.util.HashSet;

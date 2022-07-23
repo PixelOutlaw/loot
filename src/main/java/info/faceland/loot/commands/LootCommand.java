@@ -28,25 +28,24 @@ import com.tealcube.minecraft.bukkit.shade.acf.annotation.CommandAlias;
 import com.tealcube.minecraft.bukkit.shade.acf.annotation.CommandCompletion;
 import com.tealcube.minecraft.bukkit.shade.acf.annotation.CommandPermission;
 import com.tealcube.minecraft.bukkit.shade.acf.annotation.Default;
-import com.tealcube.minecraft.bukkit.shade.acf.annotation.Optional;
 import com.tealcube.minecraft.bukkit.shade.acf.annotation.Subcommand;
 import com.tealcube.minecraft.bukkit.shade.acf.bukkit.contexts.OnlinePlayer;
 import com.tealcube.minecraft.bukkit.shade.google.gson.Gson;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.api.groups.ItemGroup;
 import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.ItemRarity;
-import info.faceland.loot.data.UniqueLoot;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.data.export.ExportEntry;
 import info.faceland.loot.enchantments.EnchantmentTome;
+import info.faceland.loot.groups.ItemGroup;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.menu.gemcutter.GemcutterMenu;
 import info.faceland.loot.menu.pawn.PawnMenu;
+import info.faceland.loot.menu.transmute.TransmuteMenu;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.tier.Tier;
@@ -57,13 +56,14 @@ import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import org.bukkit.Bukkit;
+import land.face.dinvy.DeluxeInvyPlugin;
+import land.face.dinvy.pojo.PlayerData;
+import land.face.dinvy.windows.equipment.EquipmentMenu.DeluxeSlot;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -72,11 +72,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.util.RayTraceResult;
-import org.bukkit.util.Vector;
 
 @CommandAlias("loot")
 public class LootCommand extends BaseCommand {
@@ -134,7 +132,7 @@ public class LootCommand extends BaseCommand {
       exportGem.setName("&6" + gem.getName());
       exportGem.setStrippedName(ChatColor.stripColor(TextUtils.color(exportGem.getName())));
       exportGem.setDescription(gem.getLore());
-      exportGem.setGroupNames(buildItemTags(gem.getItemGroups()));
+      //exportGem.setGroupNames(buildItemTags(gem.getItemGroups()));
       exportGem.getGroupNames().add("Upgrade");
       if (gem.getWeight() == 0) {
         exportGem.setSpecialFlag(gem.getBonusWeight() > 0 ? "transmute" : "event");
@@ -404,6 +402,34 @@ public class LootCommand extends BaseCommand {
           new String[][]{{"%amount%", amount + ""}});
     }
 
+    @Subcommand("unique-equip")
+    @CommandCompletion("@players @uniques")
+    public void giveUnique(CommandSender sender, OnlinePlayer player, String id, String dSlot) {
+      CustomItem ci = plugin.getCustomItemManager().getCustomItem(id);
+      if (ci == null) {
+        sendMessage(sender,
+            plugin.getSettings().getString("language.commands.spawn.custom-failure", ""));
+        return;
+      }
+      DeluxeSlot slot;
+      try {
+        slot = DeluxeSlot.valueOf(dSlot);
+      } catch (Exception e) {
+        sendMessage(sender, "[Loot] No unique-equip slot " + dSlot);
+        return;
+      }
+      ItemStack stack = ci.toItemStack(1);
+      PlayerData playerData = DeluxeInvyPlugin.getInstance()
+          .getPlayerManager().getPlayerData(player.getPlayer());
+      if (playerData.getEquipmentItem(slot) == null) {
+        playerData.setEquipmentItem(slot, stack);
+      } else {
+        giveItem(player.getPlayer(), stack);
+      }
+      sendMessage(sender, plugin.getSettings().getString(
+          "language.commands.spawn.custom-success", ""), new String[][]{{"%amount%", 1 + ""}});
+    }
+
     @Subcommand("scroll")
     @CommandCompletion("@players @scrolls @range:1-100")
     public void giveScroll(CommandSender sender, OnlinePlayer player, String id,
@@ -435,11 +461,9 @@ public class LootCommand extends BaseCommand {
     @CommandCompletion("@players @range:1-100")
     public void giveExtender(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
       for (int i = 0; i < amount; i++) {
-        player.getPlayer().getInventory().addItem(new SocketExtender());
+        player.getPlayer().getInventory().addItem(SocketExtender.EXTENDER.clone());
       }
-      sendMessage(sender,
-          plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
-          new String[][]{{"%amount%", amount + ""}});
+      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""), new String[][]{{"%amount%", amount + ""}});
     }
 
     @Subcommand("purity|purify")
@@ -542,18 +566,8 @@ public class LootCommand extends BaseCommand {
   @Subcommand("transmute")
   @CommandPermission("loot.transmute")
   public void openTransmuator(CommandSender sender, OnlinePlayer target) {
-    Inventory toShow = Bukkit.createInventory(null, 45, TextUtils.color("&5&lSocket Gem Combiner"));
-    ItemStack buffer = new ItemStack(Material.IRON_BARS);
-    ItemStackExtensionsKt.setDisplayName(buffer, TextUtils.color("&aClick a &6Socket Gem &ato begin!"));
-    ItemStackExtensionsKt.setCustomModelData(buffer, 99);
-    for (int slot = 0; slot < toShow.getSize(); slot++) {
-      if (slot == 10 || slot == 12 || slot == 14 || slot == 16 || slot == 31) {
-        continue;
-      }
-      toShow.setItem(slot, buffer);
-    }
-    toShow.setMaxStackSize(1);
-    target.getPlayer().openInventory(toShow);
+    TransmuteMenu menu = new TransmuteMenu(plugin);
+    menu.open(target.player);
   }
 
   @Subcommand("rename")

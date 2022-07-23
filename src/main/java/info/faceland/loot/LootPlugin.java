@@ -20,13 +20,13 @@ package info.faceland.loot;
 
 import com.tealcube.minecraft.bukkit.facecore.logging.PluginLogger;
 import com.tealcube.minecraft.bukkit.facecore.plugin.FacePlugin;
-import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.shade.acf.PaperCommandManager;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.api.creatures.CreatureModBuilder;
 import info.faceland.loot.api.creatures.MobInfo;
 import info.faceland.loot.api.enchantments.EnchantmentTomeBuilder;
-import info.faceland.loot.api.groups.ItemGroup;
 import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.CustomItemBuilder;
 import info.faceland.loot.api.managers.CreatureModManager;
@@ -36,7 +36,6 @@ import info.faceland.loot.api.managers.ItemGroupManager;
 import info.faceland.loot.api.managers.NameManager;
 import info.faceland.loot.api.managers.RarityManager;
 import info.faceland.loot.api.managers.UniqueDropsManager;
-import info.faceland.loot.api.sockets.SocketGemBuilder;
 import info.faceland.loot.api.sockets.effects.SocketEffect;
 import info.faceland.loot.api.tier.TierBuilder;
 import info.faceland.loot.commands.LootCommand;
@@ -49,7 +48,7 @@ import info.faceland.loot.data.UniqueLoot;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.enchantments.LootEnchantmentTomeBuilder;
-import info.faceland.loot.groups.LootItemGroup;
+import info.faceland.loot.groups.ItemGroup;
 import info.faceland.loot.io.SmartTextFile;
 import info.faceland.loot.items.ItemBuilder;
 import info.faceland.loot.items.LootCustomItemBuilder;
@@ -70,6 +69,7 @@ import info.faceland.loot.listeners.ItemSpawnListener;
 import info.faceland.loot.listeners.PawnMenuListener;
 import info.faceland.loot.listeners.SoulGemListener;
 import info.faceland.loot.listeners.StrifeListener;
+import info.faceland.loot.listeners.VagabondEquipListener;
 import info.faceland.loot.listeners.anticheat.AnticheatListener;
 import info.faceland.loot.listeners.crafting.CraftingListener;
 import info.faceland.loot.listeners.sockets.CombinerListener;
@@ -93,7 +93,7 @@ import info.faceland.loot.managers.TierManager;
 import info.faceland.loot.menu.gemcutter.GemcutterMenu;
 import info.faceland.loot.menu.pawn.PawnMenu;
 import info.faceland.loot.recipe.EquipmentRecipeBuilder;
-import info.faceland.loot.sockets.LootSocketGemBuilder;
+import info.faceland.loot.sockets.SocketGemBuilder;
 import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.sockets.effects.LootSocketPotionEffect;
 import info.faceland.loot.tier.LootTierBuilder;
@@ -119,7 +119,6 @@ import lombok.Getter;
 import org.black_ixx.playerpoints.PlayerPoints;
 import org.black_ixx.playerpoints.PlayerPointsAPI;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
@@ -300,8 +299,13 @@ public final class LootPlugin extends FacePlugin {
     if (potionTriggersEnabled) {
       Bukkit.getPluginManager().registerEvents(new SocketsListener(gemCacheManager), this);
     }
-    if (strifePlugin != null && potionTriggersEnabled) {
-      Bukkit.getPluginManager().registerEvents(new StrifeListener(this), this);
+    if (strifePlugin != null) {
+      if (potionTriggersEnabled) {
+        Bukkit.getPluginManager().registerEvents(new StrifeListener(this), this);
+      }
+      VagabondEquipListener vagabondEquipListener = new VagabondEquipListener(this);
+      vagabondEquipListener.loadData(configYAML.getConfigurationSection("vagabonds"));
+      Bukkit.getPluginManager().registerEvents(vagabondEquipListener, this);
     }
     Bukkit.getPluginManager().registerEvents(new ContainerOpenListener(), this);
     debug("v" + getDescription().getVersion() + " enabled");
@@ -419,7 +423,7 @@ public final class LootPlugin extends FacePlugin {
       UpgradeScroll scroll = new UpgradeScroll();
       scroll.setId(key);
       scroll.setPrefix(cs.getString("prefix", "CONFIGURE PREFIX FOR SCROLL" + key));
-      scroll.setLore(TextUtils.color(cs.getStringList("lore")));
+      scroll.setLore(PaletteUtil.color(cs.getStringList("lore")));
       staticAbuse.put(key, cs.getStringList("lore"));
       scroll.setBaseSuccess(cs.getDouble("base-success", 1.0));
       scroll.setFlatDecay(cs.getDouble("flat-decay", 0.01));
@@ -594,7 +598,7 @@ public final class LootPlugin extends FacePlugin {
       SocketGemBuilder builder = getNewSocketGemBuilder(key);
       builder.withPrefix(cs.getString("prefix"));
       builder.withSuffix(cs.getString("suffix"));
-      builder.withLore(cs.getStringList("lore"));
+      builder.withLore(PaletteUtil.color(cs.getStringList("lore")));
       builder.withWeight(cs.getDouble("weight"));
       builder.withDistanceWeight(cs.getDouble("distance-weight"));
       builder.withBonusWeight(cs.getDouble("bonus-weight"));
@@ -716,11 +720,12 @@ public final class LootPlugin extends FacePlugin {
       if ("version".equalsIgnoreCase(groupName)) {
         continue;
       }
-      ItemGroup ig = new LootItemGroup(groupName, false);
+      ItemGroup ig = new ItemGroup(groupName, false);
       int min = itemsYAML.getConfigurationSection(groupName).getInt("min-custom-data", -1);
       int max = itemsYAML.getConfigurationSection(groupName).getInt("max-custom-data", -1);
       ig.setMinimumCustomData(min);
       ig.setMaximumCustomData(max);
+      ig.setTag(itemsYAML.getConfigurationSection(groupName).getString("tag", ""));
       ConfigurationSection materialsSection = itemsYAML.getConfigurationSection(groupName);
       for (String material : materialsSection.getStringList("materials")) {
         Material m = Material.getMaterial(material);
@@ -758,8 +763,7 @@ public final class LootPlugin extends FacePlugin {
         String tierString = cs.getString("tier-id");
         Tier tier = getTierManager().getTier(tierString);
         if (tier == null) {
-          Bukkit.getLogger()
-              .warning("[Loot] Material " + materialKey + " has invalid tier " + tierString);
+          Bukkit.getLogger().warning("[Loot] Material " + materialKey + " has invalid tier " + tierString);
           continue;
         }
         matchMaterial.setTier(tier);
@@ -825,7 +829,7 @@ public final class LootPlugin extends FacePlugin {
       ItemRarity rarity = new ItemRarity();
       rarity.setBroadcast(cs.getBoolean("broadcast"));
       rarity.setName(cs.getString("name"));
-      rarity.setColor(ChatColor.valueOf(cs.getString("color")));
+      rarity.setColor(FaceColor.valueOf(cs.getString("color")));
       rarity.setWeight(cs.getDouble("weight"));
       rarity.setIdWeight(cs.getDouble("id-weight"));
       rarity.setPower(cs.getDouble("power"));
@@ -885,7 +889,7 @@ public final class LootPlugin extends FacePlugin {
       }
       ConfigurationSection cs = tierYAML.getConfigurationSection(key);
       TierBuilder builder = getNewTierBuilder(key);
-      builder.withName(cs.getString("tier-name"));
+      builder.withName(PaletteUtil.color(cs.getString("tier-name")));
       builder.withLevelRequirement(cs.getBoolean("level-req"));
       builder.withPrimaryStat(getStatManager().getLoadedStats().get(cs.getString("primary-stat")));
 
@@ -934,7 +938,7 @@ public final class LootPlugin extends FacePlugin {
       builder.withItemGroups(itemGroups);
       Tier t = builder.build();
       t.getItemSuffixes().addAll(cs.getStringList("name-suffixes"));
-      loadedTiers.add(t.getName());
+      loadedTiers.add(t.getId());
 
       String marketFilterFlag = cs.getString("filter-flag", "ALL");
       t.setFilterFlag(FilterFlagA.valueOf(marketFilterFlag));
@@ -971,7 +975,7 @@ public final class LootPlugin extends FacePlugin {
   }
 
   public SocketGemBuilder getNewSocketGemBuilder(String name) {
-    return new LootSocketGemBuilder(name);
+    return new SocketGemBuilder(name);
   }
 
   public CreatureModBuilder getNewCreatureModBuilder(EntityType entityType) {

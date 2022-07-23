@@ -56,7 +56,7 @@ public final class EnchantDegradeListener implements Listener {
     PlayerData data = DeluxeInvyPlugin.getInstance().getPlayerManager().getPlayerData(p);
     ItemStack item = switch (random.nextInt(11)) {
       case 0 -> p.getEquipment().getItemInMainHand();
-      case 1 -> p.getEquipment().getItemInOffHand();
+      case 1 -> data.getEquipmentItem(DeluxeSlot.OFF_HAND);
       case 2 -> data.getEquipmentItem(DeluxeSlot.HELMET);
       case 3 -> data.getEquipmentItem(DeluxeSlot.BODY);
       case 4 -> data.getEquipmentItem(DeluxeSlot.LEGS);
@@ -71,6 +71,6 @@ public final class EnchantDegradeListener implements Listener {
     if (item == null || item.getType() == Material.AIR) {
       return;
     }
-    MaterialUtil.degradeItemEnchantment(item, data, p);
+    MaterialUtil.depleteEnchantment(item, p, data);
   }
 }

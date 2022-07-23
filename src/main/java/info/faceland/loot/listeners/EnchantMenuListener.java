@@ -21,9 +21,12 @@ package info.faceland.loot.listeners;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
+import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.utils.MaterialUtil;
+import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import ninja.amp.ampmenus.menus.MenuHolder;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -67,7 +70,7 @@ public final class EnchantMenuListener implements Listener {
       enchantMenu.setSelectedUpgradeItem(player, stack);
       enchantMenu.update(player);
       player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
-    } else if (MaterialUtil.isExtender(stack)) {
+    } else if (SocketExtender.isSimilar(stack)) {
       enchantMenu.setSelectedUpgradeItem(player, stack);
       enchantMenu.update(player);
       player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
@@ -75,11 +78,17 @@ public final class EnchantMenuListener implements Listener {
       enchantMenu.setSelectedUpgradeItem(player, stack);
       enchantMenu.update(player);
       player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
-    } else if (stack.isSimilar(PurifyingScroll.get())) {
+    } else if (PurifyingScroll.isSimilar(stack)) {
       enchantMenu.setSelectedUpgradeItem(player, stack);
       enchantMenu.update(player);
       player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
-    } else if (MaterialUtil.isEquipmentItem(stack) || MaterialUtil.hasEnchantmentTag(stack)) {
+    } else if ("Magic Crystal".equals(
+        ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)))) {
+      enchantMenu.setSelectedUpgradeItem(player, stack);
+      enchantMenu.update(player);
+      player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
+    } else if (stack.getAmount() == 1 &&
+        (MaterialUtil.isEquipmentItem(stack) || MaterialUtil.hasEnchantmentTag(stack))) {
       enchantMenu.setSelectedEquipment(player, stack);
       enchantMenu.update((Player) event.getWhoClicked());
       player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);

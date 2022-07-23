@@ -1,5 +1,6 @@
 package info.faceland.loot.managers;
 
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.StatResponse;
 import info.faceland.loot.math.LootRandom;
@@ -8,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 
 public class StatManager {
@@ -57,7 +57,7 @@ public class StatManager {
       statRoll = switch (style) {
         case MAX -> 1;
         case MIN -> 0;
-        case RANDOM -> (float) Math.pow(random.nextDouble(), 2.5);
+        case RANDOM -> (float) Math.pow(random.nextDouble(), 2.75);
       };
       statValue = itemStat.getMinBaseValue() + statRoll * (itemStat.getMaxBaseValue() - itemStat.getMinBaseValue());
     }

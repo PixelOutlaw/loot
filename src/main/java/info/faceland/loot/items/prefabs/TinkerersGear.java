@@ -18,6 +18,8 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -31,18 +33,21 @@ import org.bukkit.inventory.ItemStack;
 public final class TinkerersGear {
 
   private static ItemStack item;
-  private static String TINKER_NAME = ChatColor.RED + "Tinkerer's Gear";
+  private static String TINKER_NAME = "Tinkerer's Gear";
 
   public static void rebuild() {
     ItemStack stack = new ItemStack(Material.BRICK);
-    ItemStackExtensionsKt.setDisplayName(stack, ChatColor.RED + "Tinkerer's Gear");
-    TextUtils.setLore(stack, TextUtils.color(Arrays.asList(
-        "&7This perplexing gear can be",
-        "&7used on an equipment item to",
-        "&7turn one random &agreen&7/&eyellow",
-        "&7stat into an &bEssence Slot&7!",
-        "&8&oA strange item that seems to",
-        "&8&obe more science than magic..."
+    ItemStackExtensionsKt.setDisplayName(stack, FaceColor.RED + TINKER_NAME);
+    TextUtils.setLore(stack, PaletteUtil.color(Arrays.asList(
+        "|white|\uD86D\uDFE9Ս",
+        "",
+        "|lgray|This perplexing gear can be",
+        "|lgray|used on an equipment item to",
+        "|lgray|turn one random |lgreen|green|lgray|/|yellow|yellow",
+        "|lgray|stat into an |cyan|Essence Slot|lgray|!",
+        "",
+        "|dgray||i|A strange item that seems to",
+        "|dgray||i|be more science than magic..."
     )));
     stack.setDurability((short) 12);
     ItemStackExtensionsKt.setCustomModelData(stack, 3000);
@@ -53,7 +58,7 @@ public final class TinkerersGear {
 
   public static boolean isSimilar(ItemStack stack) {
     return stack.getType() == item.getType() && MaterialUtil.getCustomData(stack) == 3000 && TINKER_NAME
-        .equals(ItemStackExtensionsKt.getDisplayName(stack));
+        .equals(ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)));
   }
 
   public static ItemStack get() {

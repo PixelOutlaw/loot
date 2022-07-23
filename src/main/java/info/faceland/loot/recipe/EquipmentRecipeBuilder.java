@@ -1,5 +1,7 @@
 package info.faceland.loot.recipe;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
@@ -18,7 +20,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public class EquipmentRecipeBuilder {
 
-  public static final String INFUSE_NAME = ChatColor.AQUA + "Item Essence Infusion";
+  public static final String INFUSE_NAME = FaceColor.YELLOW + "Item Essence Infusion";
 
   private final LootPlugin plugin;
 
@@ -51,15 +53,12 @@ public class EquipmentRecipeBuilder {
 
   private List<String> setupInfusionItem() {
     List<String> lore = new ArrayList<>();
-    lore.add(StringExtensionsKt.chatColorize("&7Clicking this will put an essence"));
-    lore.add(StringExtensionsKt.chatColorize("&7from a random craft slot into"));
-    lore.add(StringExtensionsKt.chatColorize("&7an open stat slot on your item."));
-    lore.add(StringExtensionsKt.chatColorize("&7"));
-    lore.add(StringExtensionsKt.chatColorize("&eYou cannot add duplicate stat"));
-    lore.add(StringExtensionsKt.chatColorize("&etypes to the same item."));
-    lore.add(StringExtensionsKt.chatColorize("&7"));
-    lore.add(StringExtensionsKt.chatColorize("&cAll essences will be consumed"));
-    lore.add(StringExtensionsKt.chatColorize("&cregardless of the outcome."));
+    lore.add(PaletteUtil.color("|lgray|Clicking this will put an essence"));
+    lore.add(PaletteUtil.color("|lgray|from a random craft slot into"));
+    lore.add(PaletteUtil.color("|lgray|an open stat slot on your item."));
+    lore.add("");
+    lore.add(PaletteUtil.color("|orange|You cannot add duplicate stat"));
+    lore.add(PaletteUtil.color("|orange|types to the same item."));
     return lore;
   }
 
@@ -72,6 +71,7 @@ public class EquipmentRecipeBuilder {
         Material.IRON_SWORD,
         Material.IRON_AXE,
         Material.IRON_HOE,
+        Material.IRON_SHOVEL,
 
         Material.DIAMOND_HELMET,
         Material.DIAMOND_CHESTPLATE,
@@ -110,10 +110,12 @@ public class EquipmentRecipeBuilder {
         Material.STONE_SWORD,
         Material.STONE_AXE,
         Material.STONE_HOE,
+        Material.STONE_SHOVEL,
 
         Material.WOODEN_SWORD,
         Material.WOODEN_AXE,
         Material.WOODEN_HOE,
+        Material.WOODEN_SHOVEL,
 
         Material.BOW,
         Material.ARROW,

@@ -18,6 +18,8 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.Arrays;
@@ -31,17 +33,21 @@ import org.bukkit.inventory.ItemStack;
 public final class ArcaneEnhancer {
 
   private static ItemStack item;
+  private static String name = "Arcane Enhancer";
 
   public static void rebuild() {
     ItemStack stack = new ItemStack(Material.MAGMA_CREAM);
-    ItemStackExtensionsKt.setDisplayName(stack, ChatColor.RED + "Arcane Enhancer");
-    TextUtils.setLore(stack, TextUtils.color(Arrays.asList(
-        "&7Use this at an enchantment table",
-        "&7to &cenhance &7the power of an",
-        "&7item's &9enchantment&7!",
-        "&8&oEnhanced items cannot have their",
-        "&8&oenchantment refilled and will",
-        "&8&oslowly revert to &9&o(Enchantable)"
+    ItemStackExtensionsKt.setDisplayName(stack, FaceColor.RED + name);
+    TextUtils.setLore(stack, PaletteUtil.color(Arrays.asList(
+        "|white|\uD86D\uDFE9Ս",
+        "",
+        "|lgray|Use this at an enchantment table",
+        "|lgray|to |red|Enhance |lgray|the power of an",
+        "|lgray|item's |blue|enchantment|lgray|!",
+        "",
+        "|dgray||i|Enhanced items cannot have their",
+        "|dgray||i|enchantment refilled and will",
+        "|dgray||i|slowly revert to |blue||i|(Enchantable)"
     )));
     stack.setDurability((short) 11);
     ItemStackExtensionsKt.setCustomModelData(stack, 79);
@@ -61,10 +67,6 @@ public final class ArcaneEnhancer {
     if (item.getType() != stack.getType()) {
       return false;
     }
-    String stackName = ItemStackExtensionsKt.getDisplayName(stack);
-    if (StringUtils.isBlank(stackName)) {
-      return false;
-    }
-    return stackName.equals(ItemStackExtensionsKt.getDisplayName(item));
+    return name.equals(ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)));
   }
 }

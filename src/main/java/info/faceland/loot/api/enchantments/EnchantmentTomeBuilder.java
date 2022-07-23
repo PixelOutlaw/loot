@@ -18,8 +18,8 @@
  */
 package info.faceland.loot.api.enchantments;
 
-import info.faceland.loot.api.groups.ItemGroup;
 import info.faceland.loot.enchantments.EnchantmentTome;
+import info.faceland.loot.groups.ItemGroup;
 import java.util.List;
 import java.util.Map;
 import org.bukkit.enchantments.Enchantment;

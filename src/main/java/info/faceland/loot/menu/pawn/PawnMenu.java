@@ -21,6 +21,7 @@ package info.faceland.loot.menu.pawn;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.PriceData;
+import info.faceland.loot.menu.TransparentIcon;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -45,8 +46,10 @@ public class PawnMenu extends ItemMenu {
       saleIcons.add(icon);
       setItem(i, icon);
     }
-    fillEmptySlots();
+    setItem(30, new SellIcon(this));
     setItem(31, new SellIcon(this));
+    setItem(32, new SellIcon(this));
+    fillEmptySlots(new TransparentIcon());
   }
 
   public void open(Player player) {

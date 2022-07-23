@@ -16,21 +16,19 @@ import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.events.LootDropEvent;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
-import info.faceland.loot.items.prefabs.IdentityTome;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
-import info.faceland.loot.items.prefabs.UnidentifiedItem;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.tier.Tier;
-import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import land.face.learnin.LearninBooksPlugin;
 import land.face.strife.util.GlowUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -64,8 +62,6 @@ public class DropUtil implements Listener {
 
   private static LootRandom random;
 
-  public static Map<ChatColor, String> CHAT_TO_HEX = new HashMap<>();
-
   public static void refresh() {
     plugin = LootPlugin.getInstance();
     itemFoundFormat = plugin.getSettings().getString("language.broadcast.found-item", "");
@@ -84,23 +80,6 @@ public class DropUtil implements Listener {
     purityDropChance = plugin.getSettings().getDouble("config.drops.purity-scroll", 0D);
 
     random = new LootRandom();
-
-    CHAT_TO_HEX.put(ChatColor.BLACK, "#000000");
-    CHAT_TO_HEX.put(ChatColor.DARK_BLUE, "#0000AA");
-    CHAT_TO_HEX.put(ChatColor.DARK_GREEN, "#00AA00");
-    CHAT_TO_HEX.put(ChatColor.DARK_AQUA, "#00AAAA");
-    CHAT_TO_HEX.put(ChatColor.DARK_RED, "#AA0000");
-    CHAT_TO_HEX.put(ChatColor.DARK_PURPLE, "#AA00AA");
-    CHAT_TO_HEX.put(ChatColor.GOLD, "#FFAA00");
-    CHAT_TO_HEX.put(ChatColor.GRAY, "#AAAAAA");
-    CHAT_TO_HEX.put(ChatColor.DARK_GRAY, "#555555");
-    CHAT_TO_HEX.put(ChatColor.BLUE, "#5555FF");
-    CHAT_TO_HEX.put(ChatColor.GREEN, "#55FF55");
-    CHAT_TO_HEX.put(ChatColor.AQUA, "#55FFFF");
-    CHAT_TO_HEX.put(ChatColor.RED, "#FF5555");
-    CHAT_TO_HEX.put(ChatColor.LIGHT_PURPLE, "#FF55FF");
-    CHAT_TO_HEX.put(ChatColor.YELLOW, "#FFFF55");
-    CHAT_TO_HEX.put(ChatColor.WHITE, "#FFFFFF");
   }
 
   public static void dropLoot(LootDropEvent event) {
@@ -135,6 +114,12 @@ public class DropUtil implements Listener {
       EntityType entityType = event.getEntity().getType();
       specialStat = addSpecialStat(entityType, worldName);
     }
+
+    if (LearninBooksPlugin.instance.getKnowledgeManager()
+        .getKnowledgeLevel(killer, event.getUniqueEntity()) > 2) {
+        dropMultiplier += 0.1;
+    }
+
     boolean normalDrop = dropMultiplier * normalDropChance > random.nextDouble();
 
     while (bonusDrops.size() > 0 || normalDrop) {
@@ -183,8 +168,9 @@ public class DropUtil implements Listener {
       }
 
       boolean broadcast = rarity.isBroadcast() || upgradeBonus > 4;
-      ChatColor glowColor = rarity.isBroadcast() ? rarity.getColor() : null;
-      dropItem(event.getLocation(), tierItem, killer, builtItem.getTicksLived(), broadcast, glowColor);
+      //TODO: aaa
+      //ChatColor glowColor = rarity.isBroadcast() ? rarity.getColor() : null;
+      dropItem(event.getLocation(), tierItem, killer, builtItem.getTicksLived(), broadcast, null);
       if (distort && rarity.getPower() > 1.5) {
         event.getLocation().getWorld().playSound(event.getLocation(), Sound.ENTITY_ENDERMAN_HURT, 2f, 0.5f);
       } else if (broadcast) {
@@ -249,11 +235,6 @@ public class DropUtil implements Listener {
           us.isBroadcast() ? ChatColor.DARK_GREEN : null);
     }
     if (random.nextDouble() < dropMultiplier * plugin.getSettings()
-        .getDouble("config.drops.identity-tome", 0D)) {
-      ItemStack his = new IdentityTome();
-      dropItem(event.getLocation(), his, killer, false, null);
-    }
-    if (random.nextDouble() < dropMultiplier * plugin.getSettings()
         .getDouble("config.drops.custom-item", 0D)) {
       CustomItem ci;
       if (plugin.getSettings().getBoolean("config.beast.beast-mode-activate", false)) {
@@ -268,25 +249,8 @@ public class DropUtil implements Listener {
       dropItem(event.getLocation(), stack, killer, broadcast, broadcast ? ChatColor.GOLD : null);
     }
     if (random.nextDouble() < plugin.getSettings().getDouble("config.drops.socket-extender", 0D)) {
-      ItemStack his = new SocketExtender();
+      ItemStack his = SocketExtender.EXTENDER.clone();
       dropItem(event.getLocation(), his, killer, true, ChatColor.AQUA);
-    }
-    // NOTE: Drop bonus should not be applied to Unidentified Items!
-    if (random.nextDouble() < dropMultiplier * plugin.getSettings()
-        .getDouble("config.drops.unidentified-item", 0D)) {
-      Material m = Material.WOODEN_SWORD;
-      ItemStack his;
-      if (plugin.getSettings().getBoolean("config.beast.beast-mode-activate", false)) {
-        his = new UnidentifiedItem(m, (int) itemLevel);
-      } else {
-        his = new UnidentifiedItem(m, -1);
-      }
-      ItemMeta itemMeta = his.getItemMeta();
-      assert itemMeta != null;
-      itemMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-      his.setItemMeta(itemMeta);
-
-      dropItem(event.getLocation(), his, null, false, null);
     }
   }
 

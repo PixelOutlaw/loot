@@ -27,9 +27,9 @@ import com.loohp.interactivechatdiscordsrvaddon.api.events.DiscordImageEvent;
 import com.loohp.interactivechatdiscordsrvaddon.graphics.ImageGeneration;
 import com.loohp.interactivechatdiscordsrvaddon.objectholders.DiscordMessageContent;
 import com.loohp.interactivechatdiscordsrvaddon.utils.DiscordItemStackUtils;
-import com.loohp.interactivechatdiscordsrvaddon.utils.DiscordItemStackUtils.DiscordDescription;
 import com.loohp.interactivechatdiscordsrvaddon.utils.DiscordItemStackUtils.DiscordToolTip;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
 import github.scarsz.discordsrv.DiscordSRV;
 import github.scarsz.discordsrv.dependencies.jda.api.entities.TextChannel;
 import info.faceland.loot.LootPlugin;
@@ -42,7 +42,6 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -65,6 +64,8 @@ public final class InventoryUtil {
 
     format = format.replace("%player%", player.getName());
     String[] splitFormat = format.split("%item%", 2);
+
+    ICPlayer icPlayer = InteractiveChatAPI.getICPlayer(player);
 
     ItemStack finalItem = item.clone();
     TextComponent textComponent;
@@ -94,15 +95,13 @@ public final class InventoryUtil {
           ByteArrayOutputStream itemOs = new ByteArrayOutputStream();
           ImageIO.write(image, "png", itemOs);
 
-          DiscordDescription description = DiscordItemStackUtils.getDiscordDescription(finalItem, player);
-
+          String name = ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(finalItem));
           Color color = DiscordItemStackUtils.getDiscordColor(finalItem);
-          DiscordMessageContent content = new DiscordMessageContent(description.getName(),
-              "attachment://Item.png", color);
+          DiscordMessageContent content = new DiscordMessageContent(name,"attachment://Item.png", color);
           content.addAttachment("Item.png", itemOs.toByteArray());
           contents.add(content);
 
-          DiscordToolTip discordToolTip = DiscordItemStackUtils.getToolTip(finalItem, player);
+          DiscordToolTip discordToolTip = DiscordItemStackUtils.getToolTip(finalItem, icPlayer);
           if (!discordToolTip.isBaseItem()
               || InteractiveChatDiscordSrvAddon.plugin.itemUseTooltipImageOnBaseItem) {
             BufferedImage tooltip = ImageGeneration.getToolTipImage(discordToolTip.getComponents());
@@ -110,13 +109,10 @@ public final class InventoryUtil {
             ImageIO.write(tooltip, "png", tooltipOs);
             content.addAttachment("ToolTip.png", tooltipOs.toByteArray());
             content.addImageUrl("attachment://ToolTip.png");
-          } else {
-            content.addDescription(description.getDescription().orElse(null));
           }
 
-          String itemName = ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(finalItem));
           sendToDiscord("\uD83C\uDF1F " + finalFormat.replace("%player%",
-              player.getName()).replace("%item%", itemName), contents);
+              player.getName()).replace("%item%", name), contents);
 
         } catch (Exception e) {
           Bukkit.getLogger().warning("Failed to send dang son to discord");

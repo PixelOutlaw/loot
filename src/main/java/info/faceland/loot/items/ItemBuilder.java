@@ -18,7 +18,10 @@
  */
 package info.faceland.loot.items;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.api.managers.NameManager;
@@ -31,15 +34,13 @@ import info.faceland.loot.listeners.crafting.CraftingListener;
 import info.faceland.loot.managers.StatManager;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.tier.Tier;
-import info.faceland.loot.utils.DropUtil;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import me.clip.placeholderapi.PlaceholderAPI;
-import org.apache.commons.lang.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -169,19 +170,28 @@ public final class ItemBuilder {
     double rarityPower = rarity.getPower();
 
     boolean crafted = itemGenerationReason == ItemGenerationReason.CRAFTING;
-    ChatColor color = crafted ? ChatColor.AQUA : rarity.getColor();
+    FaceColor color = crafted ? FaceColor.CYAN : rarity.getColor();
 
-    lore.add(ChatColor.WHITE + "Level Requirement: " + level);
-    if (distorted) {
-      lore.add(ChatColor.WHITE + "Tier: " + PlaceholderAPI
-          .setPlaceholders(creator, "%rgb_gradient_#AA0000:" +
-              DropUtil.CHAT_TO_HEX.get(color) + "_Distorted " + tier.getName() + "%"));
+    lore.add(FaceColor.WHITE + "Level Requirement: " + level);
+    if (distorted && !Bukkit.getOnlinePlayers().isEmpty()) {
+      while (creator == null) {
+        for (Player p : Bukkit.getOnlinePlayers()) {
+          creator = p;
+        }
+      }
+      //String buf = Integer.toHexString(color.getRawColor().getRGB());
+      //String hex = "#"+buf.substring(buf.length()-6);
+      lore.add(FaceColor.WHITE + "և" + rarity.getName() + tier.getName());
     } else {
-      lore.add(ChatColor.WHITE + "Tier: " + color + rarity.getName() + " " + tier.getName());
+      lore.add(FaceColor.WHITE + rarity.getName() + tier.getName());
     }
+
+    lore.add("");
 
     lore.add(statManager.getFinalStat(tier.getPrimaryStat(), level, rarityPower, false).getStatString());
     lore.add(statManager.getFinalStat(getRandomSecondaryStat(), level, rarityPower, false).getStatString());
+
+    lore.add("");
 
     List<ItemStat> bonusStatList = new ArrayList<>(tier.getBonusStats());
     if (specialStat) {
@@ -213,15 +223,15 @@ public final class ItemBuilder {
     List<String> randomStatsLore = new ArrayList<>();
     for (int i = 0; i < bonusStats; i++) {
       if (crafted && random.nextDouble() < slotScore / 5) {
-        randomStatsLore.add(ChatColor.AQUA + CraftingListener.ESSENCE_SLOT_TEXT);
+        randomStatsLore.add(FaceColor.CYAN + CraftingListener.ESSENCE_SLOT_TEXT);
         continue;
       }
       ItemStat stat = bonusStatList.get(random.nextInt(bonusStatList.size()));
       StatResponse rStat = statManager.getFinalStat(stat, level, rarityPower, false);
       if (invertedIndex == i) {
-        randomStatsLore.add(ChatColor.RED + ChatColor.stripColor(rStat.getStatString()).replace("+", "-"));
+        randomStatsLore.add(FaceColor.RED + ChatColor.stripColor(rStat.getStatString()).replace("+", "-"));
       } else {
-        randomStatsLore.add(crafted ? ChatColor.AQUA + ChatColor.stripColor(rStat.getStatString()) : rStat.getStatString());
+        randomStatsLore.add(crafted ? FaceColor.CYAN + ChatColor.stripColor(rStat.getStatString()) : rStat.getStatString());
         if (StringUtils.isNotBlank(rStat.getStatPrefix())) {
           if (statPrefix && rStat.getStatRoll() > 0.5 && rStat.getStatRoll() > roll) {
             roll = rStat.getStatRoll();
@@ -232,14 +242,15 @@ public final class ItemBuilder {
       bonusStatList.remove(stat);
     }
     if (distorted) {
-      rarityPower = rarity.getPower();
       level -= distortionBonus;
     }
 
     lore.addAll(randomStatsLore);
 
+    lore.add("");
+
     for (int i = 0; i < rarity.getEnchantments(); i++) {
-      lore.add(ChatColor.BLUE + "(Enchantable)");
+      lore.add(FaceColor.BLUE + "(Enchantable)");
     }
 
     int sockets;
@@ -248,19 +259,22 @@ public final class ItemBuilder {
     } else {
       sockets = tier.getSockets();
     }
+    int extenderSlots = (tier.getSockets() == -1) ? rarity.getExtenderSlots() : tier.getSockets();
+    if (extenderSlots > 0 || sockets > 0) {
+      lore.add("");
+    }
     for (int i = 0; i < sockets; i++) {
-      lore.add(ChatColor.GOLD + "(Socket)");
+      lore.add(FaceColor.ORANGE + "(Socket)");
     }
 
-    int extenderSlots = (tier.getSockets() == -1) ? rarity.getExtenderSlots() : tier.getSockets();
     for (int i = 0; i < extenderSlots; i++) {
-      lore.add(ChatColor.DARK_AQUA + "(+)");
+      lore.add(FaceColor.TEAL + "(+)");
     }
 
     if (crafted && creator != null) {
-      lore.add(TextUtils.color("&8&o[By: " + creator.getName()) + "]");
+      lore.add("");
+      lore.add(PaletteUtil.color("|dgray||i|[By: " + creator.getName()) + "]");
     }
-
 
     String suffix;
     boolean statSuffix = random.nextDouble() > 0.35;
@@ -273,7 +287,6 @@ public final class ItemBuilder {
     ItemStackExtensionsKt.setDisplayName(stack, color + prefix + " " + suffix);
     TextUtils.setLore(stack, lore);
     stack.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_DYE);
-
 
     // This section exists to clear existing item attributes and enforce
     // no stacking on equipment items

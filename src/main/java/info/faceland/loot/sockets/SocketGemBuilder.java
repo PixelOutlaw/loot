@@ -18,26 +18,23 @@
  */
 package info.faceland.loot.sockets;
 
-import info.faceland.loot.api.groups.ItemGroup;
-import info.faceland.loot.api.sockets.SocketGemBuilder;
 import info.faceland.loot.api.sockets.effects.SocketEffect;
+import info.faceland.loot.groups.ItemGroup;
 import java.util.List;
 
-public final class LootSocketGemBuilder implements SocketGemBuilder {
+public final class SocketGemBuilder {
 
   private boolean built = false;
-  private SocketGem gem;
+  private final SocketGem gem;
 
-  public LootSocketGemBuilder(String name) {
+  public SocketGemBuilder(String name) {
     this.gem = new SocketGem(name);
   }
 
-  @Override
   public boolean isBuilt() {
     return built;
   }
 
-  @Override
   public SocketGem build() {
     if (isBuilt()) {
       throw new IllegalStateException("already built");
@@ -46,91 +43,81 @@ public final class LootSocketGemBuilder implements SocketGemBuilder {
     return gem;
   }
 
-  @Override
   public SocketGemBuilder withWeight(double d) {
     gem.setWeight(d);
     return this;
   }
 
-  @Override
   public SocketGemBuilder withPrefix(String s) {
     gem.setPrefix(s);
     return this;
   }
 
-  @Override
   public SocketGemBuilder withSuffix(String s) {
     gem.setSuffix(s);
     return this;
   }
 
-  @Override
+  public SocketGemBuilder withTypeDesc(String s) {
+    gem.setTypeDesc(s);
+    return this;
+  }
+
   public SocketGemBuilder withLore(List<String> l) {
     gem.setLore(l);
     return this;
   }
 
-  @Override
   public SocketGemBuilder withSocketEffects(List<SocketEffect> effects) {
     gem.setSocketEffects(effects);
     return this;
   }
 
-  @Override
   public SocketGemBuilder withItemGroups(List<ItemGroup> itemGroups) {
     gem.setItemGroups(itemGroups);
     return this;
   }
 
-  @Override
   public SocketGemBuilder withDistanceWeight(double d) {
     gem.setDistanceWeight(d);
     return this;
   }
 
-  @Override
   public SocketGemBuilder withWeightPerLevel(double d) {
     gem.setWeightPerLevel(d);
     return this;
   }
 
-  @Override
   public SocketGemBuilder withCustomModelData(int customModelData) {
     gem.setCustomModelData(customModelData);
     return this;
   }
 
-  @Override
   public SocketGemBuilder withBroadcast(boolean b) {
     gem.setBroadcast(b);
     return this;
   }
 
-  @Override
   public SocketGemBuilder withTriggerable(boolean b) {
     gem.setTriggerable(b);
     return this;
   }
 
-  @Override
   public SocketGemBuilder withTriggerText(String s) {
     gem.setTriggerText(s);
     return this;
   }
 
-  @Override
   public SocketGemBuilder withBonusWeight(double d) {
     gem.setBonusWeight(d);
     return this;
   }
 
-  @Override
   public SocketGemBuilder withGemType(SocketGem.GemType type) {
     gem.setGemType(type);
     return this;
   }
 
-  @Override
   public SocketGemBuilder withLoreAbilityId(String id) {
     gem.setStrifeLoreAbility(id);
     return this;

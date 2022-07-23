@@ -18,7 +18,10 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.Arrays;
 import org.bukkit.ChatColor;
@@ -31,12 +34,14 @@ public final class PurifyingScroll {
 
   public static void rebuild() {
     ItemStack stack = new ItemStack(Material.PAPER);
-    ItemStackExtensionsKt.setDisplayName(stack, ChatColor.DARK_PURPLE + "Scroll Of Purity");
-    TextUtils.setLore(stack, TextUtils.color(Arrays.asList(
-        "&7Use this at an enchantment",
-        "&7table to remove an item's",
-        "&7enchantment"
-    )));
+    ItemStackExtensionsKt.setDisplayName(stack, FaceColor.BLUE + "Scroll Of Purity");
+    TextUtils.setLore(stack, PaletteUtil.color(Arrays.asList(
+        "|white|\uD86D\uDFE7Ս",
+        "",
+        "|lgray|Use this at an enchantment",
+        "|lgray|table to remove an item's",
+        "|lgray|enchantment"
+    )), false);
     stack.setDurability((short) 11);
     ItemStackExtensionsKt.setCustomModelData(stack, 79);
     item = stack;
@@ -44,5 +49,12 @@ public final class PurifyingScroll {
 
   public static ItemStack get() {
     return item.clone();
+  }
+
+  public static boolean isSimilar(ItemStack stack) {
+    if (stack == null) {
+      return false;
+    }
+    return stack.getType() == item.getType() && MaterialUtil.getCustomData(stack) == 79;
   }
 }

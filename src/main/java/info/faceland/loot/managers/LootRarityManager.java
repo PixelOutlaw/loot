@@ -75,9 +75,16 @@ public class LootRarityManager implements RarityManager {
 
   @Override
   public ItemRarity getRandomRarityWithMinimum(double minimum) {
-    double selectedWeight = random.nextDouble() * getTotalRarityWeightWithMinimum(minimum);
+    double amount = Math.floor(minimum);
+    if (Math.random() < minimum % 1) {
+      amount++;
+    }
+    double selectedWeight = random.nextDouble() * getTotalRarityWeightWithMinimum(amount);
     double currentWeight = 0;
     for (ItemRarity rarity : getLoadedRarities().values()) {
+      if (rarity.getPower() < amount) {
+        continue;
+      }
       double calcWeight = rarity.getWeight();
       if (calcWeight >= 0) {
         currentWeight += calcWeight;

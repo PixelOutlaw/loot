@@ -16,9 +16,10 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.utils.MaterialUtil;
-import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +31,7 @@ import org.bukkit.inventory.ItemStack;
 public final class ShardOfFailure {
 
   private static ItemStack item;
-  public static String FAILURE_NAME;
+  public static String FAILURE_NAME = "Shard of Failure";
 
   public static ItemStack build(String name) {
     List<String> lore = new ArrayList<>();
@@ -45,23 +46,25 @@ public final class ShardOfFailure {
 
   public static void rebuild() {
     ItemStack stack = new ItemStack(Material.PRISMARINE_SHARD);
-    String name = ChatColor.RED + "Shard of Failure";
-    FAILURE_NAME = name;
+    String name = FaceColor.BROWN + FAILURE_NAME;
     ItemStackExtensionsKt.setDisplayName(stack, name);
-    TextUtils.setLore(stack, ListExtensionsKt.chatColorize(Arrays.asList(
-        "&7Place this item onto an",
-        "&2Upgrade Scroll &7to raise",
-        "&7its success chance!",
-        "&8&oThis failure is special",
-        "&8&obecause it was made by",
-        "&8&o{name} :)"
+    TextUtils.setLore(stack, PaletteUtil.color(Arrays.asList(
+        "|white|\uD86D\uDFE6Ս",
+        "",
+        "|lgray|Use this item on any",
+        "|green|Upgrade Scroll |lgray|to raise",
+        "|lgray|its success chance!",
+        "",
+        "|dgray||i|This failure is special",
+        "|dgray||i|because it was made by",
+        "|dgray||i|{name} :)"
     )));
     ItemStackExtensionsKt.setCustomModelData(stack, 500);
     item = stack;
   }
 
   public static boolean isSimilar(ItemStack stack) {
-    return stack.getType() == item.getType() && MaterialUtil.getCustomData(stack) == 500 && FAILURE_NAME
-        .equals(ItemStackExtensionsKt.getDisplayName(stack));
+    return stack.getType() == item.getType() && MaterialUtil.getCustomData(stack) == 500 &&
+        FAILURE_NAME.equals(ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)));
   }
 }

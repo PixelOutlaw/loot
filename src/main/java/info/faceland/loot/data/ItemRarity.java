@@ -1,12 +1,13 @@
 package info.faceland.loot.data;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import org.bukkit.ChatColor;
 
 public class ItemRarity {
 
   private boolean broadcast;
   private double power;
-  private ChatColor color;
+  private FaceColor color;
   private String name;
   private double weight;
   private double idWeight;
@@ -90,11 +91,11 @@ public class ItemRarity {
     this.power = power;
   }
 
-  public ChatColor getColor() {
+  public FaceColor getColor() {
     return color;
   }
 
-  public void setColor(ChatColor color) {
+  public void setColor(FaceColor color) {
     this.color = color;
   }
 

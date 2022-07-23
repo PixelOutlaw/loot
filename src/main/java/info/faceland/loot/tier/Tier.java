@@ -18,11 +18,12 @@
  */
 package info.faceland.loot.tier;
 
-import info.faceland.loot.api.groups.ItemGroup;
 import info.faceland.loot.data.ItemStat;
+import info.faceland.loot.groups.ItemGroup;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import land.face.market.data.PlayerMarketState.FilterFlagA;
 import lombok.Getter;
@@ -215,6 +216,6 @@ public final class Tier implements Comparable<Tier> {
 
     Tier tier = (Tier) o;
 
-    return !(name != null ? !name.equals(tier.name) : tier.name != null);
+    return Objects.equals(id, tier.id);
   }
 }

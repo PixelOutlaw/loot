@@ -62,12 +62,14 @@ public class SaleIcon extends MenuItem {
     super.onItemClick(event);
     price = 0;
     checkRare = false;
-    HashMap<Integer, ItemStack> overflow = event.getPlayer().getInventory().addItem(targetStack);
-    for (ItemStack stack : overflow.values()) {
-      Item item = event.getPlayer().getWorld().dropItem(event.getPlayer().getLocation(), stack);
-      item.setOwner(event.getPlayer().getUniqueId());
+    if (targetStack != null) {
+      HashMap<Integer, ItemStack> overflow = event.getPlayer().getInventory().addItem(targetStack);
+      for (ItemStack stack : overflow.values()) {
+        Item item = event.getPlayer().getWorld().dropItem(event.getPlayer().getLocation(), stack);
+        item.setOwner(event.getPlayer().getUniqueId());
+      }
+      targetStack = null;
     }
-    targetStack = null;
     event.setWillUpdate(true);
   }
 

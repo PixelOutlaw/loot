@@ -18,9 +18,9 @@
  */
 package info.faceland.loot.tier;
 
-import info.faceland.loot.api.groups.ItemGroup;
 import info.faceland.loot.api.tier.TierBuilder;
 import info.faceland.loot.data.ItemStat;
+import info.faceland.loot.groups.ItemGroup;
 import java.util.List;
 import java.util.Set;
 import land.face.market.data.PlayerMarketState.FilterFlagA;
@@ -28,7 +28,7 @@ import land.face.market.data.PlayerMarketState.FilterFlagA;
 public final class LootTierBuilder implements TierBuilder {
 
   private boolean built = false;
-  private Tier tier;
+  private final Tier tier;
 
   public LootTierBuilder(String id) {
     tier = new Tier(id);

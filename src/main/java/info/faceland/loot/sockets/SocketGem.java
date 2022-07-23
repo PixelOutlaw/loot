@@ -16,20 +16,20 @@
  */
 package info.faceland.loot.sockets;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
-import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.text.WordUtils;
-import info.faceland.loot.api.groups.ItemGroup;
 import info.faceland.loot.api.sockets.effects.SocketEffect;
+import info.faceland.loot.groups.ItemGroup;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.LoreAbility;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -47,7 +47,10 @@ public final class SocketGem implements Comparable<SocketGem> {
   private String suffix;
   private List<String> lore;
   private List<SocketEffect> socketEffects;
+  @Getter @Setter
   private List<ItemGroup> itemGroups;
+  @Getter @Setter
+  private String typeDesc;
   private boolean broadcast;
   private boolean triggerable;
   private String triggerText;
@@ -77,7 +80,7 @@ public final class SocketGem implements Comparable<SocketGem> {
 
     SocketGem that = (SocketGem) o;
 
-    return !(name != null ? !name.equals(that.name) : that.name != null);
+    return Objects.equals(name, that.name);
   }
 
   @Override
@@ -124,22 +127,22 @@ public final class SocketGem implements Comparable<SocketGem> {
     return new ArrayList<>(socketEffects);
   }
 
-  public List<ItemGroup> getItemGroups() {
-    return itemGroups;
-  }
-
   public ItemStack toItemStack(int amount) {
     ItemStack itemStack = new ItemStack(Material.EMERALD);
-    ItemStackExtensionsKt.setDisplayName(itemStack, ChatColor.GOLD + "Socket Gem - " + getName());
+    ItemStackExtensionsKt.setDisplayName(itemStack, FaceColor.LIME + "Socket Gem - " + getName());
     itemStack.setAmount(amount);
     List<String> lore = new ArrayList<>();
-    Collections.addAll(lore, ChatColor.WHITE + "Type: " + (!itemGroups.isEmpty() ? itemGroupsToString() : "Any"),
-        ChatColor.GRAY + "Place this gem on an item with an",
-        ChatColor.GRAY + "open " + ChatColor.GOLD + "(Socket) " + ChatColor.GRAY + "to upgrade it!",
-        ChatColor.WHITE + "Bonuses Applied:");
+    lore.addAll(List.of(
+        FaceColor.WHITE + itemGroupsToString() + "Ս",
+        "",
+        FaceColor.LIGHT_GRAY + "Place this gem on an item with an",
+        FaceColor.LIGHT_GRAY + "open " + FaceColor.ORANGE + "(Socket) " + FaceColor.LIGHT_GRAY + "to upgrade it!",
+        "",
+        FaceColor.YELLOW + "Bonuses Applied:"
+    ));
     lore.addAll(getLore());
     ItemStackExtensionsKt.setCustomModelData(itemStack, customModelData);
-    TextUtils.setLore(itemStack, TextUtils.color(lore));
+    TextUtils.setLore(itemStack, lore, false);
     itemStack.setDurability((short) 11);
     return itemStack;
   }
@@ -147,9 +150,9 @@ public final class SocketGem implements Comparable<SocketGem> {
   private String itemGroupsToString() {
     StringBuilder sb = new StringBuilder();
     for (ItemGroup ig : getItemGroups()) {
-      sb.append(ig.getName()).append(" ");
+      sb.append(ig.getTag());
     }
-    return WordUtils.capitalizeFully(sb.toString().trim());
+    return sb.toString().trim();
   }
 
   public double getDistanceWeight() {
@@ -182,10 +185,6 @@ public final class SocketGem implements Comparable<SocketGem> {
 
   void setBroadcast(boolean broadcast) {
     this.broadcast = broadcast;
-  }
-
-  void setItemGroups(List<ItemGroup> itemGroups) {
-    this.itemGroups = itemGroups;
   }
 
   void setSocketEffects(List<SocketEffect> socketEffects) {

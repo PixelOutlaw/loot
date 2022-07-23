@@ -20,6 +20,7 @@ package info.faceland.loot.listeners;
 
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.menu.gemcutter.GemcutterMenu;
+import land.face.strife.StrifePlugin;
 import ninja.amp.ampmenus.menus.MenuHolder;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -47,6 +48,7 @@ public record GemcutterListener(LootPlugin plugin) implements Listener {
       Grindstone face = ((Grindstone) block.getBlockData());
       if (face.getAttachedFace() == AttachedFace.FLOOR) {
         plugin.getGemcutterMenu().setSelectedItem((Player) event.getPlayer(), null);
+        StrifePlugin.getInstance().getStrifeMobManager().getStatMob(event.getPlayer());
         plugin.getGemcutterMenu().open((Player) event.getPlayer());
       }
     }
