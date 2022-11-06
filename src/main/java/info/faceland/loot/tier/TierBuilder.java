@@ -18,28 +18,25 @@
  */
 package info.faceland.loot.tier;
 
-import info.faceland.loot.api.tier.TierBuilder;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.groups.ItemGroup;
 import java.util.List;
 import java.util.Set;
 import land.face.market.data.PlayerMarketState.FilterFlagA;
 
-public final class LootTierBuilder implements TierBuilder {
+public final class TierBuilder {
 
   private boolean built = false;
   private final Tier tier;
 
-  public LootTierBuilder(String id) {
+  public TierBuilder(String id) {
     tier = new Tier(id);
   }
 
-  @Override
   public boolean isBuilt() {
     return built;
   }
 
-  @Override
   public Tier build() {
     if (isBuilt()) {
       throw new IllegalStateException("already built");
@@ -48,85 +45,81 @@ public final class LootTierBuilder implements TierBuilder {
     return tier;
   }
 
-  @Override
   public TierBuilder withLevelRequirement(boolean b) {
     tier.setLevelRequirement(b);
     return this;
   }
 
-  @Override
   public TierBuilder withName(String s) {
     tier.setName(s);
     return this;
   }
 
-  @Override
   public TierBuilder withPrimaryStat(ItemStat itemStat) {
     tier.setPrimaryStat(itemStat);
     return this;
   }
 
-  @Override
   public TierBuilder withSecondaryStats(List<ItemStat> itemStats) {
     tier.setSecondaryStats(itemStats);
     return this;
   }
 
-  @Override
   public TierBuilder withBonusStats(List<ItemStat> itemStats) {
     tier.setBonusStats(itemStats);
     return this;
   }
 
-  @Override
   public TierBuilder withSpecialStats(List<ItemStat> itemStats) {
     tier.setSpecialStats(itemStats);
     return this;
   }
 
-  @Override
   public TierBuilder withSpawnWeight(double d) {
     tier.setSpawnWeight(d);
     return this;
   }
 
-  @Override
-  public TierBuilder withSocketSlots(int d) {
-    tier.setSockets(d);
+  public TierBuilder withMinimumSockets(int d) {
+    tier.setMinimumSockets(d);
     return this;
   }
 
-  @Override
-  public TierBuilder withExtenderSlots(int d) {
-    tier.setExtenderSlots(d);
+  public TierBuilder withMaximumSockets(int d) {
+    tier.setMaximumSockets(d);
     return this;
   }
 
-  @Override
+  public TierBuilder withMinimumExtends(int d) {
+    tier.setMinimumExtendSlots(d);
+    return this;
+  }
+
+  public TierBuilder withMaximumExtends(int d) {
+    tier.setMaximumExtendSlots(d);
+    return this;
+  }
+
   public TierBuilder withIdentifyWeight(double d) {
     tier.setIdentifyWeight(d);
     return this;
   }
 
-  @Override
   public TierBuilder withStartingCustomData(int i) {
     tier.setCustomDataStart(i);
     return this;
   }
 
-  @Override
   public TierBuilder withCustomDataInterval(int i) {
     tier.setCustomDataInterval(i);
     return this;
   }
 
-  @Override
   public TierBuilder withFilterFlag(FilterFlagA filterFlag) {
     tier.setFilterFlag(filterFlag);
     return this;
   }
 
-  @Override
   public TierBuilder withItemGroups(Set<ItemGroup> s) {
     tier.setItemGroups(s);
     return this;

@@ -9,10 +9,13 @@ softdepend:
   - Vault
   - PlayerPoints
   - InteractiveChatDiscordSrvAddon
+  - RecipeManager
 
 commands:
   loot:
     aliases: [l]
+  updateItem:
+    aliases: [updat]
 
 permissions:
   loot.give:

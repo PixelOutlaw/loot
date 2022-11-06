@@ -39,7 +39,6 @@ import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -57,6 +56,11 @@ public final class ItemBuilder {
   private final RarityManager rarityManager;
   private final NameManager nameManager;
 
+  public static final String SOCKET = PaletteUtil.color("|none|哀\uF822|orange|Socket");
+  public static final String SOCKET_S = ChatColor.stripColor(SOCKET);
+  public static final String EXTEND = PaletteUtil.color("|none|品\uF822|teal|Socket");
+  public static final String EXTEND_S = ChatColor.stripColor(EXTEND);
+
   private boolean built = false;
   private boolean specialStat;
   private Tier tier;
@@ -66,6 +70,11 @@ public final class ItemBuilder {
   private float slotScore;
   private Material material;
   private boolean distorted = false;
+  private boolean enchantable = true;
+  private boolean alwaysEssence = false;
+  private int sockets = -1;
+  private int extendSlots = -1;
+  private int craftBonusStats = 0;
   private ItemGenerationReason itemGenerationReason = ItemGenerationReason.MONSTER;
   private LootRandom random = new LootRandom();
 
@@ -99,6 +108,21 @@ public final class ItemBuilder {
     return this;
   }
 
+  public ItemBuilder withSockets(int l) {
+    sockets = l;
+    return this;
+  }
+
+  public ItemBuilder withExtendSlots(int l) {
+    extendSlots = l;
+    return this;
+  }
+
+  public ItemBuilder withCraftBonusStats(int l) {
+    craftBonusStats = l;
+    return this;
+  }
+
   public ItemBuilder withCreator(Player l) {
     creator = l;
     return this;
@@ -111,6 +135,16 @@ public final class ItemBuilder {
 
   public ItemBuilder withDistortion(boolean b) {
     distorted = b;
+    return this;
+  }
+
+  public ItemBuilder withEnchantable(boolean b) {
+    enchantable = b;
+    return this;
+  }
+
+  public ItemBuilder withAlwaysEssence(boolean b) {
+    alwaysEssence = b;
     return this;
   }
 
@@ -206,8 +240,8 @@ public final class ItemBuilder {
     }
 
     int bonusStats = random.nextIntRange(rarity.getMinimumBonusStats(), rarity.getMaximumBonusStats());
-    if (itemGenerationReason == ItemGenerationReason.CRAFTING && Math.random() < 0.5) {
-      bonusStats++;
+    if (itemGenerationReason == ItemGenerationReason.CRAFTING) {
+      bonusStats += craftBonusStats;
     }
     String prefix = nameManager.getRandomPrefix();
     float roll = 0;
@@ -221,9 +255,11 @@ public final class ItemBuilder {
       invertedIndex = random.nextInt(bonusStats);
     }
     List<String> randomStatsLore = new ArrayList<>();
+    boolean alwaysEssence = this.alwaysEssence;
     for (int i = 0; i < bonusStats; i++) {
-      if (crafted && random.nextDouble() < slotScore / 5) {
+      if (crafted && (alwaysEssence || random.nextDouble() < slotScore / 5)) {
         randomStatsLore.add(FaceColor.CYAN + CraftingListener.ESSENCE_SLOT_TEXT);
+        alwaysEssence = false;
         continue;
       }
       ItemStat stat = bonusStatList.get(random.nextInt(bonusStatList.size()));
@@ -247,28 +283,35 @@ public final class ItemBuilder {
 
     lore.addAll(randomStatsLore);
 
-    lore.add("");
-
-    for (int i = 0; i < rarity.getEnchantments(); i++) {
-      lore.add(FaceColor.BLUE + "(Enchantable)");
+    if (enchantable) {
+      lore.add("");
+      for (int i = 0; i < rarity.getEnchantments(); i++) {
+        lore.add(MaterialUtil.ENCHANTABLE_TAG);
+      }
     }
 
-    int sockets;
-    if (tier.getSockets() == -1) {
-      sockets = random.nextIntRange(rarity.getMinimumSockets(), rarity.getMaximumSockets());
-    } else {
-      sockets = tier.getSockets();
+    int sockets = this.sockets == -1 ? rarity.getMinimumSockets() : this.sockets;
+    sockets = Math.min(sockets, tier.getMaximumSockets());
+    int maxSockets = Math.min(rarity.getMaximumSockets(), tier.getMaximumSockets());
+    while (sockets < maxSockets && Math.random() < rarity.getSocketChance()) {
+      sockets++;
     }
-    int extenderSlots = (tier.getSockets() == -1) ? rarity.getExtenderSlots() : tier.getSockets();
-    if (extenderSlots > 0 || sockets > 0) {
+
+    int minExtenders = this.extendSlots == -1 ? tier.getMinimumExtendSlots() : this.extendSlots;
+    int extenders = Math.min(minExtenders, tier.getMaximumExtendSlots());
+    while (extenders < tier.getMaximumExtendSlots() && Math.random() < rarity.getExtenderChance()) {
+      extenders++;
+    }
+
+    if (extenders > 0 || sockets > 0) {
       lore.add("");
     }
     for (int i = 0; i < sockets; i++) {
-      lore.add(FaceColor.ORANGE + "(Socket)");
+      lore.add(SOCKET);
     }
 
-    for (int i = 0; i < extenderSlots; i++) {
-      lore.add(FaceColor.TEAL + "(+)");
+    for (int i = 0; i < extenders; i++) {
+      lore.add(ItemBuilder.EXTEND);
     }
 
     if (crafted && creator != null) {

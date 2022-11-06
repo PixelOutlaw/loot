@@ -30,15 +30,14 @@ import info.faceland.loot.api.enchantments.EnchantmentTomeBuilder;
 import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.CustomItemBuilder;
 import info.faceland.loot.api.managers.CreatureModManager;
-import info.faceland.loot.api.managers.CustomItemManager;
 import info.faceland.loot.api.managers.GemCacheManager;
 import info.faceland.loot.api.managers.ItemGroupManager;
 import info.faceland.loot.api.managers.NameManager;
 import info.faceland.loot.api.managers.RarityManager;
 import info.faceland.loot.api.managers.UniqueDropsManager;
 import info.faceland.loot.api.sockets.effects.SocketEffect;
-import info.faceland.loot.api.tier.TierBuilder;
 import info.faceland.loot.commands.LootCommand;
+import info.faceland.loot.commands.UpdateItemCommand;
 import info.faceland.loot.creatures.LootCreatureModBuilder;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.ItemStat;
@@ -61,6 +60,7 @@ import info.faceland.loot.listeners.DeconstructListener;
 import info.faceland.loot.listeners.EnchantDegradeListener;
 import info.faceland.loot.listeners.EnchantMenuListener;
 import info.faceland.loot.listeners.EntityDeathListener;
+import info.faceland.loot.listeners.GemSmashMenuListener;
 import info.faceland.loot.listeners.GemcutterListener;
 import info.faceland.loot.listeners.HeadHelmetsListener;
 import info.faceland.loot.listeners.InteractListener;
@@ -72,6 +72,7 @@ import info.faceland.loot.listeners.StrifeListener;
 import info.faceland.loot.listeners.VagabondEquipListener;
 import info.faceland.loot.listeners.anticheat.AnticheatListener;
 import info.faceland.loot.listeners.crafting.CraftingListener;
+import info.faceland.loot.listeners.crafting.PreCraftListener;
 import info.faceland.loot.listeners.sockets.CombinerListener;
 import info.faceland.loot.listeners.sockets.SocketsListener;
 import info.faceland.loot.managers.AnticheatManager;
@@ -79,7 +80,7 @@ import info.faceland.loot.managers.EnchantTomeManager;
 import info.faceland.loot.managers.LootCraftBaseManager;
 import info.faceland.loot.managers.LootCraftMatManager;
 import info.faceland.loot.managers.LootCreatureModManager;
-import info.faceland.loot.managers.LootCustomItemManager;
+import info.faceland.loot.managers.CustomItemManager;
 import info.faceland.loot.managers.LootGemCacheManager;
 import info.faceland.loot.managers.LootItemGroupManager;
 import info.faceland.loot.managers.LootNameManager;
@@ -92,11 +93,10 @@ import info.faceland.loot.managers.StatManager;
 import info.faceland.loot.managers.TierManager;
 import info.faceland.loot.menu.gemcutter.GemcutterMenu;
 import info.faceland.loot.menu.pawn.PawnMenu;
-import info.faceland.loot.recipe.EquipmentRecipeBuilder;
 import info.faceland.loot.sockets.SocketGemBuilder;
 import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.sockets.effects.LootSocketPotionEffect;
-import info.faceland.loot.tier.LootTierBuilder;
+import info.faceland.loot.tier.TierBuilder;
 import info.faceland.loot.tier.Tier;
 import info.faceland.loot.utils.DropUtil;
 import info.faceland.loot.utils.MaterialUtil;
@@ -132,7 +132,6 @@ public final class LootPlugin extends FacePlugin {
   private static LootPlugin instance;
 
   private PluginLogger debugPrinter;
-  private EquipmentRecipeBuilder recipeBuilder;
   private VersionedSmartYamlConfiguration itemsYAML;
   private VersionedSmartYamlConfiguration materialsYAML;
   private VersionedSmartYamlConfiguration statsYAML;
@@ -187,9 +186,6 @@ public final class LootPlugin extends FacePlugin {
     instance = this;
     debugPrinter = new PluginLogger(this);
 
-    recipeBuilder = new EquipmentRecipeBuilder(this);
-
-    recipeBuilder.setupAllRecipes();
     configYAML = defaultLoadConfig("config.yml");
     itemsYAML = defaultLoadConfig("items.yml");
     materialsYAML = defaultLoadConfig("material-to-tier.yml");
@@ -220,7 +216,7 @@ public final class LootPlugin extends FacePlugin {
     statManager = new StatManager();
     rarityManager = new LootRarityManager();
     nameManager = new LootNameManager();
-    customItemManager = new LootCustomItemManager();
+    customItemManager = new CustomItemManager();
     socketGemManager = new SocketGemManager();
     pawnManager = new PawnManager(this);
     creatureModManager = new LootCreatureModManager();
@@ -268,6 +264,7 @@ public final class LootPlugin extends FacePlugin {
 
     PaperCommandManager commandManager = new PaperCommandManager(this);
     commandManager.registerCommand(new LootCommand(this));
+    commandManager.registerCommand(new UpdateItemCommand(this));
 
     commandManager.getCommandCompletions()
         .registerCompletion("gems", c -> socketGemManager.getGemIds());
@@ -287,9 +284,11 @@ public final class LootPlugin extends FacePlugin {
     Bukkit.getPluginManager().registerEvents(new InteractListener(this), this);
     Bukkit.getPluginManager().registerEvents(new DeconstructListener(this), this);
     Bukkit.getPluginManager().registerEvents(new CraftingListener(this), this);
+    Bukkit.getPluginManager().registerEvents(new PreCraftListener(this), this);
     Bukkit.getPluginManager().registerEvents(new AnticheatListener(this), this);
     Bukkit.getPluginManager().registerEvents(new EnchantDegradeListener(this), this);
     Bukkit.getPluginManager().registerEvents(new GemcutterListener(this), this);
+    Bukkit.getPluginManager().registerEvents(new GemSmashMenuListener(), this);
     Bukkit.getPluginManager().registerEvents(new EnchantMenuListener(), this);
     Bukkit.getPluginManager().registerEvents(new ItemListListener(this), this);
     Bukkit.getPluginManager().registerEvents(new HeadHelmetsListener(), this);
@@ -836,9 +835,10 @@ public final class LootPlugin extends FacePlugin {
       rarity.setMinimumBonusStats(cs.getInt("min-bonus-stats"));
       rarity.setMaximumBonusStats(cs.getInt("max-bonus-stats") + 1);
       rarity.setEnchantments(cs.getInt("enchantments"));
-      rarity.setMinimumSockets(cs.getInt("min-sockets"));
-      rarity.setMaximumSockets(cs.getInt("max-sockets") + 1);
-      rarity.setExtenderSlots(cs.getInt("extend-slots"));
+      rarity.setSocketChance(cs.getDouble("socket-chance"));
+      rarity.setExtenderChance(cs.getDouble("extend-chance"));
+      rarity.setMinimumSockets(cs.getInt("minimum-sockets"));
+      rarity.setMaximumSockets(cs.getInt("maximum-sockets"));
       rarity.setLivedTicks(cs.getInt("base-ticks-lived", 0));
       getRarityManager().addRarity(key, rarity);
     }
@@ -915,8 +915,10 @@ public final class LootPlugin extends FacePlugin {
       builder.withIdentifyWeight(cs.getDouble("identify-weight"));
       builder.withStartingCustomData(cs.getInt("base-custom-data", -1));
       builder.withCustomDataInterval(cs.getInt("custom-data-level-interval", 200));
-      builder.withSocketSlots(cs.getInt("sockets", -1));
-      builder.withExtenderSlots(cs.getInt("extender-slots", -1));
+      builder.withMinimumSockets(cs.getInt("min-sockets", 0));
+      builder.withMaximumSockets(cs.getInt("max-sockets", 1));
+      builder.withMinimumExtends(cs.getInt("min-extends", 0));
+      builder.withMaximumExtends(cs.getInt("max-extends", 1));
       List<String> sl = cs.getStringList("item-groups");
       Set<ItemGroup> itemGroups = new HashSet<>();
       for (String s : sl) {
@@ -963,7 +965,7 @@ public final class LootPlugin extends FacePlugin {
   }
 
   public TierBuilder getNewTierBuilder(String id) {
-    return new LootTierBuilder(id);
+    return new TierBuilder(id);
   }
 
   public ItemBuilder getNewItemBuilder() {

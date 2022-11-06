@@ -49,9 +49,13 @@ public final class Tier implements Comparable<Tier> {
   private List<String> suffixes = new ArrayList<>();
 
   @Getter @Setter
-  private int sockets;
+  private int minimumSockets;
   @Getter @Setter
-  private int extenderSlots;
+  private int maximumSockets;
+  @Getter @Setter
+  private int minimumExtendSlots;
+  @Getter @Setter
+  private int maximumExtendSlots;
 
   public Tier(String id) {
     this.id = id;

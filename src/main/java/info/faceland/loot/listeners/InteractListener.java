@@ -26,6 +26,7 @@ import static info.faceland.loot.utils.InventoryUtil.getLastColor;
 import static info.faceland.loot.utils.MaterialUtil.FAILURE_BONUS;
 import static org.bukkit.ChatColor.stripColor;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
@@ -36,8 +37,11 @@ import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.data.GemCacheData;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.UpgradeScroll;
+import info.faceland.loot.items.ItemBuilder;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
 import info.faceland.loot.items.prefabs.TinkerersGear;
+import info.faceland.loot.listeners.crafting.PreCraftListener;
+import info.faceland.loot.managers.SocketGemManager;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.sockets.SocketGem;
@@ -292,17 +296,35 @@ public final class InteractListener implements Listener {
       }
 
       List<String> lore = TextUtils.getLore(targetItem);
-      List<String> strippedLore = InventoryUtil.stripColor(lore);
-      if (!strippedLore.contains("(Socket)")) {
-        sendMessage(player,
-            plugin.getSettings().getString("language.socket.needs-sockets", ""));
+      int index = MaterialUtil.indexOfSocket(lore);
+      if (index == -1) {
+        sendMessage(player, plugin.getSettings().getString("language.socket.needs-sockets", ""));
         player.playSound(player.getEyeLocation(), Sound.BLOCK_LAVA_POP, 1F, 0.5F);
         return;
       }
-      int index = strippedLore.indexOf("(Socket)");
+
+      if (gem.getLore().get(0).contains(" - ")) {
+        String firstLine = ChatColor.stripColor(gem.getLore().get(0));
+        for (String l : lore) {
+          if (l.contains(firstLine)) {
+            sendMessage(player, plugin.getSettings().getString("language.socket.dupe-effect", ""));
+            player.playSound(player.getEyeLocation(), Sound.BLOCK_LAVA_POP, 1F, 0.5F);
+            return;
+          }
+        }
+      }
+
+      List<String> addLore = TextUtils.color(gem.getLore());
+      switch (gem.getCustomModelData()) {
+        case 2005, 2004 -> addLore.set(0, SocketGemManager.GEM_SPECIAL_PREFIX + addLore.get(0));
+        case 2003 -> addLore.set(0, SocketGemManager.GEM_4_PREFIX + addLore.get(0));
+        case 2002 -> addLore.set(0, SocketGemManager.GEM_3_PREFIX + addLore.get(0));
+        case 2001 -> addLore.set(0, SocketGemManager.GEM_2_PREFIX + addLore.get(0));
+        default -> addLore.set(0, SocketGemManager.GEM_1_PREFIX + addLore.get(0));
+      }
 
       lore.remove(index);
-      lore.addAll(index, TextUtils.color(gem.getLore()));
+      lore.addAll(index, addLore);
       TextUtils.setLore(targetItem, lore);
 
       String strippedName = ChatColor.stripColor(targetItemName);
@@ -422,7 +444,7 @@ public final class InteractListener implements Listener {
     int loreIndex = -1;
     for (String str : lore) {
       loreIndex++;
-      if (str.startsWith(ChatColor.AQUA + "")) {
+      if (FaceColor.CYAN.isStartOf(str)) {
         sendMessage(player, TextUtils.color(plugin.getSettings()
             .getString("language.tinker.only-one-crafted-stat", "Only one stat can be tinkered!")));
         return;
@@ -448,13 +470,10 @@ public final class InteractListener implements Listener {
       return;
     }
 
-    String essenceText = StringExtensionsKt.chatColorize(
-        plugin.getSettings().getString("config.crafting.essence-text", "&b(Essence Slot)"));
-
     List<String> itemLore = new ArrayList<>(TextUtils.getLore(targetItem));
     List<Integer> keysAsArray = new ArrayList<>(validTargetStats.keySet());
     int selectedIndex = keysAsArray.get(random.nextInt(keysAsArray.size()));
-    itemLore.set(selectedIndex, essenceText);
+    itemLore.set(selectedIndex, FaceColor.CYAN + PreCraftListener.ESSENCE_SLOT_TEXT);
     TextUtils.setLore(targetItem, itemLore);
 
     player.playSound(player.getEyeLocation(), Sound.BLOCK_PISTON_EXTEND, 1F, 1.5F);

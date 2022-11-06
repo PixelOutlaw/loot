@@ -18,48 +18,29 @@
  */
 package info.faceland.loot.listeners;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.menu.gemcutter.GemcutterMenu;
-import land.face.strife.StrifePlugin;
+import info.faceland.loot.data.ExistingSocketData;
+import info.faceland.loot.menu.gemsmasher.GemSmashMenu;
+import info.faceland.loot.utils.MaterialUtil;
 import ninja.amp.ampmenus.menus.MenuHolder;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.data.FaceAttachable.AttachedFace;
-import org.bukkit.block.data.type.Grindstone;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 
-public record GemcutterListener(LootPlugin plugin) implements Listener {
-
-  @EventHandler(priority = EventPriority.LOWEST)
-  public void onClickEnchantMenu(InventoryOpenEvent event) {
-    if (event.getInventory().getLocation() == null) {
-      return;
-    }
-    if (event.getInventory().getType() == InventoryType.GRINDSTONE) {
-      event.setCancelled(true);
-      Block block = event.getInventory().getLocation().getBlock();
-      Grindstone face = ((Grindstone) block.getBlockData());
-      if (face.getAttachedFace() == AttachedFace.FLOOR) {
-        plugin.getGemcutterMenu().setSelectedItem((Player) event.getPlayer(), null);
-        StrifePlugin.getInstance().getStrifeMobManager().getStatMob(event.getPlayer());
-        plugin.getGemcutterMenu().open((Player) event.getPlayer());
-      }
-    }
-  }
+public final class GemSmashMenuListener implements Listener {
 
   @EventHandler(priority = EventPriority.LOW)
   public void onClickEnchantMenu(InventoryClickEvent event) {
     if (!(event.getInventory().getHolder() instanceof MenuHolder holder)) {
       return;
     }
-    if (!(((MenuHolder) event.getInventory().getHolder()).getMenu() instanceof GemcutterMenu)) {
+    if (!(((MenuHolder) event.getInventory().getHolder()).getMenu() instanceof GemSmashMenu)) {
       return;
     }
     if (event.getClickedInventory() == null) {
@@ -77,8 +58,17 @@ public record GemcutterListener(LootPlugin plugin) implements Listener {
       return;
     }
     Player player = (Player) event.getWhoClicked();
-    GemcutterMenu menu = (GemcutterMenu) holder.getMenu();
-    menu.setSelectedItem(player, stack);
+    GemSmashMenu gemSmashMenu = (GemSmashMenu) holder.getMenu();
+    ExistingSocketData data = MaterialUtil.buildSocketData(stack);
+    if (data.hasIndexes()) {
+      player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_DIAMOND, 1, 1f);
+      gemSmashMenu.setData(player, data, stack);
+      gemSmashMenu.update(player);
+    } else {
+      PaletteUtil.sendMessage(player, "|yellow|This item has no removable gems!");
+      gemSmashMenu.setData(player, null, null);
+      gemSmashMenu.update(player);
+    }
   }
 
 }

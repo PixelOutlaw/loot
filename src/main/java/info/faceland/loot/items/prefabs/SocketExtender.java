@@ -21,6 +21,7 @@ package info.faceland.loot.items.prefabs;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import info.faceland.loot.items.ItemBuilder;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.Arrays;
 import land.face.strife.util.ItemUtil;
@@ -42,8 +43,8 @@ public final class SocketExtender {
         "",
         "|lgray|An upgrade item that can",
         "|lgray|be used on equipment with",
-        "|lgray|a |teal|(+) |lgray|in the description",
-        "|lgray|to add an extra |orange|(Socket)")
+        "|lgray|a locked " + ItemBuilder.EXTEND + "|lgray| to add",
+        "|lgray|an extra " + ItemBuilder.SOCKET)
     ));
     ItemStackExtensionsKt.setCustomModelData(stack, 10);
     stack.setDurability((short) 11);

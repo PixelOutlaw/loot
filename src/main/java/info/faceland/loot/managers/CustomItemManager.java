@@ -19,38 +19,40 @@
 package info.faceland.loot.managers;
 
 import info.faceland.loot.api.items.CustomItem;
-import info.faceland.loot.api.managers.CustomItemManager;
 import info.faceland.loot.math.LootRandom;
+import info.faceland.loot.utils.MaterialUtil;
+import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.bukkit.ChatColor;
+import org.bukkit.inventory.ItemStack;
 
-public final class LootCustomItemManager implements CustomItemManager {
+public final class CustomItemManager {
 
   private static final double DISTANCE = 1000;
   private static final double DISTANCE_SQUARED = Math.pow(DISTANCE, 2);
   private final Map<String, CustomItem> customItemMap;
+  private final Map<String, CustomItem> uneditedHash;
   private final LootRandom random;
 
-  public LootCustomItemManager() {
+  public CustomItemManager() {
     customItemMap = new HashMap<>();
+    uneditedHash = new HashMap<>();
     random = new LootRandom(System.currentTimeMillis());
   }
 
-  @Override
   public Set<CustomItem> getCustomItems() {
     return new HashSet<>(customItemMap.values());
   }
 
-  @Override
   public Set<String> listCustomItems() {
     return customItemMap.keySet().stream().map(value -> value.replace(" ", "_"))
         .collect(Collectors.toSet());
   }
 
-  @Override
   public CustomItem getCustomItem(String name) {
     if (customItemMap.containsKey(name.toLowerCase())) {
       return customItemMap.get(name.toLowerCase());
@@ -58,34 +60,44 @@ public final class LootCustomItemManager implements CustomItemManager {
     return null;
   }
 
-  @Override
-  public void addCustomItem(CustomItem ci) {
-    customItemMap.put(ci.getName().toLowerCase(), ci);
+  public CustomItem getCustomItemFromStack(ItemStack stack) {
+    return uneditedHash.get(customItemSerial(stack));
   }
 
-  @Override
+  private String customItemSerial(ItemStack stack) {
+    String material = stack.getType().toString();
+    String name = ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack));
+    boolean enchantable = MaterialUtil.hasEnchantmentTag(stack);
+    String gemData = MaterialUtil.getSocketString(stack);
+    return material + name + enchantable + gemData;
+  }
+
+  public void addCustomItem(CustomItem ci) {
+    customItemMap.put(ci.getName().toLowerCase(), ci);
+    uneditedHash.put(customItemSerial(ci.toItemStack(1)), ci);
+  }
+
   public void removeCustomItem(String name) {
     if (customItemMap.containsKey(name.toLowerCase())) {
-      customItemMap.remove(name.toLowerCase());
+      CustomItem ci = customItemMap.remove(name.toLowerCase());
+      if (ci != null) {
+        uneditedHash.values().remove(ci);
+      }
     }
   }
 
-  @Override
   public CustomItem getRandomCustomItem() {
     return getRandomCustomItem(false);
   }
 
-  @Override
   public CustomItem getRandomCustomItem(boolean withChance) {
     return getRandomCustomItem(withChance, 0D);
   }
 
-  @Override
   public CustomItem getRandomCustomItem(boolean withChance, double distance) {
     return getRandomCustomItem(withChance, distance, new HashMap<CustomItem, Double>());
   }
 
-  @Override
   public CustomItem getRandomCustomItem(boolean withChance, double distance,
       Map<CustomItem, Double> map) {
     if (!withChance) {
@@ -108,7 +120,6 @@ public final class LootCustomItemManager implements CustomItemManager {
     return null;
   }
 
-  @Override
   public CustomItem getRandomCustomItemByLevel(int level) {
     double selectedWeight = random.nextDouble() * getTotalLevelWeight(level);
     double currentWeight = 0D;
@@ -126,7 +137,6 @@ public final class LootCustomItemManager implements CustomItemManager {
     return null;
   }
 
-  @Override
   public double getTotalWeight() {
     double d = 0;
     for (CustomItem ci : getCustomItems()) {
@@ -135,7 +145,6 @@ public final class LootCustomItemManager implements CustomItemManager {
     return d;
   }
 
-  @Override
   public double getTotalLevelWeight(int level) {
     double weight = 0;
     for (CustomItem ci : getCustomItems()) {

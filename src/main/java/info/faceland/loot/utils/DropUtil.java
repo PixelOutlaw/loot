@@ -6,6 +6,7 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils;
 import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
+import com.tealcube.minecraft.bukkit.shade.xglow.data.glow.Glow;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.ItemGenerationReason;
@@ -23,13 +24,11 @@ import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.tier.Tier;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import land.face.learnin.LearninBooksPlugin;
-import land.face.strife.util.GlowUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -39,9 +38,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 public class DropUtil implements Listener {
 
@@ -324,7 +321,9 @@ public class DropUtil implements Listener {
     Item drop = Objects.requireNonNull(loc.getWorld()).dropItemNaturally(loc, itemStack);
     try {
       if (looter != null && glowColor != null) {
-        GlowUtil.setGlow(looter, drop, glowColor);
+        Glow glow = Glow.builder().color(glowColor).name("drop-glow").build();
+        glow.addHolders(drop);
+        glow.display(looter);
       }
     } catch (Exception e) {
       e.printStackTrace();

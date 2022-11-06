@@ -87,8 +87,8 @@ public final class EnchantMenuListener implements Listener {
       enchantMenu.setSelectedUpgradeItem(player, stack);
       enchantMenu.update(player);
       player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
-    } else if (stack.getAmount() == 1 &&
-        (MaterialUtil.isEquipmentItem(stack) || MaterialUtil.hasEnchantmentTag(stack))) {
+    } else if (stack.getAmount() == 1 && (MaterialUtil.isUpgradePossible(stack) ||
+        MaterialUtil.hasEnchantmentTag(stack))) {
       enchantMenu.setSelectedEquipment(player, stack);
       enchantMenu.update((Player) event.getWhoClicked());
       player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);

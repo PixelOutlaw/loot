@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.UUID;
 import land.face.strife.data.StrifeMob;
 import land.face.strife.stats.StrifeStat;
+import land.face.strife.util.SpecialStatusUtil;
 import land.face.strife.util.StatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -77,6 +78,11 @@ public final class EntityDeathListener implements Listener {
     }
     if (event.getEntity().getType() == EntityType.RABBIT
         && ((Rabbit) event.getEntity()).getRabbitType() != Type.THE_KILLER_BUNNY) {
+      return;
+    }
+    if (SpecialStatusUtil.isGuildMob(event.getEntity())) {
+      event.getDrops().clear();
+      event.setDroppedExp(0);
       return;
     }
     StrifeMob mob = plugin.getStrifePlugin().getStrifeMobManager().getStatMob(event.getEntity());

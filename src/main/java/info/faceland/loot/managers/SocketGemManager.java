@@ -18,6 +18,7 @@
  */
 package info.faceland.loot.managers;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.math.LootRandom;
@@ -41,6 +42,13 @@ public final class SocketGemManager {
   private static final double DISTANCE_SQUARED = Math.pow(DISTANCE, 2);
   private final Map<String, SocketGem> gemMap;
   private final LootRandom random;
+
+  // split on "" ?
+  public static final String GEM_1_PREFIX = PaletteUtil.color("|ns|\uF808\uF802咰\uF804\uF824");
+  public static final String GEM_2_PREFIX = PaletteUtil.color("|ns|\uF808\uF802咱\uF804\uF824");
+  public static final String GEM_3_PREFIX = PaletteUtil.color("|ns|\uF808\uF802咲\uF804\uF824");
+  public static final String GEM_4_PREFIX = PaletteUtil.color("|ns|\uF808\uF802咳\uF804\uF824");
+  public static final String GEM_SPECIAL_PREFIX = PaletteUtil.color("|ns|\uF808\uF802咴\uF804\uF824");
 
   public SocketGemManager() {
     this.gemMap = new HashMap<>();

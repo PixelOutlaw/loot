@@ -21,6 +21,7 @@ package info.faceland.loot.items.prefabs;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.Arrays;
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +48,7 @@ public final class ArcaneEnhancer {
         "",
         "|dgray||i|Enhanced items cannot have their",
         "|dgray||i|enchantment refilled and will",
-        "|dgray||i|slowly revert to |blue||i|(Enchantable)"
+        "|dgray||i|slowly revert to " + MaterialUtil.ENCHANTABLE_TAG
     )));
     stack.setDurability((short) 11);
     ItemStackExtensionsKt.setCustomModelData(stack, 79);

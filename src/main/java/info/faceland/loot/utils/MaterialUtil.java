@@ -23,6 +23,7 @@ import static org.bukkit.ChatColor.stripColor;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
@@ -30,11 +31,16 @@ import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.tuple.Pair;
 import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
 import info.faceland.loot.LootPlugin;
+import info.faceland.loot.api.items.CustomItem;
+import info.faceland.loot.data.ExistingSocketData;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.events.LootEnchantEvent;
 import info.faceland.loot.groups.ItemGroup;
+import info.faceland.loot.items.ItemBuilder;
+import info.faceland.loot.items.prefabs.ArcaneEnhancer;
+import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.math.LootRandom;
@@ -44,12 +50,11 @@ import info.faceland.loot.tier.Tier;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import land.face.dinvy.events.EquipmentUpdateEvent;
 import land.face.dinvy.pojo.PlayerData;
 import land.face.strife.StrifePlugin;
@@ -63,9 +68,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
-import org.bukkit.entity.Parrot;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -79,7 +82,8 @@ public final class MaterialUtil {
   private static final double BASE_ESSENCE_MULT = 0.3;
   private static final LootRandom random = new LootRandom();
 
-  private static final Pattern ONLY_LETTERS = Pattern.compile("[^A-za-z]");
+  public static final Pattern ONLY_LETTERS = Pattern.compile("[^A-za-z]");
+  private static final Pattern DIGITS = Pattern.compile("[^0-9.-]");
 
   private static String upgradeFailureMsg;
   private static String noPointsForHelmetMsg;
@@ -98,6 +102,8 @@ public final class MaterialUtil {
   private static boolean enchantmentsStack;
 
   public static final String FAILURE_BONUS = ChatColor.RED + "Failure Bonus";
+  public static final String ENCHANTABLE_TAG = FaceColor.TRUE_WHITE + "傜";
+  public static final String ENCHANTABLE_TAG_S = ChatColor.stripColor(ENCHANTABLE_TAG);
 
   private static final String enchantBarStart = "τ\uF801";
   private static final String arcaneBarStart = "ψ\uF801";
@@ -179,21 +185,15 @@ public final class MaterialUtil {
     return (0.25 + itemPlus * 0.11) * scroll.getItemDamageMultiplier();
   }
 
-  public static boolean canBeExtended(List<String> lore) {
-    List<String> stripColor = InventoryUtil.stripColor(lore);
-    return stripColor.contains("(+)");
-  }
-
   public static void extendItem(Player player, ItemStack stack, ItemStack extender) {
     List<String> lore = new ArrayList<>(TextUtils.getLore(stack));
-    List<String> strippedLore = InventoryUtil.stripColor(lore);
-    if (!canBeExtended(strippedLore)) {
+    int index = indexOfExtend(lore);
+    if (index == -1) {
       sendMessage(player, extendFailMsg);
       player.playSound(player.getEyeLocation(), Sound.BLOCK_LAVA_POP, 1F, 0.5F);
       return;
     }
-    int index = strippedLore.indexOf("(+)");
-    lore.set(index, FaceColor.ORANGE + "(Socket)");
+    lore.set(index, ItemBuilder.SOCKET);
     TextUtils.setLore(stack, lore);
 
     sendMessage(player, extendSuccessMsg);
@@ -259,7 +259,17 @@ public final class MaterialUtil {
       damage = Short.MAX_VALUE;
     } else {
       double totalPercentage = damagePercentage + currentDamagePercentage;
-      damage = (short) (Math.floor(totalPercentage * (double) stack.getType().getMaxDurability()));
+      double rawDamage = Math.floor(totalPercentage * (double) stack.getType().getMaxDurability());
+      double repairMod = 100;
+      for (String loreLine : TextUtils.getLore(stack)) {
+        if (!loreLine.endsWith(" Increased Durability")) {
+          continue;
+        }
+        String strippedLore = ChatColor.stripColor(loreLine);
+        repairMod += Double.parseDouble(DIGITS.matcher(strippedLore).replaceAll(""));
+      }
+      rawDamage /= repairMod / 100;
+      damage = (short) rawDamage;
     }
 
     if (damage >= stack.getType().getMaxDurability()) {
@@ -358,6 +368,9 @@ public final class MaterialUtil {
   }
 
   public static boolean isEquipmentItem(ItemStack stack) {
+    if (stack.getType() == Material.WHEAT_SEEDS || stack.getType() == Material.SHEARS) {
+      return false;
+    }
     if (stack.getType().getMaxDurability() > 5) {
       return true;
     }
@@ -416,7 +429,22 @@ public final class MaterialUtil {
   public static boolean hasEnchantmentTag(ItemStack stack) {
     List<String> lore = new ArrayList<>(TextUtils.getLore(stack));
     List<String> strippedLore = InventoryUtil.stripColor(lore);
-    return strippedLore.contains("(Enchantable)");
+    return strippedLore.contains(MaterialUtil.ENCHANTABLE_TAG_S);
+  }
+
+  public static String getSocketString(ItemStack stack) {
+    List<String> lore = new ArrayList<>(TextUtils.getLore(stack));
+    List<String> strippedLore = InventoryUtil.stripColor(lore);
+    int sockets = 0;
+    int extenders = 0;
+    for (String s : strippedLore) {
+      if (s.equals(ItemBuilder.SOCKET_S)) {
+        sockets++;
+      } else if (s.equals(ItemBuilder.EXTEND_S)) {
+        extenders++;
+      }
+    }
+    return "-" + sockets + "-" + extenders + "-";
   }
 
   public static void purifyItem(Player player, ItemStack item, ItemStack purifyScroll) {
@@ -427,7 +455,7 @@ public final class MaterialUtil {
     }
 
     List<String> lore = TextUtils.getLore(item);
-    lore.set(enchantBar.getRight(), FaceColor.BLUE + "(Enchantable)");
+    lore.set(enchantBar.getRight(), MaterialUtil.ENCHANTABLE_TAG);
     lore.remove(enchantBar.getRight() - 1);
     TextUtils.setLore(item, lore);
 
@@ -470,7 +498,7 @@ public final class MaterialUtil {
     int newValue = statValue + (int) (statValue * enhanceRoll * enchantingBonus);
     newValue++;
 
-    lore.set(enchantBar.getRight() - 1, ChatColor.BLUE + enchantmentStatString
+    lore.set(enchantBar.getRight() - 1, FaceColor.BLUE + enchantmentStatString
             .replace(Integer.toString(statValue), Integer.toString(newValue)));
     TextUtils.setLore(item, lore);
 
@@ -497,6 +525,16 @@ public final class MaterialUtil {
       return false;
     }
     return true;
+  }
+
+  public static int indexOfSocket(List<String> lore) {
+    List<String> strippedLore = InventoryUtil.stripColor(lore);
+    return strippedLore.indexOf(ItemBuilder.SOCKET_S);
+  }
+
+  public static int indexOfExtend(List<String> lore) {
+    List<String> strippedLore = InventoryUtil.stripColor(lore);
+    return strippedLore.indexOf(ItemBuilder.EXTEND_S);
   }
 
   public static int getMissingEnchantmentPower(ItemStack stack) {
@@ -607,20 +645,18 @@ public final class MaterialUtil {
 
   public static Pair<String, Integer> buildEnchantmentBar(int current, int max) {
     if (current == 0) {
-      Bukkit.getLogger().info("revert " + current);
-      return Pair.of(FaceColor.BLUE + "(Enchantable)", 0);
+      return Pair.of(MaterialUtil.ENCHANTABLE_TAG, 0);
     }
     String bar = ChatColor.WHITE + enchantBarStart;
     bar += StringUtils.repeat(enchantBarFull, current);
     bar += StringUtils.repeat(enchantBarEmpty, max - current);
     bar += enchantBarEnd;
-    Bukkit.getLogger().info("bar " + bar);
     return Pair.of(bar, current);
   }
 
   public static Pair<String, Integer> buildArcaneBar(int current, int max) {
     if (current == 0) {
-      return Pair.of(FaceColor.BLUE + "(Enchantable)", 0);
+      return Pair.of(MaterialUtil.ENCHANTABLE_TAG, 0);
     }
     String bar = ChatColor.WHITE + arcaneBarStart;
     bar += StringUtils.repeat(arcaneBarFull, current);
@@ -695,7 +731,7 @@ public final class MaterialUtil {
     List<String> lore = new ArrayList<>(TextUtils.getLore(targetItem));
     List<String> strippedLore = InventoryUtil.stripColor(lore);
 
-    int index = strippedLore.indexOf("(Enchantable)");
+    int index = strippedLore.indexOf(MaterialUtil.ENCHANTABLE_TAG_S);
     lore.remove(index);
 
     double enchantSkill = PlayerDataUtil
@@ -912,14 +948,18 @@ public final class MaterialUtil {
     String newStatString = statString.replace(String.valueOf(statVal),
         String.valueOf((int) Math.max(1, statVal * essMult)));
 
+    return createEssence(tier.getName(), essLevel, ChatColor.stripColor(newStatString));
+  }
+
+  public static ItemStack createEssence(String typeName, int level, String stat) {
     ItemStack shard = new ItemStack(Material.PRISMARINE_SHARD);
     ItemStackExtensionsKt.setDisplayName(shard, FaceColor.CYAN + "Item Essence");
 
     List<String> esslore = new ArrayList<>();
-    esslore.add(FaceColor.WHITE + "Item Level Requirement: " + essLevel);
-    esslore.add(FaceColor.WHITE + tier.getName() + "\u0588");
+    esslore.add(FaceColor.WHITE + "Item Level Requirement: " + level);
+    esslore.add(FaceColor.WHITE + typeName + "\u0588");
     esslore.add("");
-    esslore.add(FaceColor.CYAN + newStatString);
+    esslore.add(FaceColor.CYAN + stat);
     esslore.add("");
     esslore.add(FaceColor.LIGHT_GRAY + "Craft this together with");
     esslore.add(FaceColor.LIGHT_GRAY + "an unfinished item to fill");
@@ -949,9 +989,9 @@ public final class MaterialUtil {
       if (!(strippedString.startsWith("+") || strippedString.startsWith("-"))) {
         continue;
       }
-      if (str.startsWith(ChatColor.BLUE + "") || str.startsWith(ChatColor.GRAY + "")
-          || str.startsWith(ChatColor.DARK_PURPLE + "") || str.startsWith(ChatColor.RED + "")
-          || str.startsWith(ChatColor.GOLD + "")) {
+      if (FaceColor.PURPLE.isStartOf(str) || FaceColor.RED.isStartOf(str) ||
+          FaceColor.ORANGE.isStartOf(str) || FaceColor.BLUE.isStartOf(str) ||
+          FaceColor.LIGHT_GRAY.isStartOf(str)) {
         continue;
       }
       existingCraftStatStrings.add(ONLY_LETTERS.matcher(strippedString).replaceAll(""));
@@ -971,12 +1011,6 @@ public final class MaterialUtil {
     if (strippedLore.get(0) == null || !strippedLore.get(0).startsWith("Item Level Requirement")) {
       return false;
     }
-    if (strippedLore.get(1) == null || !strippedLore.get(1).startsWith("Item Type")) {
-      return false;
-    }
-    if (strippedLore.get(2) == null) {
-      return false;
-    }
     return true;
   }
 
@@ -989,7 +1023,7 @@ public final class MaterialUtil {
   }
 
   public static String getEssenceStat(ItemStack itemStack) {
-    return TextUtils.getLore(itemStack).get(2);
+    return TextUtils.getLore(itemStack).get(3);
   }
 
   public static boolean hasItemLevel(ItemStack h) {
@@ -1001,6 +1035,41 @@ public final class MaterialUtil {
   public static int getEssenceLevel(ItemStack h) {
     return NumberUtils.toInt(CharMatcher.digit().or(CharMatcher.is('-')).negate().collapseFrom(
             ChatColor.stripColor(TextUtils.getLore(h).get(0)), ' ').trim());
+  }
+
+  public static float getExtendChance(int craftingLevel) {
+    float extendChance = 0f;
+    if (craftingLevel >= 20) {
+      extendChance += 0.25;
+    }
+    if (craftingLevel >= 55) {
+      extendChance += 0.25;
+    }
+    if (craftingLevel >= 85) {
+      extendChance += 0.5;
+    }
+    return extendChance;
+  }
+
+  public static int getSockets(float quality, int craftingLevel) {
+    int minSockets = getMinSockets(craftingLevel);
+    int maxSockets = getMaxSockets(quality);
+    if (minSockets >= maxSockets) {
+      return minSockets;
+    }
+    int result = minSockets;
+    while (result < maxSockets && random.nextFloat() > 0.5f) {
+      result++;
+    }
+    return result;
+  }
+
+  public static int getMinSockets(int craftingLevel) {
+    return craftingLevel >= 60 ? 2 : craftingLevel >= 25 ? 1 : 0;
+  }
+
+  public static int getMaxSockets(float quality) {
+    return quality > 2.1 ? 2 : 1;
   }
 
   public static int getLevelRequirement(ItemStack stack) {
@@ -1017,8 +1086,181 @@ public final class MaterialUtil {
     return getDigit(TextUtils.getLore(stack).get(0));
   }
 
+  public static boolean updateItem(ItemStack stack) {
+    if (stack == null || stack.getType() == Material.AIR) {
+      return false;
+    }
+
+    EnchantmentTome tome = MaterialUtil.getEnchantmentItem(stack);
+    if (tome != null) {
+      ItemStack newStack = tome.toItemStack(1);
+      stack.setType(newStack.getType());
+      stack.setItemMeta(newStack.getItemMeta());
+      return true;
+    }
+
+    UpgradeScroll scroll = LootPlugin.getInstance().getScrollManager().getScroll(stack);
+    if (scroll != null) {
+      ItemStack newStack = LootPlugin.getInstance().getScrollManager().buildItemStack(scroll);
+      stack.setType(newStack.getType());
+      stack.setItemMeta(newStack.getItemMeta());
+      return true;
+    }
+
+    SocketGem gem = MaterialUtil.getSocketGem(stack);
+    if (gem != null && !gem.getName().contains("ransmute")) {
+      ItemStack newStack = gem.toItemStack(stack.getAmount());
+      stack.setType(newStack.getType());
+      stack.setItemMeta(newStack.getItemMeta());
+      return true;
+    }
+
+    if (stack.getType() == Material.PAPER &&
+        "Scroll Of Purity".equals(ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)))) {
+      ItemStack newStack = PurifyingScroll.get();
+      stack.setType(newStack.getType());
+      stack.setItemMeta(newStack.getItemMeta());
+      return true;
+    }
+
+    if (stack.getType() == Material.NETHER_STAR &&
+        "Socket Extender".equals(ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)))) {
+      ItemStack newStack = SocketExtender.build();
+      stack.setType(newStack.getType());
+      stack.setItemMeta(newStack.getItemMeta());
+      return true;
+    }
+
+    if (stack.getType() == Material.MAGMA_CREAM &&
+        "Arcane Enhancer".equals(ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)))) {
+      ItemStack newStack = ArcaneEnhancer.get();
+      stack.setType(newStack.getType());
+      stack.setItemMeta(newStack.getItemMeta());
+      return true;
+    }
+
+    boolean updated = false;
+    List<String> lore = TextUtils.getLore(stack);
+    List<Integer> replaceSockets = new ArrayList<>();
+    List<Integer> replaceExtend = new ArrayList<>();
+    List<Integer> replaceEnchant = new ArrayList<>();
+    int i = 0;
+    for (String s : lore) {
+      String stripped = ChatColor.stripColor(s);
+      if (stripped.equals("(Socket)")) {
+        replaceSockets.add(i);
+      } else if (stripped.equals("(+)")) {
+        replaceExtend.add(i);
+      } else if (stripped.equals("(Enchantable)")) {
+        replaceEnchant.add(i);
+      }
+      i++;
+    }
+    if (!replaceSockets.isEmpty() || !replaceExtend.isEmpty() || !replaceEnchant.isEmpty()) {
+      for (int index : replaceSockets) {
+        lore.set(index, ItemBuilder.SOCKET);
+      }
+      for (int index : replaceExtend) {
+        lore.set(index, ItemBuilder.EXTEND);
+      }
+      for (int index : replaceEnchant) {
+        lore.set(index, MaterialUtil.ENCHANTABLE_TAG);
+      }
+      TextUtils.setLore(stack, lore, false);
+      updated = true;
+    }
+
+    CustomItem ci = LootPlugin.getInstance().getCustomItemManager().getCustomItemFromStack(stack);
+    if (ci != null) {
+      ItemStack newStack = ci.toItemStack(1);
+      stack.setType(newStack.getType());
+      stack.setItemMeta(newStack.getItemMeta());
+      return true;
+    }
+
+    return updated;
+  }
+
   public static Tier getTierFromStack(ItemStack stack) {
     return LootPlugin.getInstance().getItemGroupManager().getTierFromStack(stack);
+  }
+
+  public static ExistingSocketData buildSocketData(ItemStack stack) {
+    ExistingSocketData data = new ExistingSocketData();
+    if (stack == null || stack.getType() == Material.AIR) {
+      return data;
+    }
+    List<String> lore = TextUtils.getLore(stack);
+    if (lore.isEmpty()) {
+      return data;
+    }
+
+    int gemNumber = 0;
+    int lineNumber = -1;
+    List<Integer> gemLoreIndexes = new ArrayList<>();
+
+    for (String line : lore) {
+      lineNumber++;
+      String stripped = ChatColor.stripColor(line);
+      if (stripped.equals(ItemBuilder.SOCKET_S)) {
+        if (!gemLoreIndexes.isEmpty()) {
+          data.addGemData(gemNumber, gemLoreIndexes);
+          gemNumber++;
+        }
+        data.addGemData(gemNumber, null);
+        gemLoreIndexes = new ArrayList<>();
+        gemNumber++;
+        continue;
+      }
+      if (line.contains("\uF804\uF824")) {
+        if (!gemLoreIndexes.isEmpty()) {
+          data.addGemData(gemNumber, gemLoreIndexes);
+          gemNumber++;
+        }
+        gemLoreIndexes = new ArrayList<>();
+        gemLoreIndexes.add(lineNumber);
+        continue;
+      }
+      if (!gemLoreIndexes.isEmpty()) {
+        // Must check " - " in case items have a passive below
+        // Todo: not that ^
+        if (StringUtils.isBlank(stripped) || stripped.contains(" - ") ||
+            stripped.equals(ItemBuilder.EXTEND_S)) {
+          data.addGemData(gemNumber, gemLoreIndexes);
+          gemNumber++;
+          gemLoreIndexes = new ArrayList<>();
+        } else {
+          gemLoreIndexes.add(lineNumber);
+        }
+      }
+    }
+    if (!gemLoreIndexes.isEmpty()) {
+      data.addGemData(gemNumber, gemLoreIndexes);
+    }
+    return data;
+  }
+
+  public static ExistingSocketData destroyGem(ItemStack stack, int index) {
+    ExistingSocketData data = buildSocketData(stack);
+    if (data.getIndexes(index) == null) {
+      return data;
+    }
+    List<String> lore = TextUtils.getLore(stack);
+    List<Integer> loreIndexes = new ArrayList<>(data.getIndexes(index));
+    Collections.sort(loreIndexes);
+    int lowestIndex = loreIndexes.get(0);
+    Collections.reverse(loreIndexes);
+    try {
+      for (int line : loreIndexes) {
+        lore.remove(line);
+      }
+    } catch (Exception e) {
+      return null;
+    }
+    lore.add(lowestIndex, ItemBuilder.SOCKET);
+    TextUtils.setLore(stack, lore);
+    data = buildSocketData(stack);
+    return data;
   }
 
   public static int getItemRarity(ItemStack stack) {
@@ -1028,23 +1270,31 @@ public final class MaterialUtil {
     if (TextUtils.getLore(stack).size() < 2) {
       return 0;
     }
-    String tierString = ChatColor.stripColor(TextUtils.getLore(stack).get(1));
-    if (tierString.contains(TAG_COMMON)) {
+    int rarity = checkRarity(TextUtils.getLore(stack).get(0));
+    if (rarity != -1) {
+      return rarity;
+    }
+    rarity = checkRarity(TextUtils.getLore(stack).get(1));
+    return rarity != -1 ? rarity : 1;
+  }
+
+  private static int checkRarity(String s) {
+    if (s.contains(TAG_COMMON)) {
       return 1;
     }
-    if (tierString.contains(TAG_UNCOMMON)) {
+    if (s.contains(TAG_UNCOMMON)) {
       return 2;
     }
-    if (tierString.contains(TAG_RARE)) {
+    if (s.contains(TAG_RARE)) {
       return 3;
     }
-    if (tierString.contains(TAG_EPIC)) {
+    if (s.contains(TAG_EPIC)) {
       return 4;
     }
-    if (tierString.contains(TAG_UNIQUE)) {
+    if (s.contains(TAG_UNIQUE)) {
       return 4;
     }
-    return 1;
+    return -1;
   }
 
   public static int getItemLevel(ItemStack stack) {
@@ -1114,7 +1364,7 @@ public final class MaterialUtil {
   private static boolean isBannedUpgradeMaterial(ItemStack item) {
     return switch (item.getType()) {
       case EMERALD, PAPER, NETHER_STAR, DIAMOND, GHAST_TEAR,
-          ENCHANTED_BOOK, NAME_TAG, QUARTZ, TNT_MINECART -> true;
+          ENCHANTED_BOOK, NAME_TAG, QUARTZ, TNT_MINECART, SHEARS, WHEAT_SEEDS -> true;
       default -> false;
     };
   }

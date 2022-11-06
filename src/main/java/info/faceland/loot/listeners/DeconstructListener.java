@@ -268,8 +268,8 @@ public class DeconstructListener implements Listener {
   }
 
   public static int getLevelAdvantage(int craftLevel, int itemLevel) {
-    int lvlReq = 20 + (int) Math.floor((double) craftLevel / 10) * 14;
-    return lvlReq - itemLevel;
+    int maxCraft = 10 + ((craftLevel / 5) * 8);
+    return maxCraft - itemLevel;
   }
 
   public static boolean isValidStealColor(Color color) {

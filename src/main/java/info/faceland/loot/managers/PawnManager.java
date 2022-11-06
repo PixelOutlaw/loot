@@ -12,7 +12,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import land.face.strife.util.ItemUtil;
+import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -34,6 +37,8 @@ public class PawnManager {
 
   private Map<Material, Double> materialPrices = new HashMap<>();
   private Map<String, Double> namedPrices = new HashMap<>();
+
+  Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
 
   public PawnManager(LootPlugin plugin) {
     this.plugin = plugin;
@@ -102,6 +107,18 @@ public class PawnManager {
       price = (int) (baseEquipmentPrice + itemLevel * equipPricePerLevel);
       price *= Math.pow(1.1, itemPlus);
       return new PriceData(amount * price, itemPlus > 4 || unique);
+    }
+    if (stack.getType() == Material.KELP) {
+      int rarity = MaterialUtil.getItemRarity(stack);
+      float rarityMult = 0.5f * rarity;
+      String stripped = net.md_5.bungee.api.ChatColor.stripColor(
+          ItemStackExtensionsKt.getDisplayName(stack));
+      Matcher matcher = pattern.matcher(stripped);
+      while (matcher.find()) {
+        double size = Double.parseDouble(matcher.group());
+        return new PriceData((int) (2 + size * 0.2 * rarityMult), rarity > 2);
+      }
+      return new PriceData(1, false);
     }
     double quality = MaterialUtil.getQuality(stack);
     if (quality > 0) {

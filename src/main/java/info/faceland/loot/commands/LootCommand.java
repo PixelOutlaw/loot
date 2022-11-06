@@ -21,6 +21,7 @@ package info.faceland.loot.commands;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
 
 import com.destroystokyo.paper.Namespaced;
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.acf.BaseCommand;
@@ -34,6 +35,7 @@ import com.tealcube.minecraft.bukkit.shade.google.gson.Gson;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.ItemGenerationReason;
+import info.faceland.loot.data.ExistingSocketData;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.data.export.ExportEntry;
@@ -44,6 +46,7 @@ import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.menu.gemcutter.GemcutterMenu;
+import info.faceland.loot.menu.gemsmasher.GemSmashMenu;
 import info.faceland.loot.menu.pawn.PawnMenu;
 import info.faceland.loot.menu.transmute.TransmuteMenu;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
@@ -85,6 +88,7 @@ public class LootCommand extends BaseCommand {
   private String awardFormatSelf;
 
   private final GemcutterMenu gemcutterMenu;
+  private final GemSmashMenu gemsmasherMenu;
 
   private Gson gson = new Gson();
 
@@ -92,6 +96,7 @@ public class LootCommand extends BaseCommand {
     this.plugin = plugin;
     this.random = new Random(System.currentTimeMillis());
     gemcutterMenu = new GemcutterMenu(plugin);
+    gemsmasherMenu = new GemSmashMenu(plugin);
     awardFormat = plugin.getSettings().getString("language.broadcast.reward-item", "");
     awardFormatSelf = plugin.getSettings().getString("language.broadcast.reward-item-self", "");
   }
@@ -99,14 +104,10 @@ public class LootCommand extends BaseCommand {
   @Subcommand("name-frame")
   @CommandPermission("loot.name-frame")
   public void memeCommand(Player sender, String text) {
-    RayTraceResult result = sender.getWorld()
-        .rayTraceEntities(sender.getEyeLocation(), sender.getLocation().getDirection(), 20);
+    RayTraceResult result = sender.getWorld().rayTraceEntities(sender.getEyeLocation(),
+        sender.getLocation().getDirection(), 20, e -> e.getType() == EntityType.ITEM_FRAME);
     if (result == null || result.getHitEntity() == null) {
       MessageUtils.sendMessage(sender, "&eNo target found...");
-      return;
-    }
-    if (result.getHitEntity().getType() != EntityType.ITEM_FRAME) {
-      MessageUtils.sendMessage(sender, "&eTarget entity is not an item frame...");
       return;
     }
     ItemFrame frame = (ItemFrame) result.getHitEntity();
@@ -114,11 +115,19 @@ public class LootCommand extends BaseCommand {
       MessageUtils.sendMessage(sender, "&eItem frame is empty...");
       return;
     }
+    text = FaceColor.YELLOW + FaceColor.ITALIC.s() + text;
     ItemStack frameStack = frame.getItem().clone();
-    ItemStackExtensionsKt.setDisplayName(frameStack, TextUtils.color(text));
+    ItemStackExtensionsKt.setDisplayName(frameStack, text);
 
     frame.setItem(frameStack, true);
     MessageUtils.sendMessage(sender, "&aSuccess!");
+  }
+
+  @Subcommand("gemdestroy")
+  @CommandPermission("loot.admin")
+  public void gemdestroy(Player sender, int slot) {
+    boolean success = MaterialUtil.destroyGem(sender.getEquipment().getItemInMainHand(), slot) != null;
+    sendMessage(sender, success ? "success" : "fail");
   }
 
   @Subcommand("export")
@@ -295,6 +304,27 @@ public class LootCommand extends BaseCommand {
   @Subcommand("give")
   @CommandPermission("loot.give")
   public class GiveCommand extends BaseCommand {
+
+    @Subcommand("essence")
+    @CommandCompletion("@players @tiers level name")
+    public void giveEssence(CommandSender sender, OnlinePlayer player, String tier,
+        @Default("1") int level, String stat) {
+
+      String typeString;
+      if (tier.equalsIgnoreCase("ANY")) {
+        typeString = "慏";
+      } else {
+        Tier t = tier.equalsIgnoreCase("random") ? null : plugin.getTierManager().getTier(tier);
+        if (t == null) {
+          sendMessage(sender, "Invalid tier...");
+          return;
+        }
+        typeString = t.getName();
+      }
+      ItemStack itemEss = MaterialUtil.createEssence(typeString, level, stat);
+      player.getPlayer().getInventory().addItem(itemEss);
+      sendMessage(sender, "Success!");
+    }
 
     @Subcommand("tier")
     @CommandCompletion("@players @tiers @rarities amount level distorted")
@@ -560,6 +590,13 @@ public class LootCommand extends BaseCommand {
   public void inspectKeys(CommandSender sender, OnlinePlayer target) {
     gemcutterMenu.setSelectedItem(target.getPlayer(), null);
     gemcutterMenu.open(target.getPlayer());
+  }
+
+  @Subcommand("gemsmasher")
+  @CommandPermission("loot.cut")
+  public void openSmash(CommandSender sender, OnlinePlayer target) {
+    gemsmasherMenu.setData(target.getPlayer(), null, null);
+    gemsmasherMenu.open(target.getPlayer());
   }
 
   // TODO: handle this with a real menu

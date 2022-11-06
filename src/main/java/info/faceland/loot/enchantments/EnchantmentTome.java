@@ -22,6 +22,7 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.groups.ItemGroup;
+import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -125,7 +126,7 @@ public class EnchantmentTome {
   public static List<String> UNCOLORED_TOME_DESC = Arrays.asList(
       "",
       "|lgray|Use this at an |purple|Enchantment Table",
-      "|lgray|to upgrade an |blue|(Enchantable) |lgray|item!",
+      "|lgray|on an " + MaterialUtil.ENCHANTABLE_TAG + " |lgray|item!",
       "",
       "|cyan|Bonuses Applied:"
   );

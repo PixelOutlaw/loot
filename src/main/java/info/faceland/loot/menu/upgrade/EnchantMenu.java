@@ -261,7 +261,7 @@ public class EnchantMenu extends ItemMenu {
       return;
     }
     if (SocketExtender.isSimilar(selectedUpgradeItem)) {
-      if (!MaterialUtil.canBeExtended(new ArrayList<>(TextUtils.getLore(selectedEquipment)))) {
+      if (MaterialUtil.indexOfExtend(TextUtils.getLore(selectedEquipment)) == -1) {
         confirmIcon.setDisplayName(invalidExtend);
         lore.addAll(invalidExtendLore);
         ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);

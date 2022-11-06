@@ -18,10 +18,10 @@ package info.faceland.loot.sockets;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
-import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.api.sockets.effects.SocketEffect;
 import info.faceland.loot.groups.ItemGroup;
+import info.faceland.loot.items.ItemBuilder;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
@@ -136,7 +136,7 @@ public final class SocketGem implements Comparable<SocketGem> {
         FaceColor.WHITE + itemGroupsToString() + "Ս",
         "",
         FaceColor.LIGHT_GRAY + "Place this gem on an item with an",
-        FaceColor.LIGHT_GRAY + "open " + FaceColor.ORANGE + "(Socket) " + FaceColor.LIGHT_GRAY + "to upgrade it!",
+        FaceColor.LIGHT_GRAY + "open " + ItemBuilder.SOCKET + FaceColor.LIGHT_GRAY + " to upgrade it!",
         "",
         FaceColor.YELLOW + "Bonuses Applied:"
     ));
