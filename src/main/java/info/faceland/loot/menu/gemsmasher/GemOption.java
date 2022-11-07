@@ -20,12 +20,16 @@ package info.faceland.loot.menu.gemsmasher;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ExistingSocketData;
 import info.faceland.loot.items.ItemBuilder;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
+import land.face.strife.StrifePlugin;
+import net.milkbowl.vault.economy.EconomyResponse;
+import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
 import ninja.amp.ampmenus.events.ItemClickEvent;
 import ninja.amp.ampmenus.items.MenuItem;
 import org.bukkit.ChatColor;
@@ -33,6 +37,7 @@ import org.bukkit.Material;
 import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.nunnerycode.mint.MintPlugin;
 
 public class GemOption extends MenuItem {
 
@@ -66,6 +71,8 @@ public class GemOption extends MenuItem {
     }
     lore.add("");
     lore.add(PaletteUtil.color("|red|Click to destroy this gem!"));
+    lore.add(PaletteUtil.color("|orange|Cost: |yellow|" +
+        StrifePlugin.INT_FORMAT.format(menu.getCost(player)) + "◎"));
     lore.add("");
     lore.add(ChatColor.WHITE + "哄");
     lore.add("");
@@ -83,6 +90,18 @@ public class GemOption extends MenuItem {
       event.setWillClose(false);
       return;
     }
+    int cost = menu.getCost(event.getPlayer());
+    EconomyResponse response = MintPlugin.getInstance().getEconomy()
+        .withdrawPlayer(event.getPlayer(), cost);
+
+    if (response.type == ResponseType.FAILURE) {
+      event.setWillUpdate(false);
+      event.setWillClose(false);
+      PaletteUtil.sendMessage(event.getPlayer(), "|orange|You need |yellow|" +
+          StrifePlugin.INT_FORMAT.format(cost) + "◎ |orange|to do this!");
+      return;
+    }
+    PaletteUtil.sendMessage(event.getPlayer(), "|lgreen|Socket gem removed!");
     ExistingSocketData newData = MaterialUtil.destroyGem(menu.getStack(event.getPlayer()), index);
     menu.setData(event.getPlayer(), newData, menu.getStack(event.getPlayer()));
     event.getPlayer().playSound(event.getPlayer().getLocation(),

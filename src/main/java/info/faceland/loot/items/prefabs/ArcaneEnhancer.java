@@ -34,7 +34,7 @@ import org.bukkit.inventory.ItemStack;
 public final class ArcaneEnhancer {
 
   private static ItemStack item;
-  private static String name = "Arcane Enhancer";
+  private static final String name = "Arcane Enhancer";
 
   public static void rebuild() {
     ItemStack stack = new ItemStack(Material.MAGMA_CREAM);
