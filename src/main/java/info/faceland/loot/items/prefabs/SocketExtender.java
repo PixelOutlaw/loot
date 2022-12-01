@@ -52,6 +52,9 @@ public final class SocketExtender {
   }
 
   public static boolean isSimilar(ItemStack stack) {
+    if (stack.isSimilar(EXTENDER)) {
+      return true;
+    }
     if (stack.getType() != Material.NETHER_STAR) {
       return false;
     }

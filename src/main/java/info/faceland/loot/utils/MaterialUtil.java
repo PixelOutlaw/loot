@@ -1363,7 +1363,7 @@ public final class MaterialUtil {
 
   private static boolean isBannedUpgradeMaterial(ItemStack item) {
     return switch (item.getType()) {
-      case EMERALD, PAPER, NETHER_STAR, DIAMOND, GHAST_TEAR,
+      case EMERALD, PAPER, NETHER_STAR, DIAMOND, GHAST_TEAR, AMETHYST_SHARD, PRISMARINE_SHARD,
           ENCHANTED_BOOK, NAME_TAG, QUARTZ, TNT_MINECART, SHEARS, WHEAT_SEEDS -> true;
       default -> false;
     };
