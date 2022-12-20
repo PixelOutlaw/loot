@@ -55,7 +55,7 @@ public class MatchMaterial {
       return material;
     }
     Bukkit.getLogger().warning(
-        "Deconstruct data for " + data.getMaterial() + " has invalid material" + material);
+        "[Loot] Deconstruct data for " + data.getMaterial() + " has invalid material" + material);
     return null;
   }
 }

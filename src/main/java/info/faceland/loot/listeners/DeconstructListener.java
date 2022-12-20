@@ -283,7 +283,6 @@ public class DeconstructListener implements Listener {
     Matcher matcher = hexPattern.matcher(message);
     if (matcher.find()) {
       String str = "#" + matcher.group().replace("§x", "").replace("§", "");
-      Bukkit.getLogger().warning(str);
       return net.md_5.bungee.api.ChatColor.of(str);
     }
     return null;

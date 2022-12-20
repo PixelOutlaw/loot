@@ -175,7 +175,7 @@ public final class Tier implements Comparable<Tier> {
       }
     }
     if (materials.isEmpty()) {
-      Bukkit.getLogger().warning("Tier " + name + "has invalid item groups! No materials!");
+      Bukkit.getLogger().warning("[Loot] Tier " + name + "has invalid item groups! No materials!");
       materials.add(Material.WOODEN_SWORD);
     }
     return materials;

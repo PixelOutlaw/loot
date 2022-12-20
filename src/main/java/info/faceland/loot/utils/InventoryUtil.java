@@ -74,7 +74,7 @@ public final class InventoryUtil {
       try {
         itemComponent = InteractiveChatAPI.createItemDisplayComponent(player, finalItem);
       } catch (Exception ignored) {
-        Bukkit.getLogger().warning("sneed");
+
       }
       textComponent = Component.text(TextUtils.color(splitFormat[0]))
           .append(itemComponent)
@@ -115,7 +115,7 @@ public final class InventoryUtil {
               player.getName()).replace("%item%", name), contents);
 
         } catch (Exception e) {
-          Bukkit.getLogger().warning("Failed to send dang son to discord");
+          Bukkit.getLogger().warning("[Loot] Failed to send dang son to discord");
         }
       });
     } else {
@@ -131,7 +131,7 @@ public final class InventoryUtil {
       if (thechan == null) {
         thechan = DiscordSRV.getPlugin().getMainTextChannel();
         if (thechan == null) {
-          Bukkit.getLogger().warning("Could not load discord channel for dang sons");
+          Bukkit.getLogger().warning("[Loot] Could not load discord channel for dang sons");
           return;
         }
       }

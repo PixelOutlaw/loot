@@ -23,7 +23,7 @@ public class StatManager {
 
   public ItemStat getStat(String name) {
     if (!itemStats.containsKey(name)) {
-      Bukkit.getLogger().warning("ERROR! No stat found for name " + name + "!");
+      Bukkit.getLogger().warning("[Loot] ERROR! No stat found for name " + name + "!");
       return null;
     }
     return itemStats.get(name);

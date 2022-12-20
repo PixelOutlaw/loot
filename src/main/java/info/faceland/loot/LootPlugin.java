@@ -557,7 +557,7 @@ public final class LootPlugin extends FacePlugin {
               try {
                 material = Material.valueOf(matStr);
               } catch (Exception e) {
-                getLogger().warning("Invalid material " + matStr + " in " + key + " junk drops!");
+                getLogger().warning("[Loot] Invalid material " + matStr + " in " + key + " junk drops!");
                 continue;
               }
               int min = dropSection.getInt(dropKey + ".min-amount");
@@ -654,7 +654,7 @@ public final class LootPlugin extends FacePlugin {
         material = Material.valueOf(matString);
       } catch (Exception e) {
         Bukkit.getLogger().warning(
-            "Invalid material " + matString + " for item " + key + "! Skipping...");
+            "[Loot] Invalid material " + matString + " for item " + key + "! Skipping...");
         continue;
       }
       CustomItemBuilder builder = getNewCustomItemBuilder(key, material);

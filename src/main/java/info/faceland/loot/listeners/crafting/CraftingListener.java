@@ -179,8 +179,8 @@ public final class CraftingListener implements Listener {
     }
 
     if (tier == null) {
-      Bukkit.getLogger()
-          .warning("Attempted to craft item with unknown tier... " + resultStack.getType());
+      Bukkit.getLogger().warning(
+          "[Loot] Attempted to craft item with unknown tier... " + resultStack.getType());
       return;
     }
 

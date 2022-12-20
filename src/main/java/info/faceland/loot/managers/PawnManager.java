@@ -141,7 +141,7 @@ public class PawnManager {
       try {
         matty = Material.valueOf(material);
       } catch (Exception e) {
-        Bukkit.getLogger().warning("Unknown material for material price! " + material);
+        Bukkit.getLogger().warning("[Loot] Unknown material for material price! " + material);
         continue;
       }
       materialPrices.put(matty, cs.getDouble(material));
