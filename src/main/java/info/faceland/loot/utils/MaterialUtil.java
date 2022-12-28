@@ -228,7 +228,7 @@ public final class MaterialUtil {
     if (successChance >= random.nextDouble()) {
       bumpItemPlus(stack, itemUpgradeLevel, 1, targetLevel - itemUpgradeLevel);
 
-      double exp = 0.5f + (float) Math.pow(1.4, targetLevel);
+      double exp = 4f + (float) Math.pow(1.45, targetLevel);
       LootPlugin.getInstance().getStrifePlugin().getSkillExperienceManager()
           .addExperience(player, LifeSkillType.ENCHANTING, exp, false, false);
 
@@ -461,7 +461,7 @@ public final class MaterialUtil {
 
     purifyScroll.setAmount(purifyScroll.getAmount() - 1);
     StrifePlugin.getInstance().getSkillExperienceManager()
-        .addExperience(player, LifeSkillType.ENCHANTING, 68, false, false);
+        .addExperience(player, LifeSkillType.ENCHANTING, 70, false, false);
     player.playSound(player.getLocation(), Sound.BLOCK_GRINDSTONE_USE, 1, 1f);
   }
 
@@ -504,7 +504,7 @@ public final class MaterialUtil {
 
     enhancer.setAmount(enhancer.getAmount() - 1);
     StrifePlugin.getInstance().getSkillExperienceManager()
-        .addExperience(player, LifeSkillType.ENCHANTING, 400, false, false);
+        .addExperience(player, LifeSkillType.ENCHANTING, 450, false, false);
     player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 0.8f);
   }
 
@@ -587,7 +587,7 @@ public final class MaterialUtil {
     TextUtils.setLore(equipment, lore);
 
     StrifePlugin.getInstance().getSkillExperienceManager().addExperience(player,
-        LifeSkillType.ENCHANTING, 10f + addAmount, false, false);
+        LifeSkillType.ENCHANTING, 8f + 4 * addAmount, false, false);
     player.playSound(player.getEyeLocation(), Sound.BLOCK_GLASS_BREAK, 1F, 1.2F);
     player.playSound(player.getEyeLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 1F, 1F);
     crystal.setAmount(crystal.getAmount() - 1);
@@ -796,7 +796,7 @@ public final class MaterialUtil {
     TextUtils.setLore(targetItem, lore);
 
     float weightDivisor = tome.getWeight() == 0 ? 2000 : (float) tome.getWeight();
-    float exp = 12 + 8 * (2000 / weightDivisor);
+    float exp = 10 + 17 * (2000 / weightDivisor);
     LootPlugin.getInstance().getStrifePlugin().getSkillExperienceManager()
         .addExperience(player, LifeSkillType.ENCHANTING, exp, false, false);
     sendMessage(player, enchantSuccessMsg);
