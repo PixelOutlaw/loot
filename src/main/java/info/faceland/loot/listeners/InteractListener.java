@@ -22,7 +22,6 @@ import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.send
 import static info.faceland.loot.listeners.DeconstructListener.getHexFromString;
 import static info.faceland.loot.listeners.DeconstructListener.isValidStealColor;
 import static info.faceland.loot.utils.InventoryUtil.getFirstColor;
-import static info.faceland.loot.utils.InventoryUtil.getLastColor;
 import static info.faceland.loot.utils.MaterialUtil.FAILURE_BONUS;
 import static org.bukkit.ChatColor.stripColor;
 
@@ -31,13 +30,9 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
-import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils;
-import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.data.GemCacheData;
-import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.UpgradeScroll;
-import info.faceland.loot.items.ItemBuilder;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
 import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.listeners.crafting.PreCraftListener;
@@ -45,8 +40,6 @@ import info.faceland.loot.managers.SocketGemManager;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.sockets.SocketGem;
-import info.faceland.loot.tier.Tier;
-import info.faceland.loot.utils.InventoryUtil;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -60,7 +53,6 @@ import java.util.Set;
 import java.util.UUID;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.champion.LifeSkillType;
-import land.face.strife.util.PlayerDataUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -223,9 +215,6 @@ public final class InteractListener implements Listener {
     player.updateInventory();
 
     player.playSound(player.getEyeLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 1L, 2F);
-
-    plugin.getStrifePlugin().getSkillExperienceManager()
-        .addExperience(player, LifeSkillType.ENCHANTING, amount * 22, false, false);
   }
 
   /*
