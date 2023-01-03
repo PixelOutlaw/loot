@@ -64,6 +64,7 @@ public final class PreCraftListener implements Listener {
   private final ItemMeta dupeStatMeta;
   private final ItemMeta powerfulEssenceMeta;
   private final ItemMeta lowLevelMeta;
+  private final ItemMeta invalidItemMeta;
   private final ItemMeta wrongTypeMeta;
   private final ItemMeta noSlotsMeta;
 
@@ -93,6 +94,9 @@ public final class PreCraftListener implements Listener {
     lowLevelMeta = failStack.getItemMeta().clone();
     lowLevelMeta.setLore(ListExtensionsKt.chatColorize(
         plugin.getSettings().getStringList("language.essence.low-craft-level")));
+    invalidItemMeta = failStack.getItemMeta().clone();
+    invalidItemMeta.setLore(ListExtensionsKt.chatColorize(
+        plugin.getSettings().getStringList("language.menu.invalid-item")));
     wrongTypeMeta = failStack.getItemMeta().clone();
     wrongTypeMeta.setLore(ListExtensionsKt.chatColorize(
         plugin.getSettings().getStringList("language.essence.wrong-type")));
@@ -206,6 +210,23 @@ public final class PreCraftListener implements Listener {
 
   private void updateEquipmentCraftInvy(CraftingInventory craftingInventory, Recipe recipe,
       Player player) {
+
+    for (ItemStack stack : craftingInventory.getMatrix()) {
+      if (stack == null) {
+        continue;
+      }
+      String name = ItemStackExtensionsKt.getDisplayName(stack);
+      if (StringUtils.isBlank(name)) {
+        continue;
+      }
+      name = ChatColor.stripColor(name);
+      if (name.startsWith("Socket Gem") || name.startsWith("Enchantment Tome")
+          || name.endsWith("Scroll")) {
+        craftingInventory.getResult().setType(Material.BARRIER);
+        craftingInventory.getResult().setItemMeta(invalidItemMeta);
+        return;
+      }
+    }
 
     ItemStack result = recipe.getResult().clone();
 
