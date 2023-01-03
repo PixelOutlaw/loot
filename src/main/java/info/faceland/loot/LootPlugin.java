@@ -28,7 +28,6 @@ import info.faceland.loot.api.creatures.CreatureModBuilder;
 import info.faceland.loot.api.creatures.MobInfo;
 import info.faceland.loot.api.enchantments.EnchantmentTomeBuilder;
 import info.faceland.loot.api.items.CustomItem;
-import info.faceland.loot.api.items.CustomItemBuilder;
 import info.faceland.loot.api.managers.CreatureModManager;
 import info.faceland.loot.api.managers.GemCacheManager;
 import info.faceland.loot.api.managers.ItemGroupManager;
@@ -50,7 +49,6 @@ import info.faceland.loot.enchantments.LootEnchantmentTomeBuilder;
 import info.faceland.loot.groups.ItemGroup;
 import info.faceland.loot.io.SmartTextFile;
 import info.faceland.loot.items.ItemBuilder;
-import info.faceland.loot.items.LootCustomItemBuilder;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
@@ -111,6 +109,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import land.face.market.data.PlayerMarketState.FilterFlagA;
@@ -124,7 +123,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.HandlerList;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.plugin.Plugin;
 
 public final class LootPlugin extends FacePlugin {
@@ -138,7 +136,6 @@ public final class LootPlugin extends FacePlugin {
   private VersionedSmartYamlConfiguration rarityYAML;
   private VersionedSmartYamlConfiguration tierYAML;
   private VersionedSmartYamlConfiguration corestatsYAML;
-  private VersionedSmartYamlConfiguration customItemsYAML;
   private VersionedSmartYamlConfiguration socketGemsYAML;
   private VersionedSmartYamlConfiguration scrollsYAML;
   private VersionedSmartYamlConfiguration languageYAML;
@@ -193,7 +190,6 @@ public final class LootPlugin extends FacePlugin {
     rarityYAML = defaultLoadConfig("rarity.yml");
     tierYAML = defaultLoadConfig("tier.yml");
     corestatsYAML = defaultLoadConfig("corestats.yml");
-    customItemsYAML = defaultLoadConfig("customItems.yml");
     socketGemsYAML = defaultLoadConfig("socketGems.yml");
     scrollsYAML = defaultLoadConfig("scrolls.yml");
     languageYAML = defaultLoadConfig("language.yml");
@@ -243,7 +239,7 @@ public final class LootPlugin extends FacePlugin {
     loadCraftMaterials();
     loadMaterialToTierMapping();
     loadNames();
-    loadCustomItems();
+    customItemManager.loadFromFiles(fetchUniques());
     loadSocketGems();
     loadEnchantmentStones();
     loadCreatureMods();
@@ -637,51 +633,14 @@ public final class LootPlugin extends FacePlugin {
     debug("Loaded socket gems: " + loadedSocketGems.toString());
   }
 
-  private void loadCustomItems() {
-    for (CustomItem ci : getCustomItemManager().getCustomItems()) {
-      getCustomItemManager().removeCustomItem(ci.getName());
+  private List<SmartYamlConfiguration> fetchUniques() {
+    List<SmartYamlConfiguration> uniques = new ArrayList<>();
+    File folder = new File(getDataFolder(), "uniques");
+    File[] listOfFiles = folder.listFiles();
+    for (File f : Objects.requireNonNull(listOfFiles)) {
+      uniques.add(new SmartYamlConfiguration(f));
     }
-    Set<CustomItem> customItems = new HashSet<>();
-    List<String> loaded = new ArrayList<>();
-    for (String key : customItemsYAML.getKeys(false)) {
-      if (!customItemsYAML.isConfigurationSection(key)) {
-        continue;
-      }
-      ConfigurationSection cs = customItemsYAML.getConfigurationSection(key);
-      String matString = cs.getString("material");
-      Material material;
-      try {
-        material = Material.valueOf(matString);
-      } catch (Exception e) {
-        Bukkit.getLogger().warning(
-            "[Loot] Invalid material " + matString + " for item " + key + "! Skipping...");
-        continue;
-      }
-      CustomItemBuilder builder = getNewCustomItemBuilder(key, material);
-      builder.withDisplayName(cs.getString("display-name"));
-      builder.withLore(cs.getStringList("lore"));
-      builder.withWeight(cs.getDouble("weight"));
-      builder.withDistanceWeight(cs.getDouble("distance-weight"));
-      builder.withLevelBase(cs.getInt("level-base"));
-      builder.withLevelRange(cs.getInt("level-range"));
-      builder.withCustomData(cs.getInt("custom-data-value", -1));
-      builder.withBroadcast(cs.getBoolean("broadcast"));
-      builder.withQuality(cs.getBoolean("can-be-quality-enhanced"));
-      List<String> flags = cs.getStringList("flags");
-      Set<ItemFlag> itemFlags = new HashSet<>();
-      for (String s : flags) {
-        itemFlags.add(ItemFlag.valueOf(s));
-      }
-      builder.withFlags(itemFlags);
-      builder.withCanBreak(new HashSet<>(cs.getStringList("can-break")));
-      CustomItem ci = builder.build();
-      customItems.add(ci);
-      loaded.add(ci.getName());
-    }
-    for (CustomItem ci : customItems) {
-      getCustomItemManager().addCustomItem(ci);
-    }
-    debug("Loaded custom items: " + loaded.toString());
+    return uniques;
   }
 
   private void loadNames() {
@@ -970,10 +929,6 @@ public final class LootPlugin extends FacePlugin {
 
   public ItemBuilder getNewItemBuilder() {
     return new ItemBuilder(this);
-  }
-
-  public CustomItemBuilder getNewCustomItemBuilder(String name, Material material) {
-    return new LootCustomItemBuilder(name, material);
   }
 
   public SocketGemBuilder getNewSocketGemBuilder(String name) {
