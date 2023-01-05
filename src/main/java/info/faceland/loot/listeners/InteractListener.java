@@ -383,8 +383,6 @@ public final class InteractListener implements Listener {
       event.setResult(Event.Result.DENY);
       player.updateInventory();
       player.playSound(player.getEyeLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 1L, 2F);
-      plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player,
-          LifeSkillType.ENCHANTING, 22, false, false);
     } else if (cursorName.equals(ChatColor.WHITE + "Item Rename Tag")) {
       doItemRenameEffects(targetItem, cursor, targetItemName, player, event);
     } else if (TinkerersGear.isSimilar(cursor)) {
