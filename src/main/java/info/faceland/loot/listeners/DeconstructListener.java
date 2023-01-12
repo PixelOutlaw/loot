@@ -78,7 +78,7 @@ public class DeconstructListener implements Listener {
     }
 
     DeconstructType type;
-    if (curName.endsWith("Craftsman's Tools")) {
+    if (curName.endsWith("Craftsman's Tools") || curName.endsWith("Crafting Tools")) {
       type = DeconstructType.CRAFTING;
     } else if (curName.endsWith("Enchanter's Arcana")) {
       type = DeconstructType.ENCHANTING;
