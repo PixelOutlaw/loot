@@ -115,7 +115,7 @@ public final class PreCraftListener implements Listener {
   @EventHandler
   public void onCraftEquipment(PrepareItemCraftEvent event) {
     if (event.getRecipe() != null && net.md_5.bungee.api.ChatColor.stripColor(ItemStackExtensionsKt
-        .getDisplayName(event.getRecipe().getResult())).equals("== Equipment Crafting ==")) {
+        .getDisplayName(event.getRecipe().getResult())).contains("Equipment Crafting")) {
       updateEquipmentCraftInvy(event.getInventory(), event.getRecipe(),
           (Player) event.getViewers().get(0));
     }
