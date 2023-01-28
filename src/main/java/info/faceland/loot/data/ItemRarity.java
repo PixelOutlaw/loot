@@ -8,8 +8,11 @@ import org.bukkit.ChatColor;
 public class ItemRarity {
 
   private boolean broadcast;
+  private boolean alwaysTrail;
+  private boolean alwaysGlow;
   private double power;
   private FaceColor color;
+  private ChatColor glowColor;
   private String name;
   private double weight;
   private double idWeight;

@@ -73,11 +73,13 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Vector;
 
 @CommandAlias("loot")
 public class LootCommand extends BaseCommand {
@@ -99,6 +101,39 @@ public class LootCommand extends BaseCommand {
     gemsmasherMenu = new GemSmashMenu(plugin);
     awardFormat = plugin.getSettings().getString("language.broadcast.reward-item", "");
     awardFormatSelf = plugin.getSettings().getString("language.broadcast.reward-item-self", "");
+  }
+
+  @Subcommand("deco")
+  @CommandPermission("loot.deco")
+  public void decoCreate(Player sender) {
+    ItemStack stack = sender.getEquipment().getItemInMainHand();
+    if (stack == null || stack.getType() == Material.AIR) {
+      sendMessage(sender, "&eNo valid item in hand");
+      return;
+    }
+    Item item = sender.getWorld().dropItem(sender.getLocation(), stack);
+    item.setInvulnerable(true);
+    item.setGravity(false);
+    item.setCanMobPickup(false);
+    item.setCanPlayerPickup(false);
+    item.setUnlimitedLifetime(true);
+    item.setWillAge(false);
+    item.setVelocity(new Vector(0, 0, 0));
+    sendMessage(sender, "&aSuccess!");
+  }
+
+  @Subcommand("deco delete")
+  @CommandPermission("loot.deco")
+  public void decoDelete(Player sender) {
+    RayTraceResult result = sender.getWorld().rayTraceEntities(sender.getEyeLocation(),
+        sender.getLocation().getDirection(), 20, e -> e.getType() == EntityType.DROPPED_ITEM);
+    if (result == null || result.getHitEntity() == null) {
+      MessageUtils.sendMessage(sender, "&eNo target found...");
+      return;
+    }
+    Item item = (Item) result.getHitEntity();
+    item.remove();
+    sendMessage(sender, "&aSuccess!");
   }
 
   @Subcommand("name-frame")

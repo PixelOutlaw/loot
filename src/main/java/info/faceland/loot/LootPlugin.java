@@ -118,6 +118,7 @@ import lombok.Getter;
 import org.black_ixx.playerpoints.PlayerPoints;
 import org.black_ixx.playerpoints.PlayerPointsAPI;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
@@ -788,6 +789,9 @@ public final class LootPlugin extends FacePlugin {
       rarity.setBroadcast(cs.getBoolean("broadcast"));
       rarity.setName(cs.getString("name"));
       rarity.setColor(FaceColor.valueOf(cs.getString("color")));
+      rarity.setGlowColor(ChatColor.valueOf(cs.getString("glow-color", "WHITE")));
+      rarity.setAlwaysGlow(cs.getBoolean("always-glow", false));
+      rarity.setAlwaysTrail(cs.getBoolean("always-trail", false));
       rarity.setWeight(cs.getDouble("weight"));
       rarity.setIdWeight(cs.getDouble("id-weight"));
       rarity.setPower(cs.getDouble("power"));

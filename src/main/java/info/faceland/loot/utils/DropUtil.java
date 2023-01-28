@@ -1,11 +1,7 @@
 package info.faceland.loot.utils;
 
-import static info.faceland.loot.utils.InventoryUtil.getFirstColor;
-
-import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
-import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils;
-import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
 import com.tealcube.minecraft.bukkit.shade.xglow.data.glow.Glow;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.CustomItem;
@@ -23,10 +19,10 @@ import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.tier.Tier;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import land.face.learnin.LearninBooksPlugin;
 import org.bukkit.Bukkit;
@@ -39,6 +35,7 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 public class DropUtil implements Listener {
 
@@ -165,9 +162,9 @@ public class DropUtil implements Listener {
       }
 
       boolean broadcast = rarity.isBroadcast() || upgradeBonus > 4;
-      //TODO: aaa
-      //ChatColor glowColor = rarity.isBroadcast() ? rarity.getColor() : null;
-      dropItem(event.getLocation(), tierItem, killer, builtItem.getTicksLived(), broadcast, null);
+      Color trailColor = broadcast || rarity.isAlwaysTrail() ? rarity.getColor().getRawColor() : null;
+      ChatColor glowColor = broadcast || rarity.isAlwaysGlow() ? rarity.getGlowColor() : null;
+      dropItem(event.getLocation(), tierItem, killer, builtItem.getTicksLived(), broadcast, trailColor, glowColor);
       if (distort && rarity.getPower() > 1.5) {
         event.getLocation().getWorld().playSound(event.getLocation(), Sound.ENTITY_ENDERMAN_HURT, 2f, 0.5f);
       } else if (broadcast) {
@@ -188,11 +185,10 @@ public class DropUtil implements Listener {
       }
 
       double materialLevel = mobLevel - (mobLevel * 0.3 * random.nextDouble());
-      ItemStack his = MaterialUtil.buildMaterial(
-          m, plugin.getCraftMatManager().getCraftMaterials().get(m), (int) materialLevel, quality);
+      ItemStack his = MaterialUtil.buildMaterial(m, plugin.getCraftMatManager().getCraftMaterials().get(m), (int) materialLevel, quality);
       his.setAmount(1 + random.nextInt(2));
 
-      dropItem(event.getLocation(), his, killer, false, null);
+      dropItem(event.getLocation(), his, killer, false, null, null);
     }
     if (random.nextDouble() < dropMultiplier * socketDropChance) {
       SocketGem sg;
@@ -205,6 +201,7 @@ public class DropUtil implements Listener {
       assert sg != null;
       ItemStack his = sg.toItemStack(1);
       dropItem(event.getLocation(), his, killer, sg.isBroadcast(),
+          sg.isBroadcast() ? FaceColor.LIGHT_GREEN.getRawColor() : null,
           sg.isBroadcast() ? ChatColor.GREEN : null);
     }
     if (plugin.getSettings().getBoolean("config.custom-enchanting", true)) {
@@ -213,22 +210,27 @@ public class DropUtil implements Listener {
         assert es != null;
         ItemStack his = es.toItemStack(1);
         dropItem(event.getLocation(), his, killer, es.isBroadcast(),
+            es.isBroadcast() ? FaceColor.BLUE.getRawColor() : null,
             es.isBroadcast() ? ChatColor.BLUE : null);
       }
       if (random.nextDouble() < dropMultiplier * enhancerDropChance) {
-        dropItem(event.getLocation(), ArcaneEnhancer.get(), killer, true, ChatColor.RED);
+        dropItem(event.getLocation(), ArcaneEnhancer.get(), killer, true,
+            FaceColor.RED.getRawColor(), ChatColor.RED);
       }
       if (random.nextDouble() < dropMultiplier * purityDropChance) {
-        dropItem(event.getLocation(), PurifyingScroll.get(), killer, false, null);
+        dropItem(event.getLocation(), PurifyingScroll.get(), killer, false,
+            FaceColor.WHITE.getRawColor(), null);
       }
     }
     if (random.nextDouble() < dropMultiplier * tinkerGearDropChance) {
-      dropItem(event.getLocation(), TinkerersGear.get(), killer, true, ChatColor.RED);
+      dropItem(event.getLocation(), TinkerersGear.get(), killer, true,
+          FaceColor.RED.getRawColor(), ChatColor.RED);
     }
     if (random.nextDouble() < dropMultiplier * scrollDropChance) {
       UpgradeScroll us = plugin.getScrollManager().getRandomScroll();
       ItemStack stack = plugin.getScrollManager().buildItemStack(us);
       dropItem(event.getLocation(), stack, killer, us.isBroadcast(),
+          us.isBroadcast() ? FaceColor.GREEN.getRawColor() : null,
           us.isBroadcast() ? ChatColor.DARK_GREEN : null);
     }
     if (random.nextDouble() < dropMultiplier * plugin.getSettings()
@@ -243,11 +245,14 @@ public class DropUtil implements Listener {
       ItemStack stack = ci.toItemStack(1);
 
       boolean broadcast = ci.isBroadcast();
-      dropItem(event.getLocation(), stack, killer, broadcast, broadcast ? ChatColor.GOLD : null);
+      dropItem(event.getLocation(), stack, killer, broadcast,
+          broadcast ? FaceColor.ORANGE.getRawColor() : null,
+          broadcast ? ChatColor.GOLD : null);
     }
     if (random.nextDouble() < plugin.getSettings().getDouble("config.drops.socket-extender", 0D)) {
       ItemStack his = SocketExtender.EXTENDER.clone();
-      dropItem(event.getLocation(), his, killer, true, ChatColor.AQUA);
+      dropItem(event.getLocation(), his, killer, true,
+          FaceColor.TEAL.getRawColor(), ChatColor.AQUA);
     }
   }
 
@@ -260,6 +265,7 @@ public class DropUtil implements Listener {
         }
         ItemStack his = gem.toItemStack(1);
         dropItem(location, his, killer, gem.isBroadcast(),
+            gem.isBroadcast() ? FaceColor.LIGHT_GREEN.getRawColor(): null,
             gem.isBroadcast() ? ChatColor.GREEN : null);
       }
     }
@@ -271,6 +277,7 @@ public class DropUtil implements Listener {
         }
         ItemStack his = tome.toItemStack(1);
         dropItem(location, his, killer, tome.isBroadcast(),
+            tome.isBroadcast() ? FaceColor.BLUE.getRawColor() : null,
             tome.isBroadcast() ? ChatColor.BLUE : null);
       }
     }
@@ -293,6 +300,7 @@ public class DropUtil implements Listener {
           }
           ItemStack his = ci.toItemStack(1);
           dropItem(location, his, killer, ci.isBroadcast(),
+              ci.isBroadcast() ? FaceColor.ORANGE.getRawColor() : null,
               ci.isBroadcast() ? ChatColor.GOLD : null);
           break;
         }
@@ -312,13 +320,21 @@ public class DropUtil implements Listener {
   }
 
   private static void dropItem(Location loc, ItemStack itemStack, Player looter, boolean broadcast,
-      ChatColor glowColor) {
-    dropItem(loc, itemStack, looter, 0, broadcast, glowColor);
+      Color dropRgb, ChatColor glowColor) {
+    dropItem(loc, itemStack, looter, 0, broadcast, dropRgb, glowColor);
   }
 
   private static void dropItem(Location loc, ItemStack itemStack, Player looter, int ticksLived,
-      boolean broadcast, ChatColor glowColor) {
-    Item drop = Objects.requireNonNull(loc.getWorld()).dropItemNaturally(loc, itemStack);
+      boolean broadcast, Color dropRgb, ChatColor glowColor) {
+    Item drop = loc.getWorld().dropItem(loc, itemStack);
+    drop.setVelocity(new Vector(
+        -0.12 + Math.random() * 0.24,
+        dropRgb == null ? 0.2 : 0.35 + Math.random() * 0.15,
+        -0.12 + Math.random() * 0.24
+    ));
+    if (dropRgb != null) {
+      new DropTrail(drop, looter, dropRgb);
+    }
     try {
       if (looter != null && glowColor != null) {
         Glow glow = Glow.builder().color(glowColor).name("drop-glow").build();
