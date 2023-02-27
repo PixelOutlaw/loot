@@ -27,16 +27,14 @@ import ninja.amp.ampmenus.items.MenuItem;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
-public class CutConfirmIcon extends MenuItem {
+public class ResultIcon extends MenuItem {
 
   private final GemcutterMenu menu;
 
-  CutConfirmIcon(GemcutterMenu menu) {
-    super(TextUtils.color("&cClick to cut a gem!"), new ItemStack(Material.BARRIER));
-    ItemStackExtensionsKt.setCustomModelData(getIcon(), 50);
+  ResultIcon(GemcutterMenu menu) {
+    super(TextUtils.color("&eClick Gems To Begin!"), new ItemStack(Material.BARRIER));
     this.menu = menu;
   }
 
@@ -44,7 +42,7 @@ public class CutConfirmIcon extends MenuItem {
   public ItemStack getFinalIcon(Player player) {
     if (menu.getSelectedStack(player) == null || menu.getSelectedStack(player).getAmount() < 1) {
       ItemStack stack = getIcon().clone();
-      ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&7Pick an uncut gem!"));
+      ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&7No gem selected"));
       return stack;
     }
     int levelReq = Integer.parseInt(ChatColor.stripColor(
@@ -55,20 +53,14 @@ public class CutConfirmIcon extends MenuItem {
           TextUtils.color("&cRequires: &fCrafting " + levelReq));
       return stack;
     }
-    ItemStack stack = getIcon().clone();
-    ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&e&lClick To Cut!"));
+    ItemStack stack = new ItemStack(Material.NETHER_STAR);
+    ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&aReady to cut!"));
     return stack;
   }
 
   @Override
   public void onItemClick(ItemClickEvent event) {
     super.onItemClick(event);
-    if (event.getClickType() == ClickType.DOUBLE_CLICK) {
-      event.setWillUpdate(false);
-      event.setWillClose(false);
-      return;
-    }
-    menu.doCut(event.getPlayer());
     event.setWillUpdate(true);
     event.setWillClose(false);
   }

@@ -18,11 +18,15 @@
  */
 package info.faceland.loot.managers;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
+
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.sockets.SocketGem;
+import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,12 +38,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public final class SocketGemManager {
 
   private static final double DISTANCE = 1000;
   private static final double DISTANCE_SQUARED = Math.pow(DISTANCE, 2);
+
+  private final LootPlugin plugin;
   private final Map<String, SocketGem> gemMap;
   private final LootRandom random;
 
@@ -50,7 +58,8 @@ public final class SocketGemManager {
   public static final String GEM_4_PREFIX = PaletteUtil.color("|ns|\uF808\uF802咳\uF804\uF824");
   public static final String GEM_SPECIAL_PREFIX = PaletteUtil.color("|ns|\uF808\uF802咴\uF804\uF824");
 
-  public SocketGemManager() {
+  public SocketGemManager(LootPlugin plugin) {
+    this.plugin = plugin;
     this.gemMap = new HashMap<>();
     this.random = new LootRandom();
   }
@@ -211,6 +220,89 @@ public final class SocketGemManager {
       totalWeight += sg.getBonusWeight();
     }
     return totalWeight;
+  }
+
+  public int getOpenSocketIndex(ItemStack equipmentItem) {
+    List<String> lore = TextUtils.getLore(equipmentItem);
+    return MaterialUtil.indexOfSocket(lore);
+  }
+
+  public boolean applySocketGem(Player player, ItemStack gemStack, ItemStack equipmentItem) {
+    SocketGem gem = getSocketGem(gemStack);
+    if (gem == null) {
+      return false;
+    }
+    if (!MaterialUtil.matchesGroups(equipmentItem, gem.getItemGroups())) {
+      sendMessage(player, plugin.getSettings().getString("language.socket.failure", ""));
+      player.playSound(player.getEyeLocation(), Sound.BLOCK_LAVA_POP, 1F, 0.5F);
+      return false;
+    }
+
+    List<String> lore = TextUtils.getLore(equipmentItem);
+    int index = getOpenSocketIndex(equipmentItem);
+    if (index == -1) {
+      sendMessage(player, plugin.getSettings().getString("language.socket.needs-sockets", ""));
+      player.playSound(player.getEyeLocation(), Sound.BLOCK_LAVA_POP, 1F, 0.5F);
+      return false;
+    }
+
+    if (gem.getLore().get(0).contains(" - ")) {
+      String firstLine = ChatColor.stripColor(gem.getLore().get(0));
+      for (String l : lore) {
+        if (l.contains(firstLine)) {
+          sendMessage(player, plugin.getSettings().getString("language.socket.dupe-effect", ""));
+          player.playSound(player.getEyeLocation(), Sound.BLOCK_LAVA_POP, 1F, 0.5F);
+          return false;
+        }
+      }
+    }
+
+    List<String> addLore = TextUtils.color(gem.getLore());
+    switch (gem.getCustomModelData()) {
+      case 2005, 2004 -> addLore.set(0, SocketGemManager.GEM_SPECIAL_PREFIX + addLore.get(0));
+      case 2003 -> addLore.set(0, SocketGemManager.GEM_4_PREFIX + addLore.get(0));
+      case 2002 -> addLore.set(0, SocketGemManager.GEM_3_PREFIX + addLore.get(0));
+      case 2001 -> addLore.set(0, SocketGemManager.GEM_2_PREFIX + addLore.get(0));
+      default -> addLore.set(0, SocketGemManager.GEM_1_PREFIX + addLore.get(0));
+    }
+
+    lore.remove(index);
+    lore.addAll(index, addLore);
+    TextUtils.setLore(equipmentItem, lore);
+
+    String equipmentItemName = ItemStackExtensionsKt.getDisplayName(equipmentItem);
+    String strippedName = ChatColor.stripColor(equipmentItemName);
+    int level = MaterialUtil.getUpgradeLevel(equipmentItemName);
+    String rawName = strippedName.replace("+" + level + " ", "");
+
+    String prefix = "";
+    String suffix = "";
+    if (!gem.getPrefix().isEmpty()) {
+      if (!equipmentItemName.contains(gem.getPrefix())) {
+        if (rawName.startsWith("The ")) {
+          rawName = rawName.replace("The ", "");
+          prefix = "The " + gem.getPrefix() + " ";
+        } else {
+          prefix = gem.getPrefix() + " ";
+        }
+      }
+    }
+    if (!gem.getSuffix().isEmpty()) {
+      if (!strippedName.contains(gem.getSuffix())) {
+        suffix = " " + gem.getSuffix();
+      }
+    }
+    String newName = prefix + rawName + suffix;
+    if (level > 0) {
+      newName = "+" + level + " " + newName;
+    }
+    newName = equipmentItemName.replace(strippedName, newName);
+    ItemStackExtensionsKt.setDisplayName(equipmentItem, newName);
+
+    sendMessage(player, plugin.getSettings().getString("language.socket.success", ""));
+    player.playSound(player.getEyeLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1L, 2.0F);
+    gemStack.setAmount(gemStack.getAmount() - 1);
+    return true;
   }
 
   public Set<SocketGem> getGems(ItemStack itemStack) {

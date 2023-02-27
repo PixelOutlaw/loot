@@ -22,6 +22,7 @@ import info.faceland.loot.LootPlugin;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
+import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -70,6 +71,10 @@ public final class EnchantMenuListener implements Listener {
       enchantMenu.setSelectedUpgradeItem(player, stack);
       enchantMenu.update(player);
       player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
+    } else if (LootPlugin.getInstance().getSocketGemManager().getSocketGem(stack) != null) {
+      enchantMenu.setSelectedUpgradeItem(player, stack);
+      enchantMenu.update(player);
+      player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
     } else if (SocketExtender.isSimilar(stack)) {
       enchantMenu.setSelectedUpgradeItem(player, stack);
       enchantMenu.update(player);
@@ -84,6 +89,10 @@ public final class EnchantMenuListener implements Listener {
       player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
     } else if ("Magic Crystal".equals(
         ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)))) {
+      enchantMenu.setSelectedUpgradeItem(player, stack);
+      enchantMenu.update(player);
+      player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);
+    } else if (TinkerersGear.isSimilar(stack)) {
       enchantMenu.setSelectedUpgradeItem(player, stack);
       enchantMenu.update(player);
       player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 2f);

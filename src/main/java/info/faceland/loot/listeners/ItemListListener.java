@@ -52,12 +52,6 @@ public final class ItemListListener implements Listener {
   @EventHandler(priority = EventPriority.MONITOR)
   public void onMarketList(ListItemEvent event) {
     ItemStack stack = event.getListing().getItemStack();
-    if (stack.getType() == Material.TRIPWIRE_HOOK && stack.hasItemMeta()) {
-      event.getListing().setCategory(Category.CATEGORY_3);
-      event.getListing().setFlagA(FilterFlagA.ALL);
-      event.getListing().setFlagB(FilterFlagB.ALL);
-      return;
-    }
     SocketGem gem = plugin.getSocketGemManager().getSocketGem(stack);
     if (gem != null) {
       event.getListing().setCategory(Category.CATEGORY_2);
@@ -115,13 +109,6 @@ public final class ItemListListener implements Listener {
           break;
         }
       }
-      return;
-    }
-    if (stack.getType() == Material.TRIPWIRE_HOOK && ItemStackExtensionsKt
-        .getDisplayName(stack).contains("Key")) {
-      event.getListing().setCategory(Category.CATEGORY_3);
-      event.getListing().setFlagA(FilterFlagA.FLAG_3);
-      event.getListing().setFlagB(FilterFlagB.ALL);
       return;
     }
     if (plugin.getCraftMatManager().getCraftMaterials().containsKey(stack.getType()) && stack

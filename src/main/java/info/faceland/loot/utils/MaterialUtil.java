@@ -19,6 +19,8 @@
 package info.faceland.loot.utils;
 
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
+import static info.faceland.loot.listeners.DeconstructListener.getHexFromString;
+import static info.faceland.loot.listeners.DeconstructListener.isValidStealColor;
 import static org.bukkit.ChatColor.stripColor;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
@@ -43,6 +45,7 @@ import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
 import info.faceland.loot.items.prefabs.SocketExtender;
+import info.faceland.loot.listeners.crafting.PreCraftListener;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.sockets.SocketGem;
@@ -51,9 +54,11 @@ import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import land.face.dinvy.events.EquipmentUpdateEvent;
 import land.face.dinvy.pojo.PlayerData;
@@ -69,6 +74,8 @@ import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -1018,8 +1025,8 @@ public final class MaterialUtil {
     return ChatColor.stripColor(TextUtils.getLore(stack).get(1)).replace("\u0588", "");
   }
 
-  public static Tier getEssenceTier(String tag) {
-    return LootPlugin.getInstance().getTierManager().getTierFromName(tag);
+  public static List<Tier> getEssenceTiers(String tag) {
+    return LootPlugin.getInstance().getTierManager().getTiersFromName(tag);
   }
 
   public static String getEssenceStat(ItemStack itemStack) {
@@ -1183,6 +1190,58 @@ public final class MaterialUtil {
 
   public static Tier getTierFromStack(ItemStack stack) {
     return LootPlugin.getInstance().getItemGroupManager().getTierFromStack(stack);
+  }
+
+  public static Map<Integer, String> getTinkerableStats(List<String> lore) {
+    Map<Integer, String> validTargetStats = new HashMap<>();
+    int loreIndex = -1;
+    for (String str : lore) {
+      loreIndex++;
+      if (FaceColor.CYAN.isStartOf(str)) {
+        return null;
+      }
+      if (!ChatColor.stripColor(str).startsWith("+")) {
+        continue;
+      }
+      net.md_5.bungee.api.ChatColor color = getHexFromString(str);
+      if (color != null) {
+        if (isValidStealColor(color.getColor())) {
+          validTargetStats.put(loreIndex, str);
+        }
+        continue;
+      }
+      if (str.startsWith(ChatColor.GREEN + "") || str.startsWith(ChatColor.YELLOW + "")) {
+        validTargetStats.put(loreIndex, str);
+      }
+    }
+    return validTargetStats;
+  }
+
+  public static void doTinkerEffects(LootPlugin plugin, ItemStack tinkerGear,
+      ItemStack targetItem, Player player) {
+    List<String> itemLore = new ArrayList<>(TextUtils.getLore(targetItem));
+    Map<Integer, String> validTargetStats = getTinkerableStats(itemLore);
+
+    if (validTargetStats == null) {
+      sendMessage(player, TextUtils.color(plugin.getSettings().getString(
+          "language.tinker.only-one-crafted-stat", "Only one stat can be tinkered!")));
+      return;
+    }
+    if (validTargetStats.isEmpty()) {
+      sendMessage(player, TextUtils.color(plugin.getSettings().getString(
+          "language.tinker.no-valid-stats", "No valid stats to be tinkered!")));
+      return;
+    }
+
+    List<Integer> keysAsArray = new ArrayList<>(validTargetStats.keySet());
+    int selectedIndex = keysAsArray.get(random.nextInt(keysAsArray.size()));
+    itemLore.set(selectedIndex, FaceColor.CYAN + PreCraftListener.ESSENCE_SLOT_TEXT);
+    TextUtils.setLore(targetItem, itemLore);
+
+    player.playSound(player.getEyeLocation(), Sound.BLOCK_PISTON_EXTEND, 1F, 1.5F);
+    plugin.getStrifePlugin().getSkillExperienceManager()
+        .addExperience(player, LifeSkillType.CRAFTING, 200, false, false);
+    tinkerGear.setAmount(tinkerGear.getAmount() - 1);
   }
 
   public static ExistingSocketData buildSocketData(ItemStack stack) {

@@ -29,6 +29,7 @@ import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.CraftResultData;
 import info.faceland.loot.listeners.DeconstructListener;
 import info.faceland.loot.math.LootRandom;
+import info.faceland.loot.tier.Tier;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
@@ -154,8 +155,8 @@ public final class PreCraftListener implements Listener {
     }
 
     String tag = MaterialUtil.getEssenceTag(essenceStack);
-    if (StringUtils.isBlank(tag) || (!"慏".equals(tag) && (MaterialUtil.getEssenceTier(tag)
-        != MaterialUtil.getTierFromStack(equipmentItem)))) {
+    if (StringUtils.isBlank(tag) && !"慏".equals(tag) &&
+        !MaterialUtil.getEssenceTiers(tag).contains(MaterialUtil.getTierFromStack(equipmentItem))) {
       craftingInventory.getResult().setType(Material.BARRIER);
       craftingInventory.getResult().setItemMeta(wrongTypeMeta);
       return;
@@ -263,6 +264,20 @@ public final class PreCraftListener implements Listener {
       return;
     }
 
+    Tier tier = plugin.getItemGroupManager().getTierFromStack(result);
+    if (tier == null ) {
+      craftingInventory.getResult().setType(Material.BARRIER);
+      ItemStackExtensionsKt.setCustomModelData(craftingInventory.getResult(), 150);
+      ItemStackExtensionsKt.setDisplayName(craftingInventory.getResult(),
+          FaceColor.RED + FaceColor.BOLD.s() + FaceColor.UNDERLINE.s() + "Something Went Wrong!");
+      TextUtils.setLore(craftingInventory.getResult(), List.of(
+          FaceColor.GRAY + "The server doesn't know how",
+          FaceColor.GRAY + "to craft this item! Please",
+          FaceColor.GRAY + "report this to staff!"
+      ), false);
+      return;
+    }
+
     int minItemLevel = (int) Math.max(1, crData.getItemLevel() - 3);
     int maxItemLevel = (int) Math.max(1, Math.min(100, crData.getItemLevel()));
 
@@ -279,62 +294,47 @@ public final class PreCraftListener implements Listener {
     float slotScore = crData.openSlotChance(effectiveLevelAdvantage);
 
     List<String> newLore = new ArrayList<>();
-    newLore.add(FaceColor.WHITE + FaceColor.BOLD.s() +
-        "Item Level: " + minItemLevel + " ~ " + maxItemLevel);
-    newLore.add(FaceColor.WHITE + FaceColor.BOLD.s() +
-        "Crafting Level Requirement: " + (int) Math.max(1, craftingLevel - levelAdvantage));
-    newLore.add(FaceColor.GRAY + FaceColor.ITALIC.s() +
-        " Based on average material level");
-    newLore.add(FaceColor.WHITE + FaceColor.BOLD.s() +
-        "Minimum Rarity: " + getRarityTag(minRarity));
-    newLore.add(FaceColor.WHITE + FaceColor.BOLD.s() +
-        "Maximum Rarity: " + "\uD86D\uDFE9");
-    newLore.add(FaceColor.GRAY + FaceColor.ITALIC.s() +
-        " Based on material rarity and");
-    newLore.add(FaceColor.GRAY + FaceColor.ITALIC.s() +
-        " Crafting level");
-
-    if (craftingLevel >= 10) {
-      newLore.add(FaceColor.CYAN + FaceColor.BOLD.s() +
-          "Essence Slot Chance: " + Math.round(100 * slotScore * 0.2) + "%");
-      newLore.add(FaceColor.GRAY + FaceColor.ITALIC.s() +
-          " Crafted stats will be essence slots");
-      newLore.add(FaceColor.GRAY + FaceColor.ITALIC.s() +
-          " instead with a higher Crafting Level");
+    newLore.add(FaceColor.WHITE + "Level Requirement: " + minItemLevel + " ~ " + maxItemLevel + "");
+    newLore.add(FaceColor.WHITE + getRarityTag(minRarity) + "~" + " \uD86D\uDFE9" + tier.getName());
+    newLore.add("");
+    newLore.add(FaceColor.LIGHT_GRAY + tier.getPrimaryStat().getStatString().replace("{}", "X"));
+    newLore.add(FaceColor.LIGHT_GRAY + "+X Secondary Stat");
+    newLore.add("");
+    newLore.add(FaceColor.CYAN + "+X Random Stat");
+    newLore.add(FaceColor.CYAN + "+X Random Stat");
+    newLore.add(FaceColor.CYAN + "+X Random Stat " + FaceColor.LIGHT_GRAY + "(?)");
+    newLore.add(FaceColor.CYAN + "+X Random Stat " + FaceColor.LIGHT_GRAY + "(?)");
+    newLore.add(FaceColor.CYAN + "+X Random Stat " + FaceColor.LIGHT_GRAY + "(?)");
+    newLore.add(FaceColor.LIME + "Stat -> Essence Slot: (" + Math.round(100 * slotScore * 0.2) + "%)");
+    newLore.add("");
+    newLore.add(FaceColor.TRUE_WHITE + "傜" + FaceColor.BLUE +
+        (craftingLevel >= 10 ? " (100%)" : " (15%)"));
+    newLore.add("");
+    if (tier.getMaximumSockets() > 0) {
+      if (minSockets > 0) {
+        newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + "Socket (100%)");
+      } else {
+        newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + "Socket (50%)");
+      }
+    }
+    if (tier.getMaximumSockets() > 1) {
+      if (maxSockets > 1 || minSockets > 1) {
+        newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + "Socket (100%)");
+      } else {
+        newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + "Socket (12%)");
+      }
+    }
+    if (tier.getMaximumExtendSlots() > 0) {
+      newLore.add(FaceColor.TRUE_WHITE + "品 " + FaceColor.TEAL + "Socket (" + extendChance + "%)");
+    }
+    if (tier.getMaximumSockets() > 0 || tier.getMaximumExtendSlots() > 0) {
+      newLore.add("");
     }
 
-    if (craftingLevel < 11) {
-      newLore.add(FaceColor.BLUE + FaceColor.BOLD.s() +
-          "Enchantable Chance: " + (craftingLevel >= 10 ? "100%" : "15%"));
-      newLore.add(FaceColor.GRAY + FaceColor.ITALIC.s() +
-          " 15% Base Chance");
-      newLore.add(FaceColor.GRAY + FaceColor.ITALIC.s() +
-          " 100% Chance at Crafting Lv10");
-    }
-
-    if (craftingLevel >= 5) {
-      newLore.add(FaceColor.ORANGE + FaceColor.BOLD.s() +
-          "Minimum Sockets: " + minSockets);
-      newLore.add(FaceColor.ORANGE + FaceColor.BOLD.s() +
-          "Maximum Sockets: " + Math.max(minSockets, maxSockets));
-      newLore.add(FaceColor.GRAY + FaceColor.ITALIC.s() +
-          " Max. Sockets is based on quality.");
-      newLore.add(FaceColor.GRAY + FaceColor.ITALIC.s() +
-          " +1 Min. Sockets at Crafting Lv25");
-      newLore.add(FaceColor.GRAY + FaceColor.ITALIC.s() +
-          " +1 Min. Sockets at Crafting Lv60");
-    }
-
-    if (craftingLevel >= 20) {
-      newLore.add(FaceColor.TEAL + FaceColor.BOLD.s() +
-          "Extendable Chance: " + extendChance + "%");
-      newLore.add(FaceColor.GRAY + FaceColor.ITALIC.s() +
-          " +25% Chance at Crafting Lv20");
-      newLore.add(FaceColor.GRAY + FaceColor.ITALIC.s() +
-          " +25% Chance at Crafting Lv55");
-      newLore.add(FaceColor.GRAY + FaceColor.ITALIC.s() +
-          " +50% Chance at Crafting Lv85");
-    }
+    newLore.add(FaceColor.LIME + "Improve the quality of your");
+    newLore.add(FaceColor.LIME + "items by leveling crafting");
+    newLore.add(FaceColor.LIME + "and using better materials!");
+    newLore.add(FaceColor.YELLOW + "Use /skills for more info!");
 
     TextUtils.setLore(craftingInventory.getResult(), newLore, false);
   }

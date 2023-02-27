@@ -217,29 +217,6 @@ public final class InteractListener implements Listener {
     player.playSound(player.getEyeLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 1L, 2F);
   }
 
-  /*
-  @EventHandler(priority = EventPriority.LOWEST)
-  public void shearsEquip(InventoryClickEvent event) {
-    if (event.getClickedInventory() == null || event.getClickedInventory().getType()
-        != InventoryType.PLAYER) {
-      return;
-    }
-    if (event.getSlot() == 39 && event.getCursor() != null &&
-        event.getCursor().getType() == Material.SHEARS && !event.isShiftClick()) {
-      event.setCancelled(true);
-      if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) {
-        event.getWhoClicked().getInventory().setItem(39, event.getCursor().clone());
-        event.getCursor().setAmount(0);
-      } else {
-        ItemStack currentItem = event.getWhoClicked().getInventory().getItem(39).clone();
-        event.getWhoClicked().getInventory().setItem(39, event.getCursor().clone());
-        event.getCursor().setType(currentItem.getType());
-        event.getCursor().setAmount(currentItem.getAmount());
-        event.getCursor().setItemMeta(currentItem.getItemMeta());
-      }
-    }
-  }
-  */
 
   @EventHandler(priority = EventPriority.HIGHEST)
   public void onRightClickUse(InventoryClickEvent event) {
@@ -256,98 +233,13 @@ public final class InteractListener implements Listener {
 
     ItemStack targetItem = new ItemStack(event.getCurrentItem());
     ItemStack cursor = new ItemStack(event.getCursor());
-    String targetItemName = ItemStackExtensionsKt.getDisplayName(targetItem);
     String cursorName = ItemStackExtensionsKt.getDisplayName(cursor);
 
     if (StringUtils.isBlank(cursorName)) {
       return;
     }
 
-    String strippedCursorName = net.md_5.bungee.api.ChatColor.stripColor(cursorName);
-
-    if (StringUtils.isBlank(targetItemName)) {
-      targetItemName = WordUtils.capitalize(targetItem.getType().toString()
-          .toLowerCase().replaceAll("_", " "));
-    }
-
-    if (strippedCursorName.startsWith("Socket Gem - ")) {
-      String gemName = strippedCursorName.replace("Socket Gem - ", "");
-      SocketGem gem = plugin.getSocketGemManager().getSocketGem(gemName);
-
-      if (gem == null) {
-        return;
-      }
-
-      if (!MaterialUtil.matchesGroups(targetItem, gem.getItemGroups())) {
-        sendMessage(player, plugin.getSettings().getString("language.socket.failure", ""));
-        player.playSound(player.getEyeLocation(), Sound.BLOCK_LAVA_POP, 1F, 0.5F);
-        return;
-      }
-
-      List<String> lore = TextUtils.getLore(targetItem);
-      int index = MaterialUtil.indexOfSocket(lore);
-      if (index == -1) {
-        sendMessage(player, plugin.getSettings().getString("language.socket.needs-sockets", ""));
-        player.playSound(player.getEyeLocation(), Sound.BLOCK_LAVA_POP, 1F, 0.5F);
-        return;
-      }
-
-      if (gem.getLore().get(0).contains(" - ")) {
-        String firstLine = ChatColor.stripColor(gem.getLore().get(0));
-        for (String l : lore) {
-          if (l.contains(firstLine)) {
-            sendMessage(player, plugin.getSettings().getString("language.socket.dupe-effect", ""));
-            player.playSound(player.getEyeLocation(), Sound.BLOCK_LAVA_POP, 1F, 0.5F);
-            return;
-          }
-        }
-      }
-
-      List<String> addLore = TextUtils.color(gem.getLore());
-      switch (gem.getCustomModelData()) {
-        case 2005, 2004 -> addLore.set(0, SocketGemManager.GEM_SPECIAL_PREFIX + addLore.get(0));
-        case 2003 -> addLore.set(0, SocketGemManager.GEM_4_PREFIX + addLore.get(0));
-        case 2002 -> addLore.set(0, SocketGemManager.GEM_3_PREFIX + addLore.get(0));
-        case 2001 -> addLore.set(0, SocketGemManager.GEM_2_PREFIX + addLore.get(0));
-        default -> addLore.set(0, SocketGemManager.GEM_1_PREFIX + addLore.get(0));
-      }
-
-      lore.remove(index);
-      lore.addAll(index, addLore);
-      TextUtils.setLore(targetItem, lore);
-
-      String strippedName = ChatColor.stripColor(targetItemName);
-      int level = MaterialUtil.getUpgradeLevel(targetItemName);
-      String rawName = strippedName.replace("+" + level + " ", "");
-
-      String prefix = "";
-      String suffix = "";
-      if (!gem.getPrefix().isEmpty()) {
-        if (!targetItemName.contains(gem.getPrefix())) {
-          if (rawName.startsWith("The ")) {
-            rawName = rawName.replace("The ", "");
-            prefix = "The " + gem.getPrefix() + " ";
-          } else {
-            prefix = gem.getPrefix() + " ";
-          }
-        }
-      }
-      if (!gem.getSuffix().isEmpty()) {
-        if (!strippedName.contains(gem.getSuffix())) {
-          suffix = " " + gem.getSuffix();
-        }
-      }
-      String newName = prefix + rawName + suffix;
-      if (level > 0) {
-        newName = "+" + level + " " + newName;
-      }
-      newName = targetItemName.replace(strippedName, newName);
-      ItemStackExtensionsKt.setDisplayName(targetItem, newName);
-
-      sendMessage(player, plugin.getSettings().getString("language.socket.success", ""));
-      player.playSound(player.getEyeLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1L, 2.0F);
-      updateItem(event, targetItem);
-    } else if (ShardOfFailure.isSimilar(cursor)) {
+    if (ShardOfFailure.isSimilar(cursor)) {
       UpgradeScroll scroll = plugin.getScrollManager().getScroll(targetItem);
       if (scroll == null) {
         return;
@@ -383,10 +275,6 @@ public final class InteractListener implements Listener {
       event.setResult(Event.Result.DENY);
       player.updateInventory();
       player.playSound(player.getEyeLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 1L, 2F);
-    } else if (cursorName.equals(ChatColor.WHITE + "Item Rename Tag")) {
-      doItemRenameEffects(targetItem, cursor, targetItemName, player, event);
-    } else if (TinkerersGear.isSimilar(cursor)) {
-      doTinkerEffects(targetItem, player, event);
     }
   }
 
@@ -422,50 +310,6 @@ public final class InteractListener implements Listener {
 
     sendMessage(player, plugin.getSettings().getString("language.rename.success", ""));
     player.playSound(player.getEyeLocation(), Sound.ENTITY_BAT_TAKEOFF, 1F, 0.8F);
-    updateItem(event, targetItem);
-  }
-
-  private void doTinkerEffects(ItemStack targetItem, Player player, InventoryClickEvent event) {
-    List<String> lore = TextUtils.getLore(targetItem);
-    Map<Integer, String> validTargetStats = new HashMap<>();
-    int loreIndex = -1;
-    for (String str : lore) {
-      loreIndex++;
-      if (FaceColor.CYAN.isStartOf(str)) {
-        sendMessage(player, TextUtils.color(plugin.getSettings()
-            .getString("language.tinker.only-one-crafted-stat", "Only one stat can be tinkered!")));
-        return;
-      }
-      if (!ChatColor.stripColor(str).startsWith("+")) {
-        continue;
-      }
-      net.md_5.bungee.api.ChatColor color = getHexFromString(str);
-      if (color != null) {
-        if (isValidStealColor(color.getColor())) {
-          validTargetStats.put(loreIndex, str);
-        }
-        continue;
-      }
-      if (str.startsWith(ChatColor.GREEN + "") || str.startsWith(ChatColor.YELLOW + "")) {
-        validTargetStats.put(loreIndex, str);
-      }
-    }
-
-    if (validTargetStats.isEmpty()) {
-      sendMessage(player, TextUtils.color(plugin.getSettings()
-          .getString("language.tinker.no-valid-stats", "No valid stats to be tinkered!")));
-      return;
-    }
-
-    List<String> itemLore = new ArrayList<>(TextUtils.getLore(targetItem));
-    List<Integer> keysAsArray = new ArrayList<>(validTargetStats.keySet());
-    int selectedIndex = keysAsArray.get(random.nextInt(keysAsArray.size()));
-    itemLore.set(selectedIndex, FaceColor.CYAN + PreCraftListener.ESSENCE_SLOT_TEXT);
-    TextUtils.setLore(targetItem, itemLore);
-
-    player.playSound(player.getEyeLocation(), Sound.BLOCK_PISTON_EXTEND, 1F, 1.5F);
-    plugin.getStrifePlugin().getSkillExperienceManager()
-        .addExperience(player, LifeSkillType.CRAFTING, 200, false, false);
     updateItem(event, targetItem);
   }
 

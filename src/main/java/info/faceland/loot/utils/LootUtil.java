@@ -27,9 +27,10 @@ public class LootUtil {
 
   public static LootResponse getRandomItem(ItemType itemType, int itemLevel, float rarityMultiplier) {
     switch (itemType) {
-      case TIER_ITEM:
+      case TIER_ITEM -> {
         Tier tier = LootPlugin.getInstance().getTierManager().getRandomTier();
-        ItemRarity rarity = LootPlugin.getInstance().getRarityManager().getRandomRarityWithBonus(1 - rarityMultiplier);
+        ItemRarity rarity = LootPlugin.getInstance().getRarityManager()
+            .getRandomRarityWithBonus(1 - rarityMultiplier);
         BuiltItem builtItem = LootPlugin.getInstance().getNewItemBuilder()
             .withTier(tier)
             .withRarity(rarity)
@@ -38,25 +39,36 @@ public class LootUtil {
             .withSpecialStat(false)
             .build();
         return new LootResponse(builtItem.getStack(), rarity.isBroadcast());
-      case SOCKET_GEM:
-        SocketGem gem = LootPlugin.getInstance().getSocketGemManager().getRandomSocketGemByLevel(itemLevel);
+      }
+      case SOCKET_GEM -> {
+        SocketGem gem = LootPlugin.getInstance().getSocketGemManager()
+            .getRandomSocketGemByLevel(itemLevel);
         return new LootResponse(gem.toItemStack(1), gem.isBroadcast());
-      case CUSTOM_ITEM:
-        CustomItem ci = LootPlugin.getInstance().getCustomItemManager().getRandomCustomItemByLevel(itemLevel);
+      }
+      case CUSTOM_ITEM -> {
+        CustomItem ci = LootPlugin.getInstance().getCustomItemManager()
+            .getRandomCustomItemByLevel(itemLevel);
         return new LootResponse(ci.toItemStack(1), ci.isBroadcast());
-      case PURITY_SCROLL:
+      }
+      case PURITY_SCROLL -> {
         return new LootResponse(PurifyingScroll.get(), false);
-      case UPGRADE_SCROLL:
+      }
+      case UPGRADE_SCROLL -> {
         UpgradeScroll us = LootPlugin.getInstance().getScrollManager().getRandomScroll();
         ItemStack scrollStack = LootPlugin.getInstance().getScrollManager().buildItemStack(us);
         return new LootResponse(scrollStack, us.isBroadcast());
-      case ARCANE_ENHANCER:
+      }
+      case ARCANE_ENHANCER -> {
         return new LootResponse(ArcaneEnhancer.get(), true);
-      case SOCKET_EXTENDER:
+      }
+      case SOCKET_EXTENDER -> {
         return new LootResponse(SocketExtender.EXTENDER, true);
-      case ENCHANTMENT_TOME:
-        EnchantmentTome e = LootPlugin.getInstance().getEnchantTomeManager().getRandomEnchantTome(rarityMultiplier);
+      }
+      case ENCHANTMENT_TOME -> {
+        EnchantmentTome e = LootPlugin.getInstance().getEnchantTomeManager()
+            .getRandomEnchantTome(rarityMultiplier);
         return new LootResponse(e.toItemStack(1), e.isBroadcast());
+      }
     }
     return null;
   }

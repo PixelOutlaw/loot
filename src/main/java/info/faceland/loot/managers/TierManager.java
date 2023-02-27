@@ -21,7 +21,9 @@ package info.faceland.loot.managers;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.tier.Tier;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,16 +32,17 @@ public final class TierManager {
   private final Set<Tier> loadedTiers = new HashSet<>();
   private final LootRandom random = new LootRandom();
 
-  public Tier getTierFromName(String id) {
+  public List<Tier> getTiersFromName(String id) {
     if (StringUtils.isBlank(id)) {
       return null;
     }
+    List<Tier> tiers = new ArrayList<>();
     for (Tier t : getLoadedTiers()) {
       if (t.getName().equals(id)) {
-        return t;
+        tiers.add(t);
       }
     }
-    return null;
+    return tiers;
   }
 
   public Tier getTier(String id) {

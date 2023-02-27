@@ -214,7 +214,7 @@ public final class LootPlugin extends FacePlugin {
     rarityManager = new LootRarityManager();
     nameManager = new LootNameManager();
     customItemManager = new CustomItemManager();
-    socketGemManager = new SocketGemManager();
+    socketGemManager = new SocketGemManager(this);
     pawnManager = new PawnManager(this);
     creatureModManager = new LootCreatureModManager();
     enchantTomeManager = new EnchantTomeManager();

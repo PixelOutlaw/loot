@@ -19,9 +19,7 @@ package info.faceland.loot.menu.gemcutter;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
-import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.menu.BlankIcon;
 import info.faceland.loot.menu.TransparentIcon;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -48,15 +46,16 @@ public class GemcutterMenu extends ItemMenu {
 
   public GemcutterMenu(LootPlugin plugin) {
     super(TextUtils.color(plugin.getSettings().getString("language.menu.gemcutter-name",
-        "&0&lGemcutter")), Size.fit(45), plugin);
+        "&0&lGemcutter")), Size.fit(18), plugin);
 
-    SelectedItemIcon selectedItemIcon = new SelectedItemIcon(this);
-    CutConfirmIcon cutConfirmIcon = new CutConfirmIcon(this);
+    setItem(2, new SelectedItemIcon(this));
+    setItem(6, new ResultIcon(this));
 
-    setItem(13, selectedItemIcon);
-    setItem(31, cutConfirmIcon);
+    setItem(12, new CutConfirmIcon(this));
+    setItem(13, new CutConfirmIcon(this));
+    setItem(14, new CutConfirmIcon(this));
 
-    setItem(34, new TransparentIcon(FaceColor.TAN + "I made a crazy risk, a gamble, and it's about to pay off"));
+    setItem(16, new TransparentIcon(FaceColor.TAN + "I made a crazy risk, a gamble, and it's about to pay off"));
   }
 
   public ItemStack getSelectedStack(Player player) {

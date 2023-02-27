@@ -1,8 +1,8 @@
 package info.faceland.loot.utils;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
-import com.tealcube.minecraft.bukkit.shade.xglow.data.glow.Glow;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.ItemGenerationReason;
@@ -23,7 +23,6 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import land.face.learnin.LearninBooksPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -31,11 +30,9 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
 
 public class DropUtil implements Listener {
 
@@ -326,43 +323,9 @@ public class DropUtil implements Listener {
 
   private static void dropItem(Location loc, ItemStack itemStack, Player looter, int ticksLived,
       boolean broadcast, Color dropRgb, ChatColor glowColor) {
-    Item drop = loc.getWorld().dropItem(loc, itemStack);
-    drop.setVelocity(new Vector(
-        -0.12 + Math.random() * 0.24,
-        dropRgb == null ? 0.2 : 0.35 + Math.random() * 0.15,
-        -0.12 + Math.random() * 0.24
-    ));
-    if (dropRgb != null) {
-      new DropTrail(drop, looter, dropRgb);
-    }
-    try {
-      if (looter != null && glowColor != null) {
-        Glow glow = Glow.builder().color(glowColor).name("drop-glow").build();
-        glow.addHolders(drop);
-        glow.display(looter);
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    if (ticksLived != 0) {
-      drop.setTicksLived(ticksLived);
-    }
-    if (looter != null) {
-      applyDropProtection(drop, looter.getUniqueId());
-      if (broadcast) {
-        InventoryUtil.sendToDiscord(looter, itemStack, itemFoundFormat);
-      }
-    }
-  }
-
-  private static void applyDropProtection(Item drop, UUID owner) {
-    drop.setOwner(owner);
-    Bukkit.getScheduler().runTaskLater(plugin, () -> clearDropProtection(drop), 400L);
-  }
-
-  private static void clearDropProtection(Item drop) {
-    if (drop != null) {
-      drop.setOwner(null);
+    ItemUtils.dropItem(loc, itemStack, looter, ticksLived, dropRgb, glowColor, dropRgb != null);
+    if (broadcast) {
+      InventoryUtil.sendToDiscord(looter, itemStack, itemFoundFormat);
     }
   }
 
