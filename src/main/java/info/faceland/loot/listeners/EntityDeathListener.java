@@ -22,8 +22,6 @@ import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils;
 import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.api.creatures.MobInfo;
-import info.faceland.loot.data.JunkItemData;
 import info.faceland.loot.data.ViolationData;
 import info.faceland.loot.events.LootDropEvent;
 import info.faceland.loot.math.LootRandom;
@@ -89,10 +87,6 @@ public final class EntityDeathListener implements Listener {
     if (mob.getMaster() != null) {
       event.setDroppedExp(0);
       event.getDrops().clear();
-      return;
-    }
-    MobInfo mobInfo = plugin.getMobInfoManager().getMobInfo(event.getEntityType());
-    if (mobInfo == null && StringUtils.isBlank(mob.getUniqueEntityId())) {
       return;
     }
 
@@ -196,26 +190,6 @@ public final class EntityDeathListener implements Listener {
       data.setViolationLevel(Math.min(4, data.getViolationLevel() + 1));
     } else {
       data.setViolationLevel(Math.max(0, data.getViolationLevel() - 1));
-    }
-  }
-
-  private void dropJunkLoot(EntityDeathEvent event, MobInfo mod) {
-    if (mod.getJunkMaps().isEmpty()) {
-      return;
-    }
-    event.getDrops().clear();
-    Map<JunkItemData, Double> dropMap;
-    dropMap = mod.getJunkMaps().get(event.getEntity().getWorld().getName());
-    if (dropMap == null) {
-      dropMap = mod.getJunkMaps().get(DEFAULT_WORLD_CONFIG);
-      if (dropMap == null) {
-        return;
-      }
-    }
-    for (JunkItemData drop : dropMap.keySet()) {
-      if (dropMap.get(drop) >= random.nextDouble()) {
-        event.getDrops().add(drop.toItemStack());
-      }
     }
   }
 

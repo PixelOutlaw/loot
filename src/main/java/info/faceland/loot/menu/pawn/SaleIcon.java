@@ -18,6 +18,8 @@
  */
 package info.faceland.loot.menu.pawn;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +36,7 @@ public class SaleIcon extends MenuItem {
 
   private final PawnMenu menu;
   private final Integer slot;
-  private int price;
+  private double price;
   private ItemStack targetStack;
   private boolean checkRare = false;
 
@@ -52,7 +54,25 @@ public class SaleIcon extends MenuItem {
     ItemStack finalIcon = targetStack.clone();
     List<String> newLore = new ArrayList<>(TextUtils.getLore(finalIcon));
     newLore.add("");
-    newLore.add(TextUtils.color("&6Sale Price: &e" + MintPlugin.getInstance().getEconomy().format(price)));
+    double displayPrice = price;
+    boolean bonus = false;
+    if (menu.getDealId() != null) {
+      if (menu.getDealOne().matches(targetStack)) {
+        displayPrice *= menu.getDealOne().getMultiplier();
+        bonus = true;
+      } else if (menu.getDealTwo().matches(targetStack)) {
+        displayPrice *= menu.getDealTwo().getMultiplier();
+        bonus = true;
+      } else if (menu.getDealThree().matches(targetStack)) {
+        displayPrice *= menu.getDealThree().getMultiplier();
+        bonus = true;
+      }
+    }
+    newLore.add(FaceColor.ORANGE + "Sale Price: " + FaceColor.YELLOW +
+        MintPlugin.getInstance().getEconomy().format(displayPrice));
+    if (bonus) {
+      newLore.add(FaceColor.PINK + FaceColor.ITALIC.s() + FaceColor.BOLD.s() + "SALE BONUS!!");
+    }
     TextUtils.setLore(finalIcon, newLore);
     return finalIcon;
   }
@@ -77,11 +97,11 @@ public class SaleIcon extends MenuItem {
     return slot;
   }
 
-  public int getPrice() {
+  public double getPrice() {
     return price;
   }
 
-  public void setPrice(int price) {
+  public void setPrice(double price) {
     this.price = price;
   }
 

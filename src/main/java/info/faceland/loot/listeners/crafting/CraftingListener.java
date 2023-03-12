@@ -112,7 +112,7 @@ public final class CraftingListener implements Listener {
   @EventHandler(priority = EventPriority.LOWEST)
   public void onSpecialCraftEquipment(CraftItemEvent event) {
     ItemStack resultStack = event.getCurrentItem();
-    if (!plugin.getCraftBaseManager().getCraftBases().containsKey(resultStack.getType())) {
+    if (MaterialUtil.getTierFromStack(resultStack) == null) {
       return;
     }
 
@@ -153,10 +153,6 @@ public final class CraftingListener implements Listener {
     }
 
     ItemStack resultStack = event.getCurrentItem();
-
-    if (!plugin.getCraftBaseManager().getCraftBases().containsKey(resultStack.getType())) {
-      return;
-    }
     for (ItemStack is : event.getInventory().getMatrix()) {
       if (is == null) {
         continue;
@@ -173,11 +169,6 @@ public final class CraftingListener implements Listener {
 
     Tier tier;
     tier = MaterialUtil.getTierFromStack(resultStack);
-    if (tier == null) {
-      String tierId = plugin.getCraftBaseManager().getCraftBases().get(resultStack.getType());
-      tier = plugin.getTierManager().getTier(tierId);
-    }
-
     if (tier == null) {
       Bukkit.getLogger().warning(
           "[Loot] Attempted to craft item with unknown tier... " + resultStack.getType());

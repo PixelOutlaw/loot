@@ -18,11 +18,15 @@
  */
 package info.faceland.loot.tier;
 
+import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.groups.ItemGroup;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import land.face.market.data.PlayerMarketState.FilterFlagA;
@@ -46,7 +50,6 @@ public final class Tier implements Comparable<Tier> {
   private int customDataInterval;
   private FilterFlagA filterFlag;
   private Set<ItemGroup> itemGroups;
-  private List<String> suffixes = new ArrayList<>();
 
   @Getter @Setter
   private int minimumSockets;
@@ -56,6 +59,9 @@ public final class Tier implements Comparable<Tier> {
   private int minimumExtendSlots;
   @Getter @Setter
   private int maximumExtendSlots;
+
+  @Getter
+  private Map<ItemRarity, List<String>> suffixes = new HashMap<>();
 
   public Tier(String id) {
     this.id = id;
@@ -181,8 +187,12 @@ public final class Tier implements Comparable<Tier> {
     return materials;
   }
 
-  public List<String> getItemSuffixes() {
-    return suffixes;
+  public List<String> getItemSuffixes(ItemRarity rarity) {
+    return suffixes.getOrDefault(rarity, Collections.emptyList());
+  }
+
+  public void addItemSuffixes(ItemRarity rarity, List<String> list) {
+    suffixes.put(rarity, list);
   }
 
   public FilterFlagA getFilterFlag() {

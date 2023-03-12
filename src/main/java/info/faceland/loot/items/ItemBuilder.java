@@ -24,19 +24,20 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.ItemGenerationReason;
-import info.faceland.loot.api.managers.NameManager;
 import info.faceland.loot.api.managers.RarityManager;
 import info.faceland.loot.data.BuiltItem;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.StatResponse;
 import info.faceland.loot.listeners.crafting.CraftingListener;
+import info.faceland.loot.managers.LootNameManager;
 import info.faceland.loot.managers.StatManager;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.tier.Tier;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import org.bukkit.Bukkit;
@@ -54,7 +55,7 @@ public final class ItemBuilder {
 
   private final StatManager statManager;
   private final RarityManager rarityManager;
-  private final NameManager nameManager;
+  private final LootNameManager nameManager;
 
   public static final String SOCKET = PaletteUtil.color("|none|哀\uF822|orange|Socket");
   public static final String SOCKET_S = ChatColor.stripColor(SOCKET);
@@ -243,9 +244,7 @@ public final class ItemBuilder {
     if (itemGenerationReason == ItemGenerationReason.CRAFTING) {
       bonusStats += craftBonusStats;
     }
-    String prefix = nameManager.getRandomPrefix();
-    float roll = 0;
-    boolean statPrefix = random.nextDouble() > 0.35;
+
     int invertedIndex = -1;
     int distortionBonus = 0;
     if (distorted) {
@@ -254,34 +253,63 @@ public final class ItemBuilder {
       level += distortionBonus;
       invertedIndex = random.nextInt(bonusStats);
     }
-    List<String> randomStatsLore = new ArrayList<>();
+
     boolean alwaysEssence = this.alwaysEssence;
+    List<StatResponse> responseList = new ArrayList<>();
+    int essenceSlots = 0;
     for (int i = 0; i < bonusStats; i++) {
       if (crafted && (alwaysEssence || random.nextDouble() < slotScore / 5)) {
-        randomStatsLore.add(FaceColor.CYAN + CraftingListener.ESSENCE_SLOT_TEXT);
+        essenceSlots++;
         alwaysEssence = false;
         continue;
       }
       ItemStat stat = bonusStatList.get(random.nextInt(bonusStatList.size()));
       StatResponse rStat = statManager.getFinalStat(stat, level, rarityPower, false);
       if (invertedIndex == i) {
-        randomStatsLore.add(FaceColor.RED + ChatColor.stripColor(rStat.getStatString()).replace("+", "-"));
-      } else {
-        randomStatsLore.add(crafted ? FaceColor.CYAN + ChatColor.stripColor(rStat.getStatString()) : rStat.getStatString());
-        if (StringUtils.isNotBlank(rStat.getStatPrefix())) {
-          if (statPrefix && rStat.getStatRoll() > 0.5 && rStat.getStatRoll() > roll) {
-            roll = rStat.getStatRoll();
-            prefix = rStat.getStatPrefix();
-          }
-        }
+        rStat.setInverted(true);
+      } else if (crafted) {
+        rStat.setCrafted(true);
       }
+      responseList.add(rStat);
       bonusStatList.remove(stat);
     }
+
     if (distorted) {
       level -= distortionBonus;
     }
 
-    lore.addAll(randomStatsLore);
+    String prefix = nameManager.getRandomPrefix(rarity);
+    List<String> goodStatPrefixes = new ArrayList<>();
+    responseList.sort((b, a) -> Float.compare(a.getStatRoll(), b.getStatRoll()));
+
+    for (StatResponse r : responseList) {
+      if (r.isInverted()) {
+        continue;
+      }
+      if (r.getStatRoll() > 0.85 && StringUtils.isNotBlank(r.getStatPrefix())) {
+        goodStatPrefixes.add(r.getStatPrefix());
+      }
+    }
+
+    if (goodStatPrefixes.size() > 1) {
+      prefix = goodStatPrefixes.get(0) + " " + goodStatPrefixes.get(1);
+    } else if (goodStatPrefixes.size() == 1) {
+      prefix = goodStatPrefixes.get(0);
+    }
+
+    for (StatResponse r : responseList) {
+      if (r.isInverted()) {
+        lore.add(FaceColor.RED + ChatColor.stripColor(r.getStatString()).replace("+", "-"));
+      } else {
+        lore.add(crafted ?
+            FaceColor.CYAN + ChatColor.stripColor(r.getStatString()) : r.getStatString());
+      }
+    }
+
+    while (essenceSlots > 0) {
+      lore.add(FaceColor.CYAN + CraftingListener.ESSENCE_SLOT_TEXT);
+      essenceSlots--;
+    }
 
     if (enchantable) {
       lore.add("");
@@ -320,11 +348,11 @@ public final class ItemBuilder {
     }
 
     String suffix;
-    boolean statSuffix = random.nextDouble() > 0.35;
-    if (!statSuffix || tier.getItemSuffixes().size() == 0) {
-      suffix = nameManager.getRandomSuffix();
+    if (random.nextDouble() < 0.3) {
+      suffix = nameManager.getRandomSuffix(rarity);
     } else {
-      suffix = tier.getItemSuffixes().get(random.nextInt(tier.getItemSuffixes().size()));
+      suffix = tier.getItemSuffixes(rarity)
+          .get(random.nextInt(tier.getItemSuffixes(rarity).size()));
     }
 
     ItemStackExtensionsKt.setDisplayName(stack, color + prefix + " " + suffix);

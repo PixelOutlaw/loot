@@ -1,15 +1,24 @@
 package info.faceland.loot.managers;
 
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
+import info.faceland.loot.api.items.CustomItemBuilder;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.StatResponse;
+import info.faceland.loot.items.LootCustomItemBuilder;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.utils.InventoryUtil;
+import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemFlag;
 
 public class StatManager {
 
@@ -102,6 +111,44 @@ public class StatManager {
     }
 
     return response;
+  }
+
+  public void loadFromFiles(List<SmartYamlConfiguration> files) {
+    getLoadedStats().clear();
+    for (SmartYamlConfiguration file : files) {
+      for (String key : file.getKeys(false)) {
+        try {
+          if (!file.isConfigurationSection(key)) {
+            continue;
+          }
+          ConfigurationSection cs = file.getConfigurationSection(key);
+          ItemStat stat = new ItemStat();
+          stat.setMinBaseValue(cs.getDouble("min-base-value"));
+          stat.setMaxBaseValue(cs.getDouble("max-base-value"));
+          stat.setPerLevelIncrease(cs.getDouble("per-level-increase"));
+          stat.setPerLevelMultiplier(cs.getDouble("per-level-multiplier"));
+          stat.setPerRarityIncrease(cs.getDouble("per-rarity-increase"));
+          stat.setPerRarityMultiplier(cs.getDouble("per-rarity-multiplier"));
+          stat.setStatString(cs.getString("stat-string"));
+          stat.setStatPrefix(cs.getString("stat-prefix"));
+          stat.setPerfectStatPrefix(cs.getString("perfect-stat-prefix", stat.getStatPrefix()));
+          stat.setSpecialStatPrefix(cs.getString("special-stat-prefix", stat.getStatPrefix()));
+          stat.setMinHue((float) cs.getDouble("min-hue", 0));
+          stat.setMaxHue((float) cs.getDouble("max-hue", 0));
+          stat.setMinSaturation((float) cs.getDouble("min-saturation", 0.83));
+          stat.setMaxSaturation((float) cs.getDouble("max-saturation", 0.83));
+          stat.setMinBrightness((float) cs.getDouble("min-brightness", 1));
+          stat.setMaxBrightness((float) cs.getDouble("max-brightness", 1));
+          stat.getNamePrefixes().clear();
+          stat.getNamePrefixes().addAll(cs.getStringList("prefixes"));
+          addStat(key, stat);
+        } catch (Exception e) {
+          Bukkit.getLogger().warning("[Loot] Failed to load stat named " + key + " from file " + file.getName());
+          e.printStackTrace();
+        }
+      }
+    }
+    Bukkit.getLogger().info("[Loot] Loaded " + getLoadedStats().size() + " stats from " + files.size() + " files");
   }
 
   public enum RollStyle {

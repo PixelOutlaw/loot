@@ -47,14 +47,8 @@ public final class AnticheatListener implements Listener {
 
   @EventHandler(priority = EventPriority.MONITOR)
   public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-    if (!(event.getEntity() instanceof LivingEntity)) {
+    if (!(event.getEntity() instanceof LivingEntity victim)) {
       return;
-    }
-    LivingEntity victim = (LivingEntity) event.getEntity();
-    if (plugin.getMobInfoManager().getMobInfo(victim.getType()) == null) {
-      if (plugin.getStrifePlugin() == null) {
-        return;
-      }
     }
     LivingEntity attacker = null;
     if (event.getDamager() instanceof Player) {

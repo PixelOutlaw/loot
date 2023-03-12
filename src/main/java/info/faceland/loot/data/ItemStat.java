@@ -21,7 +21,7 @@ public class ItemStat {
   private float maxSaturation;
   private float minBrightness;
   private float maxBrightness;
-  private List<String> namePrefixes = new ArrayList<>();
+  private final List<String> namePrefixes = new ArrayList<>();
 
   public double getMinBaseValue() {
     return minBaseValue;

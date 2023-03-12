@@ -21,6 +21,7 @@ package info.faceland.loot.menu.pawn;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
+import info.faceland.loot.data.SaleRewards;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ public class SellIcon extends MenuItem {
     ItemStackExtensionsKt.setDisplayName(stack, getDisplayName());
     List<String> newLore = new ArrayList<>();
     int tradeLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.TRADING);
-    int total = menu.getTotal();
+    int total = (int) menu.getTotal();
     int modifiedTotal = getModifiedTotal(total, tradeLevel);
     String priceString;
     if (tradeLevel < 5 || modifiedTotal == total) {
@@ -91,13 +92,19 @@ public class SellIcon extends MenuItem {
     event.getPlayer()
         .playSound(event.getPlayer().getLocation(), Sound.UI_BUTTON_CLICK, 1, 1.2f);
     int tradeLevel = PlayerDataUtil.getLifeSkillLevel(event.getPlayer(), LifeSkillType.TRADING);
-    int total = menu.sellItems();
+    SaleRewards rewards = menu.sellItems(event.getPlayer());
+    int total = (int) rewards.getMoney();
+    double tradeXp = rewards.getTradeXp();
     total = getModifiedTotal(total, tradeLevel);
     menu.update(event.getPlayer());
     if (total != 0) {
       MintPlugin.getInstance().getEconomy().depositPlayer(event.getPlayer(), total);
       event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.BLOCK_CHAIN_PLACE, 1.0F, 1.3F);
       MessageUtils.sendMessage(event.getPlayer(), "&e  +" + MintPlugin.getInstance().getEconomy().format(total));
+    }
+    if (tradeXp > 0.5) {
+      LootPlugin.getInstance().getStrifePlugin().getSkillExperienceManager()
+          .addExperience(event.getPlayer(), LifeSkillType.TRADING, tradeXp, false, false);
     }
     if (menu.getTotal() > 0) {
       MessageUtils.sendMessage(event.getPlayer(),

@@ -35,7 +35,6 @@ import com.tealcube.minecraft.bukkit.shade.google.gson.Gson;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.ItemGenerationReason;
-import info.faceland.loot.data.ExistingSocketData;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.data.export.ExportEntry;
@@ -602,11 +601,15 @@ public class LootCommand extends BaseCommand {
   @Subcommand("pawn")
   @CommandCompletion("@players")
   @CommandPermission("loot.pawn")
-  public void pawnSubcommand(CommandSender sender, OnlinePlayer target) {
+  public void pawnSubcommand(CommandSender sender, OnlinePlayer target, @Default("") String dealId) {
     if (target == null || !target.getPlayer().isValid()) {
       return;
     }
-    PawnMenu menu = PawnMenu.getPawnMenu(plugin);
+    PawnMenu menu = PawnMenu.getPawnMenu(dealId);
+    if (menu == null) {
+      sender.sendMessage("[Loot] No pawn menu found for ID " + dealId);
+      return;
+    }
     menu.open(target.getPlayer());
   }
 

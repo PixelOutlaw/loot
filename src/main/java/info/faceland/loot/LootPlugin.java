@@ -1,15 +1,15 @@
 /**
  * The MIT License Copyright (c) 2015 Teal Cube Games
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
  * including without limitation the rights to use, copy, modify, merge, publish, distribute,
  * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in all copies or
  * substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
  * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
  * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
@@ -24,78 +24,37 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.shade.acf.PaperCommandManager;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
-import info.faceland.loot.api.creatures.CreatureModBuilder;
-import info.faceland.loot.api.creatures.MobInfo;
 import info.faceland.loot.api.enchantments.EnchantmentTomeBuilder;
-import info.faceland.loot.api.items.CustomItem;
-import info.faceland.loot.api.managers.CreatureModManager;
-import info.faceland.loot.api.managers.GemCacheManager;
-import info.faceland.loot.api.managers.ItemGroupManager;
-import info.faceland.loot.api.managers.NameManager;
-import info.faceland.loot.api.managers.RarityManager;
+import info.faceland.loot.api.managers.*;
 import info.faceland.loot.api.managers.UniqueDropsManager;
 import info.faceland.loot.api.sockets.effects.SocketEffect;
 import info.faceland.loot.commands.LootCommand;
 import info.faceland.loot.commands.UpdateItemCommand;
-import info.faceland.loot.creatures.LootCreatureModBuilder;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.ItemStat;
-import info.faceland.loot.data.JunkItemData;
 import info.faceland.loot.data.MatchMaterial;
 import info.faceland.loot.data.UniqueLoot;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.enchantments.LootEnchantmentTomeBuilder;
 import info.faceland.loot.groups.ItemGroup;
-import info.faceland.loot.io.SmartTextFile;
 import info.faceland.loot.items.ItemBuilder;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
 import info.faceland.loot.items.prefabs.TinkerersGear;
-import info.faceland.loot.listeners.ContainerOpenListener;
-import info.faceland.loot.listeners.DeconstructListener;
-import info.faceland.loot.listeners.EnchantDegradeListener;
-import info.faceland.loot.listeners.EnchantMenuListener;
-import info.faceland.loot.listeners.EntityDeathListener;
-import info.faceland.loot.listeners.GemSmashMenuListener;
-import info.faceland.loot.listeners.GemcutterListener;
-import info.faceland.loot.listeners.HeadHelmetsListener;
-import info.faceland.loot.listeners.InteractListener;
-import info.faceland.loot.listeners.ItemListListener;
-import info.faceland.loot.listeners.ItemSpawnListener;
-import info.faceland.loot.listeners.PawnMenuListener;
-import info.faceland.loot.listeners.SoulGemListener;
-import info.faceland.loot.listeners.StrifeListener;
-import info.faceland.loot.listeners.VagabondEquipListener;
-import info.faceland.loot.listeners.anticheat.AnticheatListener;
-import info.faceland.loot.listeners.crafting.CraftingListener;
-import info.faceland.loot.listeners.crafting.PreCraftListener;
-import info.faceland.loot.listeners.sockets.CombinerListener;
-import info.faceland.loot.listeners.sockets.SocketsListener;
-import info.faceland.loot.managers.AnticheatManager;
-import info.faceland.loot.managers.EnchantTomeManager;
-import info.faceland.loot.managers.LootCraftBaseManager;
-import info.faceland.loot.managers.LootCraftMatManager;
-import info.faceland.loot.managers.LootCreatureModManager;
-import info.faceland.loot.managers.CustomItemManager;
-import info.faceland.loot.managers.LootGemCacheManager;
-import info.faceland.loot.managers.LootItemGroupManager;
-import info.faceland.loot.managers.LootNameManager;
-import info.faceland.loot.managers.LootRarityManager;
-import info.faceland.loot.managers.LootUniqueDropsManager;
-import info.faceland.loot.managers.PawnManager;
-import info.faceland.loot.managers.ScrollManager;
-import info.faceland.loot.managers.SocketGemManager;
-import info.faceland.loot.managers.StatManager;
-import info.faceland.loot.managers.TierManager;
+import info.faceland.loot.listeners.*;
+import info.faceland.loot.listeners.sockets.*;
+import info.faceland.loot.listeners.crafting.*;
+import info.faceland.loot.listeners.anticheat.*;
+import info.faceland.loot.managers.*;
 import info.faceland.loot.menu.gemcutter.GemcutterMenu;
 import info.faceland.loot.menu.pawn.PawnMenu;
-import info.faceland.loot.sockets.SocketGemBuilder;
 import info.faceland.loot.sockets.SocketGem;
+import info.faceland.loot.sockets.SocketGemBuilder;
 import info.faceland.loot.sockets.effects.LootSocketPotionEffect;
-import info.faceland.loot.tier.TierBuilder;
 import info.faceland.loot.tier.Tier;
+import info.faceland.loot.tier.TierBuilder;
 import info.faceland.loot.utils.DropUtil;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.config.MasterConfiguration;
@@ -125,6 +84,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
 
 public final class LootPlugin extends FacePlugin {
 
@@ -133,40 +93,35 @@ public final class LootPlugin extends FacePlugin {
   private PluginLogger debugPrinter;
   private VersionedSmartYamlConfiguration itemsYAML;
   private VersionedSmartYamlConfiguration materialsYAML;
-  private VersionedSmartYamlConfiguration statsYAML;
   private VersionedSmartYamlConfiguration rarityYAML;
   private VersionedSmartYamlConfiguration tierYAML;
-  private VersionedSmartYamlConfiguration corestatsYAML;
   private VersionedSmartYamlConfiguration socketGemsYAML;
   private VersionedSmartYamlConfiguration scrollsYAML;
   private VersionedSmartYamlConfiguration languageYAML;
+  private VersionedSmartYamlConfiguration randomAffixes;
   private VersionedSmartYamlConfiguration configYAML;
-  private VersionedSmartYamlConfiguration creaturesYAML;
-  private VersionedSmartYamlConfiguration identifyingYAML;
   private VersionedSmartYamlConfiguration enchantmentTomesYAML;
-  private VersionedSmartYamlConfiguration craftBasesYAML;
   private VersionedSmartYamlConfiguration craftMaterialsYAML;
   private VersionedSmartYamlConfiguration uniqueDropsYAML;
-  private SmartYamlConfiguration chestsYAML;
   private MasterConfiguration settings;
   private ItemGroupManager itemGroupManager;
   private TierManager tierManager;
   private StatManager statManager;
   private RarityManager rarityManager;
-  private NameManager nameManager;
+  private LootNameManager nameManager;
   private CustomItemManager customItemManager;
   private SocketGemManager socketGemManager;
   private PawnManager pawnManager;
-  private CreatureModManager creatureModManager;
   private EnchantTomeManager enchantTomeManager;
   private AnticheatManager anticheatManager;
   private GemCacheManager gemCacheManager;
-  private LootCraftBaseManager lootCraftBaseManager;
   private LootCraftMatManager lootCraftMatManager;
   private UniqueDropsManager uniqueDropsManager;
   private ScrollManager scrollManager;
   private StrifePlugin strifePlugin;
   private PlayerPointsAPI playerPointsAPI;
+
+  private BukkitTask checkDealsTask;
 
   @Getter
   private GemcutterMenu gemcutterMenu;
@@ -187,24 +142,17 @@ public final class LootPlugin extends FacePlugin {
     configYAML = defaultLoadConfig("config.yml");
     itemsYAML = defaultLoadConfig("items.yml");
     materialsYAML = defaultLoadConfig("material-to-tier.yml");
-    statsYAML = defaultLoadConfig("stats.yml");
     rarityYAML = defaultLoadConfig("rarity.yml");
     tierYAML = defaultLoadConfig("tier.yml");
-    corestatsYAML = defaultLoadConfig("corestats.yml");
     socketGemsYAML = defaultLoadConfig("socketGems.yml");
     scrollsYAML = defaultLoadConfig("scrolls.yml");
     languageYAML = defaultLoadConfig("language.yml");
-    creaturesYAML = defaultLoadConfig("creatures.yml");
-    identifyingYAML = defaultLoadConfig("identifying.yml");
+    randomAffixes = defaultLoadConfig("random-affixes.yml");
     enchantmentTomesYAML = defaultLoadConfig("enchantmentTomes.yml");
-    craftBasesYAML = defaultLoadConfig("craftBases.yml");
     craftMaterialsYAML = defaultLoadConfig("craftMaterials.yml");
     uniqueDropsYAML = defaultLoadConfig("strifeUniqueDrops.yml");
-    chestsYAML = new SmartYamlConfiguration(new File(getDataFolder(), "chests.yml"));
-    chestsYAML.load();
 
-    settings = MasterConfiguration
-        .loadFromFiles(corestatsYAML, languageYAML, configYAML, identifyingYAML);
+    settings = MasterConfiguration.loadFromFiles(languageYAML, configYAML);
 
     boolean potionTriggersEnabled = configYAML.getBoolean("socket-gems.use-potion-triggers", true);
 
@@ -216,13 +164,11 @@ public final class LootPlugin extends FacePlugin {
     customItemManager = new CustomItemManager();
     socketGemManager = new SocketGemManager(this);
     pawnManager = new PawnManager(this);
-    creatureModManager = new LootCreatureModManager();
     enchantTomeManager = new EnchantTomeManager();
     anticheatManager = new AnticheatManager();
     if (potionTriggersEnabled) {
       gemCacheManager = new LootGemCacheManager(this);
     }
-    lootCraftBaseManager = new LootCraftBaseManager();
     lootCraftMatManager = new LootCraftMatManager();
     uniqueDropsManager = new LootUniqueDropsManager();
     scrollManager = new ScrollManager();
@@ -232,8 +178,7 @@ public final class LootPlugin extends FacePlugin {
     setupPlayerPoints();
 
     loadItemGroups();
-    loadCraftBases();
-    loadStats();
+    statManager.loadFromFiles(fetchStats());
     loadRarities();
     loadTiers();
     // Load material to tier AFTER tiers or this will not work...
@@ -243,7 +188,6 @@ public final class LootPlugin extends FacePlugin {
     customItemManager.loadFromFiles(fetchUniques());
     loadSocketGems();
     loadEnchantmentStones();
-    loadCreatureMods();
     loadUniqueDrops();
     loadScrolls();
 
@@ -256,6 +200,11 @@ public final class LootPlugin extends FacePlugin {
     ShardOfFailure.rebuild();
 
     PawnMenu.clearPool();
+    new PawnMenu(this);
+    new PawnMenu(this, "fishmonger");
+
+    checkDealsTask = Bukkit.getScheduler().runTaskTimer(this,
+        PawnMenu::checkAll, 200L, 60 * 20L);
 
     strifePlugin = (StrifePlugin) Bukkit.getPluginManager().getPlugin("Strife");
 
@@ -309,9 +258,9 @@ public final class LootPlugin extends FacePlugin {
 
   @Override
   public void disable() {
+    checkDealsTask.cancel();
     HandlerList.unregisterAll(this);
     Bukkit.getScheduler().cancelTasks(this);
-
     playerPointsAPI = null;
   }
 
@@ -473,113 +422,6 @@ public final class LootPlugin extends FacePlugin {
     }
   }
 
-  private void loadCreatureMods() {
-    getMobInfoManager().getMobInfo().clear();
-    Set<MobInfo> mods = new HashSet<>();
-    List<String> loadedMods = new ArrayList<>();
-    for (String key : creaturesYAML.getKeys(false)) {
-      if (!creaturesYAML.isConfigurationSection(key)) {
-        continue;
-      }
-      ConfigurationSection cs = creaturesYAML.getConfigurationSection(key);
-      CreatureModBuilder builder = getNewCreatureModBuilder(EntityType.valueOf(key));
-      for (String fieldKey : cs.getKeys(false)) {
-        if (fieldKey.equals("custom-items")) {
-          Map<CustomItem, Double> map = new HashMap<>();
-          for (String k : cs.getConfigurationSection("custom-items").getKeys(false)) {
-            if (!cs.isConfigurationSection("custom-items." + k)) {
-              continue;
-            }
-            CustomItem ci = customItemManager.getCustomItem(k);
-            if (ci == null) {
-              continue;
-            }
-            map.put(ci, cs.getDouble("custom-items." + k));
-          }
-          builder.withCustomItemMults(map);
-        } else if (fieldKey.equals("socket-gems")) {
-          Map<SocketGem, Double> map = new HashMap<>();
-          for (String k : cs.getConfigurationSection("socket-gems").getKeys(false)) {
-            if (!cs.isConfigurationSection("socket-gems." + k)) {
-              continue;
-            }
-            SocketGem sg = socketGemManager.getSocketGem(k);
-            if (sg == null) {
-              continue;
-            }
-            map.put(sg, cs.getDouble("socket-gems." + k));
-          }
-          builder.withSocketGemMults(map);
-        } else if (fieldKey.equals("tiers")) {
-          Map<Tier, Double> map = new HashMap<>();
-          for (String k : cs.getConfigurationSection("tiers").getKeys(false)) {
-            if (!cs.isConfigurationSection("tiers." + k)) {
-              continue;
-            }
-            Tier t = tierManager.getTier(k);
-            if (t == null) {
-              continue;
-            }
-            map.put(t, cs.getDouble("tiers." + k));
-          }
-          builder.withTierMults(map);
-        } else if (fieldKey.equals("enchantment-stone")) {
-          Map<EnchantmentTome, Double> map = new HashMap<>();
-          for (String k : cs.getConfigurationSection("enchantment-stones").getKeys(false)) {
-            if (!cs.isConfigurationSection("enchantment-stones." + k)) {
-              continue;
-            }
-            EnchantmentTome es = enchantTomeManager.getEnchantTome(k);
-            if (es == null) {
-              continue;
-            }
-            map.put(es, cs.getDouble("enchantment-stones." + k));
-          }
-          builder.withEnchantTomeMults(map);
-        } else if (fieldKey.equals("drops")) {
-          Map<String, Map<JunkItemData, Double>> map = new HashMap<>();
-          ConfigurationSection worldSection = cs.getConfigurationSection("drops");
-          if (worldSection == null) {
-            continue;
-          }
-          for (String worldKey : worldSection.getKeys(false)) {
-            ConfigurationSection dropSection = worldSection.getConfigurationSection(worldKey);
-            if (dropSection == null) {
-              map.put(worldKey, new HashMap<>());
-              continue;
-            }
-            for (String dropKey : dropSection.getKeys(false)) {
-              String matStr = dropSection.getString(dropKey + ".material");
-              Material material;
-              try {
-                material = Material.valueOf(matStr);
-              } catch (Exception e) {
-                getLogger().warning("[Loot] Invalid material " + matStr + " in " + key + " junk drops!");
-                continue;
-              }
-              int min = dropSection.getInt(dropKey + ".min-amount");
-              int max = dropSection.getInt(dropKey + ".max-amount");
-              double chance = dropSection.getDouble(dropKey + ".chance");
-
-              JunkItemData jid = new JunkItemData(material, min, max);
-
-              map.putIfAbsent(worldKey, new HashMap<>());
-              map.get(worldKey).put(jid, chance);
-            }
-          }
-          builder.withJunkMap(map);
-        }
-      }
-      MobInfo mod = builder.build();
-      mods.add(mod);
-      loadedMods.add(mod.getEntityType().name());
-    }
-    for (MobInfo cm : mods) {
-      creatureModManager.addMobInfo(cm);
-    }
-    Bukkit.getLogger().info("Loaded creature mods: " + loadedMods);
-  }
-
   private void loadSocketGems() {
     for (SocketGem sg : getSocketGemManager().getSocketGems()) {
       getSocketGemManager().removeSocketGem(sg.getName());
@@ -644,29 +486,21 @@ public final class LootPlugin extends FacePlugin {
     return uniques;
   }
 
+  private List<SmartYamlConfiguration> fetchStats() {
+    List<SmartYamlConfiguration> stats = new ArrayList<>();
+    File folder = new File(getDataFolder(), "stats");
+    File[] listOfFiles = folder.listFiles();
+    for (File f : Objects.requireNonNull(listOfFiles)) {
+      stats.add(new SmartYamlConfiguration(f));
+    }
+    return stats;
+  }
+
   private void loadNames() {
-    getNameManager().getPrefixes().clear();
-    getNameManager().getSuffixes().clear();
-
-    File prefixFile = new File(getDataFolder(), "prefix.txt");
-    File suffixFile = new File(getDataFolder(), "suffix.txt");
-
-    SmartTextFile.writeToFile(getResource("prefix.txt"), prefixFile, true);
-    SmartTextFile.writeToFile(getResource("suffix.txt"), suffixFile, true);
-
-    SmartTextFile smartPrefixFile = new SmartTextFile(prefixFile);
-    SmartTextFile smartSuffixFile = new SmartTextFile(suffixFile);
-
-    for (String s : smartPrefixFile.read()) {
-      getNameManager().addPrefix(s);
+    for (ItemRarity r : rarityManager.getLoadedRarities().values()) {
+      nameManager.setPrefixes(r, randomAffixes.getStringList("prefix." + r.getId()));
+      nameManager.setSuffixes(r, randomAffixes.getStringList("suffix." + r.getId()));
     }
-    for (String s : smartSuffixFile.read()) {
-      getNameManager().addSuffix(s);
-    }
-
-    debug("Loaded prefixes: " + getNameManager().getPrefixes().size(),
-        "Loaded suffixes: " + getNameManager()
-            .getSuffixes().size());
   }
 
   private void loadItemGroups() {
@@ -722,28 +556,14 @@ public final class LootPlugin extends FacePlugin {
         String tierString = cs.getString("tier-id");
         Tier tier = getTierManager().getTier(tierString);
         if (tier == null) {
-          Bukkit.getLogger().warning("[Loot] Material " + materialKey + " has invalid tier " + tierString);
+          Bukkit.getLogger()
+              .warning("[Loot] Material " + materialKey + " has invalid tier " + tierString);
           continue;
         }
         matchMaterial.setTier(tier);
         getItemGroupManager().addMatchMaterial(matchMaterial);
       }
     }
-  }
-
-  private void loadCraftBases() {
-    Map<Material, String> craftBases = new HashMap<>();
-    for (String key : craftBasesYAML.getKeys(false)) {
-      if (!craftBasesYAML.isString(key)) {
-        continue;
-      }
-      String string = craftBasesYAML.getString(key);
-      craftBases.put(Material.valueOf(key), string);
-    }
-    for (Material mat : craftBases.keySet()) {
-      getCraftBaseManager().addCraftBase(mat, craftBases.get(mat));
-    }
-    debug("Loaded item groups: " + getCraftBaseManager().getCraftBases());
   }
 
   private void loadCraftMaterials() {
@@ -772,8 +592,6 @@ public final class LootPlugin extends FacePlugin {
         getCraftMatManager().addDeconstructData(data);
       }
     }
-
-    debug("Loaded item groups: " + getCraftBaseManager().getCraftBases());
   }
 
   private void loadRarities() {
@@ -785,7 +603,7 @@ public final class LootPlugin extends FacePlugin {
         continue;
       }
       ConfigurationSection cs = rarityYAML.getConfigurationSection(key);
-      ItemRarity rarity = new ItemRarity();
+      ItemRarity rarity = new ItemRarity(key);
       rarity.setBroadcast(cs.getBoolean("broadcast"));
       rarity.setName(cs.getString("name"));
       rarity.setColor(FaceColor.valueOf(cs.getString("color")));
@@ -806,38 +624,6 @@ public final class LootPlugin extends FacePlugin {
       getRarityManager().addRarity(key, rarity);
     }
     debug("Loaded rarities: " + getRarityManager().getLoadedRarities().toString());
-  }
-
-  private void loadStats() {
-    for (String statName : getStatManager().getLoadedStats().keySet()) {
-      getStatManager().removeStat(statName);
-    }
-    for (String key : statsYAML.getKeys(false)) {
-      if (!statsYAML.isConfigurationSection(key)) {
-        continue;
-      }
-      ConfigurationSection cs = statsYAML.getConfigurationSection(key);
-      ItemStat stat = new ItemStat();
-      stat.setMinBaseValue(cs.getDouble("min-base-value"));
-      stat.setMaxBaseValue(cs.getDouble("max-base-value"));
-      stat.setPerLevelIncrease(cs.getDouble("per-level-increase"));
-      stat.setPerLevelMultiplier(cs.getDouble("per-level-multiplier"));
-      stat.setPerRarityIncrease(cs.getDouble("per-rarity-increase"));
-      stat.setPerRarityMultiplier(cs.getDouble("per-rarity-multiplier"));
-      stat.setStatString(cs.getString("stat-string"));
-      stat.setStatPrefix(cs.getString("stat-prefix"));
-      stat.setPerfectStatPrefix(cs.getString("perfect-stat-prefix", stat.getStatPrefix()));
-      stat.setSpecialStatPrefix(cs.getString("special-stat-prefix", stat.getStatPrefix()));
-      stat.setMinHue((float) cs.getDouble("min-hue", 0));
-      stat.setMaxHue((float) cs.getDouble("max-hue", 0));
-      stat.setMinSaturation((float) cs.getDouble("min-saturation", 0.83));
-      stat.setMaxSaturation((float) cs.getDouble("max-saturation", 0.83));
-      stat.setMinBrightness((float) cs.getDouble("min-brightness", 1));
-      stat.setMaxBrightness((float) cs.getDouble("max-brightness", 1));
-      stat.getNamePrefixes().addAll(cs.getStringList("name-prefixes"));
-      getStatManager().addStat(key, stat);
-    }
-    debug("Loaded stats: " + getStatManager().getLoadedStats().keySet().toString());
   }
 
   private void loadTiers() {
@@ -902,7 +688,12 @@ public final class LootPlugin extends FacePlugin {
       }
       builder.withItemGroups(itemGroups);
       Tier t = builder.build();
-      t.getItemSuffixes().addAll(cs.getStringList("name-suffixes"));
+      List<String> suffixes = cs.getStringList("suffixes.generic");
+      for (ItemRarity r : rarityManager.getLoadedRarities().values()) {
+        List<String> combined = new ArrayList<>(suffixes);
+        combined.addAll(cs.getStringList("suffixes." + r.getId()));
+        t.addItemSuffixes(r, combined);
+      }
       loadedTiers.add(t.getId());
 
       String marketFilterFlag = cs.getString("filter-flag", "ALL");
@@ -939,10 +730,6 @@ public final class LootPlugin extends FacePlugin {
     return new SocketGemBuilder(name);
   }
 
-  public CreatureModBuilder getNewCreatureModBuilder(EntityType entityType) {
-    return new LootCreatureModBuilder(entityType);
-  }
-
   public EnchantmentTomeBuilder getNewEnchantmentStoneBuilder(String name) {
     return new LootEnchantmentTomeBuilder(name);
   }
@@ -963,7 +750,7 @@ public final class LootPlugin extends FacePlugin {
     return itemGroupManager;
   }
 
-  public NameManager getNameManager() {
+  public LootNameManager getNameManager() {
     return nameManager;
   }
 
@@ -987,10 +774,6 @@ public final class LootPlugin extends FacePlugin {
     return pawnManager;
   }
 
-  public CreatureModManager getMobInfoManager() {
-    return creatureModManager;
-  }
-
   public EnchantTomeManager getEnchantTomeManager() {
     return enchantTomeManager;
   }
@@ -1001,10 +784,6 @@ public final class LootPlugin extends FacePlugin {
 
   public GemCacheManager getGemCacheManager() {
     return gemCacheManager;
-  }
-
-  public LootCraftBaseManager getCraftBaseManager() {
-    return lootCraftBaseManager;
   }
 
   public LootCraftMatManager getCraftMatManager() {

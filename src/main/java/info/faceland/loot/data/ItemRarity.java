@@ -7,6 +7,7 @@ import org.bukkit.ChatColor;
 @Data
 public class ItemRarity {
 
+  private final String id;
   private boolean broadcast;
   private boolean alwaysTrail;
   private boolean alwaysGlow;
@@ -24,5 +25,9 @@ public class ItemRarity {
   private double socketChance;
   private double extenderChance;
   private int livedTicks;
+
+  public ItemRarity(String id) {
+    this.id = id;
+  }
 
 }
