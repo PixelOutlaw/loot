@@ -26,7 +26,6 @@ import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.BuiltItem;
 import info.faceland.loot.data.CraftResultData;
 import info.faceland.loot.events.LootCraftEvent;
-import info.faceland.loot.listeners.DeconstructListener;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.tier.Tier;
 import info.faceland.loot.utils.MaterialUtil;
@@ -181,8 +180,7 @@ public final class CraftingListener implements Listener {
 
     CraftResultData crData = new CraftResultData(event.getInventory().getMatrix(), resultStack);
 
-    double levelAdvantage = DeconstructListener.getLevelAdvantage(craftingLevel,
-        (int) crData.getItemLevel());
+    double levelAdvantage = craftingLevel + 10 - (int) crData.getItemLevel();
 
     if (levelAdvantage < 0) {
       sendMessage(player, plugin.getSettings().getString("language.craft.low-level-craft", ""));

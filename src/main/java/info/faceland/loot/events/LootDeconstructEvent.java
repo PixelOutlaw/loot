@@ -13,7 +13,6 @@ public class LootDeconstructEvent extends Event {
     return HANDLER_LIST;
   }
 
-  private DeconstructType deconstructType;
   private ItemStack cursorItem;
   private ItemStack targetItem;
   private Player player;
@@ -22,15 +21,6 @@ public class LootDeconstructEvent extends Event {
   @Override
   public HandlerList getHandlers() {
     return HANDLER_LIST;
-  }
-
-  public DeconstructType getDeconstructType() {
-    return deconstructType;
-  }
-
-  public void setDeconstructType(
-      DeconstructType deconstructType) {
-    this.deconstructType = deconstructType;
   }
 
   public ItemStack getCursorItem() {
@@ -63,10 +53,5 @@ public class LootDeconstructEvent extends Event {
 
   public void setCancelled(boolean cancelled) {
     this.cancelled = cancelled;
-  }
-
-  public enum DeconstructType {
-    CRAFTING,
-    ENCHANTING
   }
 }

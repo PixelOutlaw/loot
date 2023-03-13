@@ -16,25 +16,39 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package info.faceland.loot.managers;
+package info.faceland.loot.menu.salvage;
 
-import java.util.HashMap;
-import java.util.Map;
+import ninja.amp.ampmenus.events.ItemClickEvent;
+import ninja.amp.ampmenus.items.MenuItem;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
-public final class LootCraftBaseManager {
+public class EquipmentIcon extends MenuItem {
 
-  private final Map<Material, String> craftBases;
+  private final SalvageMenu menu;
 
-  public LootCraftBaseManager() {
-    craftBases = new HashMap<>();
+  EquipmentIcon(SalvageMenu menu) {
+    super("", new ItemStack(Material.AIR));
+    this.menu = menu;
   }
 
-  public void addCraftBase(Material material, String tier) {
-    craftBases.put(material, tier);
+  @Override
+  public ItemStack getFinalIcon(Player player) {
+    if (menu.getEquipment(player) == null || menu.getEquipment(player).getAmount() < 1) {
+      return new ItemStack(Material.AIR);
+    }
+    return menu.getEquipment(player).clone();
   }
 
-  public Map<Material, String> getCraftBases() {
-    return craftBases;
+  @Override
+  public void onItemClick(ItemClickEvent event) {
+    super.onItemClick(event);
+    menu.setEquipment(event.getPlayer(), null);
+    event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.ENTITY_TURTLE_LAY_EGG, SoundCategory.MASTER, 1, 0.8f);
+    event.setWillUpdate(true);
   }
+
 }

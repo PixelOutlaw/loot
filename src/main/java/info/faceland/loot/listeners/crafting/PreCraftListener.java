@@ -27,7 +27,6 @@ import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils
 import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.CraftResultData;
-import info.faceland.loot.listeners.DeconstructListener;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.tier.Tier;
 import info.faceland.loot.utils.MaterialUtil;
@@ -36,10 +35,8 @@ import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.util.PlayerDataUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -176,7 +173,7 @@ public final class PreCraftListener implements Listener {
         .collapseFrom(ChatColor.stripColor(strippedLore.get(0)), ' ').trim());
     int essenceLevel = MaterialUtil.getEssenceLevel(essenceStack);
     int craftingLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.CRAFTING);
-    double levelAdvantage = DeconstructListener.getLevelAdvantage(craftingLevel, itemLevel);
+    double levelAdvantage = craftingLevel + 10 - itemLevel;
     if (levelAdvantage < 0) {
       craftingInventory.getResult().setType(Material.BARRIER);
       craftingInventory.getResult().setItemMeta(lowLevelMeta);
@@ -237,8 +234,7 @@ public final class PreCraftListener implements Listener {
 
     CraftResultData crData = new CraftResultData(craftingInventory.getMatrix(), result);
 
-    double levelAdvantage = DeconstructListener.getLevelAdvantage(craftingLevel,
-        (int) crData.getItemLevel());
+    double levelAdvantage = craftingLevel + 10 - crData.getItemLevel();
 
     if (levelAdvantage < 0) {
       craftingInventory.getResult().setType(Material.BARRIER);

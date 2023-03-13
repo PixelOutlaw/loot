@@ -19,13 +19,10 @@
 package info.faceland.loot.utils;
 
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
-import static info.faceland.loot.listeners.DeconstructListener.getHexFromString;
-import static info.faceland.loot.listeners.DeconstructListener.isValidStealColor;
 import static org.bukkit.ChatColor.stripColor;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
-import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
@@ -919,6 +916,9 @@ public final class MaterialUtil {
   }
 
   public static int getQuality(ItemStack stack) {
+    if (!stack.hasItemMeta()) {
+      return 1;
+    }
     for (String line : TextUtils.getLore(stack)) {
       if (line.contains(TAG_COMMON)) {
         return 1;
@@ -936,8 +936,7 @@ public final class MaterialUtil {
     return 0;
   }
 
-  public static ItemStack buildEssence(Tier tier, double itemLevel, double craftLevelAdvantage,
-      int toolQuality, List<String> possibleStats, boolean lucky) {
+  public static ItemStack buildEssence(Tier tier, double itemLevel, List<String> possibleStats) {
 
     int essLevel = Math.max(1, (int) (Math.floor(itemLevel) / 10) * 10);
 
@@ -945,15 +944,8 @@ public final class MaterialUtil {
         .stripColor(possibleStats.get(random.nextInt(possibleStats.size())));
     int statVal = getDigit(statString);
 
-    craftLevelAdvantage = Math.min(craftLevelAdvantage, 200);
-    double toolQualityBonus = TOOL_QUALITY_ESS_MULT * toolQuality;
-    double baseCraftBonus = MIN_BONUS_ESS_MULT * (craftLevelAdvantage / 200);
-    double bonusCraftBonus = (BONUS_ESS_MULT * (craftLevelAdvantage / 200)) * rollMult(lucky, 1.3);
-
-    double essMult = BASE_ESSENCE_MULT + baseCraftBonus + bonusCraftBonus + toolQualityBonus;
-
     String newStatString = statString.replace(String.valueOf(statVal),
-        String.valueOf((int) Math.max(1, statVal * essMult)));
+        String.valueOf((int) Math.max(1, statVal * (0.8 + Math.random() * 0.2))));
 
     return createEssence(tier.getName(), essLevel, ChatColor.stripColor(newStatString));
   }
@@ -1203,9 +1195,9 @@ public final class MaterialUtil {
       if (!ChatColor.stripColor(str).startsWith("+")) {
         continue;
       }
-      net.md_5.bungee.api.ChatColor color = getHexFromString(str);
+      net.md_5.bungee.api.ChatColor color = CraftingUtil.getHexFromString(str);
       if (color != null) {
-        if (isValidStealColor(color.getColor())) {
+        if (CraftingUtil.isValidStealColor(color.getColor())) {
           validTargetStats.put(loreIndex, str);
         }
         continue;
@@ -1366,20 +1358,6 @@ public final class MaterialUtil {
     String lvlReqString = ChatColor.stripColor(TextUtils.getLore(stack).get(0));
     if (!lvlReqString.startsWith("Item Level:")) {
       return 0;
-    }
-    return getDigit(TextUtils.getLore(stack).get(0));
-  }
-
-  public static int getToolLevel(ItemStack stack) {
-    if (stack.getItemMeta() == null) {
-      return -1;
-    }
-    if (TextUtils.getLore(stack).get(0) == null) {
-      return -1;
-    }
-    String lvlReqString = ChatColor.stripColor(TextUtils.getLore(stack).get(0));
-    if (!lvlReqString.startsWith("Craft Skill Requirement:")) {
-      return -1;
     }
     return getDigit(TextUtils.getLore(stack).get(0));
   }

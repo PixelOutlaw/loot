@@ -571,9 +571,9 @@ public class LootCommand extends BaseCommand {
 
     quality = Math.min(5, Math.max(quality, 1));
 
-    for (Material m : plugin.getCraftMatManager().getCraftMaterials().keySet()) {
+    for (Material m : plugin.getCraftMaterialManager().getCraftMaterials().keySet()) {
       ItemStack itemStack = MaterialUtil.buildMaterial(m,
-          plugin.getCraftMatManager().getCraftMaterials().get(m), itemLevel, quality);
+          plugin.getCraftMaterialManager().getCraftMaterials().get(m), itemLevel, quality);
       target.getInventory().addItem(itemStack);
     }
   }

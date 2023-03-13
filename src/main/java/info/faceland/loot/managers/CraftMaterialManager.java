@@ -27,12 +27,12 @@ import java.util.Set;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-public final class LootCraftMatManager {
+public final class CraftMaterialManager {
 
   private final Map<Material, String> craftMaterials;
   private final Set<MatchMaterial> matchMaterialSet;
 
-  public LootCraftMatManager() {
+  public CraftMaterialManager() {
     matchMaterialSet = new HashSet<>();
     craftMaterials = new HashMap<>();
   }

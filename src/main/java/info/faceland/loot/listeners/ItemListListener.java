@@ -111,8 +111,8 @@ public final class ItemListListener implements Listener {
       }
       return;
     }
-    if (plugin.getCraftMatManager().getCraftMaterials().containsKey(stack.getType()) && stack
-        .hasItemMeta()) {
+    if (plugin.getCraftMaterialManager().getCraftMaterials().containsKey(stack.getType()) &&
+        stack.hasItemMeta()) {
       event.getListing().setCategory(Category.CATEGORY_4);
       event.getListing().setFlagA(FilterFlagA.FLAG_1);
       int index = 1 + (MaterialUtil.getItemLevel(stack) - 1) / 10;

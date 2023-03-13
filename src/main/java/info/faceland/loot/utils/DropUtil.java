@@ -171,7 +171,7 @@ public class DropUtil implements Listener {
 
     if (random.nextDouble() < dropMultiplier * plugin.getSettings()
         .getDouble("config.drops.craft-mat", 0D)) {
-      Object[] matArr = plugin.getCraftMatManager().getCraftMaterials().keySet().toArray();
+      Object[] matArr = plugin.getCraftMaterialManager().getCraftMaterials().keySet().toArray();
       Material m = (Material) matArr[random.nextInt(matArr.length)];
 
       int quality = 2;
@@ -182,7 +182,8 @@ public class DropUtil implements Listener {
       }
 
       double materialLevel = mobLevel - (mobLevel * 0.3 * random.nextDouble());
-      ItemStack his = MaterialUtil.buildMaterial(m, plugin.getCraftMatManager().getCraftMaterials().get(m), (int) materialLevel, quality);
+      ItemStack his = MaterialUtil.buildMaterial(m, plugin.getCraftMaterialManager()
+          .getCraftMaterials().get(m), (int) materialLevel, quality);
       his.setAmount(1 + random.nextInt(2));
 
       dropItem(event.getLocation(), his, killer, false, null, null);

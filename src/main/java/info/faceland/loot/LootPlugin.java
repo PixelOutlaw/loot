@@ -50,6 +50,7 @@ import info.faceland.loot.listeners.anticheat.*;
 import info.faceland.loot.managers.*;
 import info.faceland.loot.menu.gemcutter.GemcutterMenu;
 import info.faceland.loot.menu.pawn.PawnMenu;
+import info.faceland.loot.menu.salvage.SalvageMenu;
 import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.sockets.SocketGemBuilder;
 import info.faceland.loot.sockets.effects.LootSocketPotionEffect;
@@ -91,6 +92,8 @@ public final class LootPlugin extends FacePlugin {
   private static LootPlugin instance;
 
   private PluginLogger debugPrinter;
+
+  private MasterConfiguration settings;
   private VersionedSmartYamlConfiguration itemsYAML;
   private VersionedSmartYamlConfiguration materialsYAML;
   private VersionedSmartYamlConfiguration rarityYAML;
@@ -103,28 +106,33 @@ public final class LootPlugin extends FacePlugin {
   private VersionedSmartYamlConfiguration enchantmentTomesYAML;
   private VersionedSmartYamlConfiguration craftMaterialsYAML;
   private VersionedSmartYamlConfiguration uniqueDropsYAML;
-  private MasterConfiguration settings;
-  private ItemGroupManager itemGroupManager;
-  private TierManager tierManager;
-  private StatManager statManager;
-  private RarityManager rarityManager;
-  private LootNameManager nameManager;
-  private CustomItemManager customItemManager;
-  private SocketGemManager socketGemManager;
-  private PawnManager pawnManager;
-  private EnchantTomeManager enchantTomeManager;
-  private AnticheatManager anticheatManager;
-  private GemCacheManager gemCacheManager;
-  private LootCraftMatManager lootCraftMatManager;
-  private UniqueDropsManager uniqueDropsManager;
-  private ScrollManager scrollManager;
+
+  @Getter private ItemGroupManager itemGroupManager;
+  @Getter private TierManager tierManager;
+  @Getter private StatManager statManager;
+  @Getter private RarityManager rarityManager;
+  @Getter private LootNameManager nameManager;
+  @Getter private CustomItemManager customItemManager;
+  @Getter private SocketGemManager socketGemManager;
+  @Getter private PawnManager pawnManager;
+  @Getter private EnchantTomeManager enchantTomeManager;
+  @Getter private AnticheatManager anticheatManager;
+  @Getter private GemCacheManager gemCacheManager;
+  @Getter private CraftMaterialManager craftMaterialManager;
+  @Getter private UniqueDropsManager uniqueDropsManager;
+  @Getter private SalvageManager salvageManager;
+  @Getter private ScrollManager scrollManager;
+
   private StrifePlugin strifePlugin;
+
   private PlayerPointsAPI playerPointsAPI;
 
   private BukkitTask checkDealsTask;
 
   @Getter
   private GemcutterMenu gemcutterMenu;
+  @Getter
+  private SalvageMenu salvageMenu;
 
   public static LootPlugin getInstance() {
     return instance;
@@ -169,11 +177,13 @@ public final class LootPlugin extends FacePlugin {
     if (potionTriggersEnabled) {
       gemCacheManager = new LootGemCacheManager(this);
     }
-    lootCraftMatManager = new LootCraftMatManager();
+    craftMaterialManager = new CraftMaterialManager();
     uniqueDropsManager = new LootUniqueDropsManager();
+    salvageManager = new SalvageManager(this);
     scrollManager = new ScrollManager();
 
     gemcutterMenu = new GemcutterMenu(this);
+    salvageMenu = new SalvageMenu(this);
 
     setupPlayerPoints();
 
@@ -228,7 +238,6 @@ public final class LootPlugin extends FacePlugin {
     Bukkit.getPluginManager().registerEvents(new EntityDeathListener(this), this);
     Bukkit.getPluginManager().registerEvents(new CombinerListener(this), this);
     Bukkit.getPluginManager().registerEvents(new InteractListener(this), this);
-    Bukkit.getPluginManager().registerEvents(new DeconstructListener(this), this);
     Bukkit.getPluginManager().registerEvents(new CraftingListener(this), this);
     Bukkit.getPluginManager().registerEvents(new PreCraftListener(this), this);
     Bukkit.getPluginManager().registerEvents(new AnticheatListener(this), this);
@@ -240,6 +249,7 @@ public final class LootPlugin extends FacePlugin {
     Bukkit.getPluginManager().registerEvents(new HeadHelmetsListener(), this);
     Bukkit.getPluginManager().registerEvents(new SoulGemListener(), this);
     Bukkit.getPluginManager().registerEvents(new PawnMenuListener(this), this);
+    Bukkit.getPluginManager().registerEvents(new SalvageMenuListener(this), this);
     Bukkit.getPluginManager().registerEvents(new ItemSpawnListener(), this);
     if (potionTriggersEnabled) {
       Bukkit.getPluginManager().registerEvents(new SocketsListener(gemCacheManager), this);
@@ -572,7 +582,7 @@ public final class LootPlugin extends FacePlugin {
     for (String key : validSection.getKeys(false)) {
       String name = validSection.getString(key);
       Material material = Material.valueOf(key);
-      getCraftMatManager().addCraftMaterial(material, name);
+      getCraftMaterialManager().addCraftMaterial(material, name);
     }
     ConfigurationSection deconstructSection = craftMaterialsYAML
         .getConfigurationSection("deconstruct-overrides");
@@ -589,7 +599,7 @@ public final class LootPlugin extends FacePlugin {
         for (String mat : section.getStringList("results")) {
           MatchMaterial.addResult(data, Material.valueOf(mat));
         }
-        getCraftMatManager().addDeconstructData(data);
+        getCraftMaterialManager().addDeconstructData(data);
       }
     }
   }
@@ -734,68 +744,12 @@ public final class LootPlugin extends FacePlugin {
     return new LootEnchantmentTomeBuilder(name);
   }
 
-  public TierManager getTierManager() {
-    return tierManager;
-  }
-
-  public StatManager getStatManager() {
-    return statManager;
-  }
-
-  public RarityManager getRarityManager() {
-    return rarityManager;
-  }
-
-  public ItemGroupManager getItemGroupManager() {
-    return itemGroupManager;
-  }
-
-  public LootNameManager getNameManager() {
-    return nameManager;
-  }
-
   public MasterConfiguration getSettings() {
     return settings;
   }
 
   public VersionedSmartYamlConfiguration getConfigYAML() {
     return configYAML;
-  }
-
-  public CustomItemManager getCustomItemManager() {
-    return customItemManager;
-  }
-
-  public SocketGemManager getSocketGemManager() {
-    return socketGemManager;
-  }
-
-  public PawnManager getPawnManager() {
-    return pawnManager;
-  }
-
-  public EnchantTomeManager getEnchantTomeManager() {
-    return enchantTomeManager;
-  }
-
-  public AnticheatManager getAnticheatManager() {
-    return anticheatManager;
-  }
-
-  public GemCacheManager getGemCacheManager() {
-    return gemCacheManager;
-  }
-
-  public LootCraftMatManager getCraftMatManager() {
-    return lootCraftMatManager;
-  }
-
-  public UniqueDropsManager getUniqueDropsManager() {
-    return uniqueDropsManager;
-  }
-
-  public ScrollManager getScrollManager() {
-    return scrollManager;
   }
 
   public PlayerPointsAPI getPlayerPointsAPI() {
