@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.PlayerDataUtil;
 import ninja.amp.ampmenus.menus.ItemMenu;
 import org.bukkit.ChatColor;
@@ -228,8 +229,9 @@ public class EnchantMenu extends ItemMenu {
       }
       if (StringUtils.isNotBlank(tome.getStat())) {
         int itemLevel = MaterialUtil.getLevelRequirement(selectedEquipment);
-        double enchantLevel = PlayerDataUtil.getEffectiveLifeSkill(player, LifeSkillType.ENCHANTING, true);
-        double effectiveLevel = Math.max(1, Math.min(enchantLevel, itemLevel));
+        SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.ENCHANTING, true);
+        double enchantLevel = data.getLevel();
+        double effectiveLevel = data.getLevelWithBonus();
         ItemStat stat = LootPlugin.getInstance().getStatManager().getStat(tome.getStat());
         double rarityBonus = MaterialUtil.getBaseEnchantBonus(enchantLevel);
 

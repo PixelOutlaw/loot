@@ -23,6 +23,7 @@ import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.send
 import com.destroystokyo.paper.Namespaced;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.acf.BaseCommand;
 import com.tealcube.minecraft.bukkit.shade.acf.annotation.CommandAlias;
@@ -596,6 +597,12 @@ public class LootCommand extends BaseCommand {
     }
     EnchantMenu menu = new EnchantMenu(plugin);
     menu.open(target.getPlayer());
+  }
+
+  @Subcommand("dumb")
+  @CommandPermission("loot.upgrade")
+  public void dumb(Player sender, String shit) {
+    ItemStackExtensionsKt.setDisplayName(sender.getEquipment().getItemInMainHand(), PaletteUtil.color(shit));
   }
 
   @Subcommand("pawn")

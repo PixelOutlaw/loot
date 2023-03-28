@@ -1,9 +1,13 @@
 package info.faceland.loot.utils;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import info.faceland.loot.data.CraftToolData;
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.bukkit.ChatColor;
 
 public class CraftingUtil {
 
@@ -28,6 +32,28 @@ public class CraftingUtil {
       return net.md_5.bungee.api.ChatColor.of(str);
     }
     return null;
+  }
+
+  public static List<String> getPossibleStats(List<String> lore) {
+    List<String> possibleStats = new ArrayList<>();
+    for (String s : lore) {
+      if (!ChatColor.stripColor(s).startsWith("+")) {
+        continue;
+      }
+      net.md_5.bungee.api.ChatColor color = CraftingUtil.getHexFromString(s);
+      if (color != null) {
+        if (CraftingUtil.isValidStealColor(color.getColor())) {
+          possibleStats.add(s);
+        }
+        continue;
+      }
+      if (s.startsWith(ChatColor.GREEN + "") || s.startsWith(ChatColor.YELLOW + "")) {
+        possibleStats.add(s);
+      } else if (s.startsWith(FaceColor.LIGHT_GREEN.s()) || s.startsWith(FaceColor.YELLOW.s())) {
+        possibleStats.add(s);
+      }
+    }
+    return possibleStats;
   }
 
 }

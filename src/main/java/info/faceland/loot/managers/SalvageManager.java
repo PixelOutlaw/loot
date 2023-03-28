@@ -16,6 +16,7 @@ import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.PlayerDataUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -63,7 +64,8 @@ public class SalvageManager {
       return;
     }
     int itemLevel = getLevelRequirement(selectedStack);
-    int craftingLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.CRAFTING);
+    SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
+    int craftingLevel = data.getLevel();
 
     if (craftingLevel + 10 < itemLevel) {
       sendMessage(player, plugin.getSettings().getString("language.craft.low-level", ""));
@@ -78,30 +80,12 @@ public class SalvageManager {
       return;
     }
 
-    float effectiveCraftLevel = (float) PlayerDataUtil
-        .getEffectiveLifeSkill(player, LifeSkillType.CRAFTING, true);
+    float effectiveCraftLevel = data.getLevelWithBonus();
     double levelAdvantage = Math.max(0, craftingLevel - itemLevel);
     float effectiveLevelAdvantage = Math.max(0f, effectiveCraftLevel - itemLevel);
 
     List<String> lore = TextUtils.getLore(selectedStack);
-    List<String> possibleStats = new ArrayList<>();
-    for (String s : lore) {
-      if (!ChatColor.stripColor(s).startsWith("+")) {
-        continue;
-      }
-      net.md_5.bungee.api.ChatColor color = CraftingUtil.getHexFromString(s);
-      if (color != null) {
-        if (CraftingUtil.isValidStealColor(color.getColor())) {
-          possibleStats.add(s);
-        }
-        continue;
-      }
-      if (s.startsWith(ChatColor.GREEN + "") || s.startsWith(ChatColor.YELLOW + "")) {
-        possibleStats.add(s);
-      } else if (s.startsWith(FaceColor.LIGHT_GREEN.s()) || s.startsWith(FaceColor.YELLOW.s())) {
-        possibleStats.add(s);
-      }
-    }
+    List<String> possibleStats = CraftingUtil.getPossibleStats(lore);
 
     ItemStack materialDetectionItem = selectedStack.clone();
     materialDetectionItem.setDurability((short) 0);

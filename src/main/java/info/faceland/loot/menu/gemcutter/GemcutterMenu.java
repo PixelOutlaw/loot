@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.ItemUtil;
 import land.face.strife.util.PlayerDataUtil;
 import ninja.amp.ampmenus.menus.ItemMenu;
@@ -55,7 +56,7 @@ public class GemcutterMenu extends ItemMenu {
     setItem(13, new CutConfirmIcon(this));
     setItem(14, new CutConfirmIcon(this));
 
-    setItem(16, new TransparentIcon(FaceColor.TAN + "I made a crazy risk, a gamble, and it's about to pay off"));
+    setItem(16, new TransparentIcon(FaceColor.BROWN + "I made a crazy risk, a gamble, and it's about to pay off"));
   }
 
   public ItemStack getSelectedStack(Player player) {
@@ -80,15 +81,15 @@ public class GemcutterMenu extends ItemMenu {
     }
     int itemLevel = Integer.parseInt(ChatColor.stripColor(TextUtils.getLore(selectedStack).get(0))
         .replace("Item Level: ", ""));
-    int craftingLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.CRAFTING);
+    SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
+    int craftingLevel = data.getLevel();
     if (craftingLevel + 10 < itemLevel) {
       MessageUtils.sendMessage(player, "&e[!] You need &fCrafting " + (itemLevel - 10) +
           " &eto do this!");
       player.playSound(player.getLocation(), Sound.BLOCK_GRINDSTONE_USE, 1, 0.8f);
       return;
     }
-    float effectiveCraftLevel = (float) PlayerDataUtil.getEffectiveLifeSkill(player,
-        LifeSkillType.CRAFTING, false);
+    float effectiveCraftLevel = data.getLevelWithBonus();
     int modelData = ItemUtil.getCustomData(selectedStack);
     Material material = Material.DIAMOND;
     String name = "Diamond";

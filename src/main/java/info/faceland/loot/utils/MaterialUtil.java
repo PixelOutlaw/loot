@@ -61,6 +61,7 @@ import land.face.dinvy.events.EquipmentUpdateEvent;
 import land.face.dinvy.pojo.PlayerData;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.ItemUtil;
 import land.face.strife.util.PlayerDataUtil;
 import org.bukkit.Bukkit;
@@ -161,7 +162,7 @@ public final class MaterialUtil {
     success -= scroll.getFlatDecay() * targetPlus;
     success *= 1 - (scroll.getPercentDecay() * targetPlus);
     success = Math.pow(success, scroll.getExponent());
-    success += PlayerDataUtil.getEffectiveLifeSkill(player, LifeSkillType.ENCHANTING, true) * 0.001;
+    success += PlayerDataUtil.getSkillLevels(player, LifeSkillType.ENCHANTING, true).getLevelWithBonus() * 0.01;
     if (success <= 1) {
       success += (1 - success) * getFailureMod(getFailureBonus(scrollStack));
     }
@@ -477,7 +478,8 @@ public final class MaterialUtil {
     }
 
     int itemLevel = getItemLevel(item);
-    double rawLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.ENCHANTING);
+    SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.ENCHANTING, true);
+    double rawLevel = data.getLevel();
 
     if (EnchantMenu.getEnhanceRequirement(itemLevel) > rawLevel) {
       MessageUtils.sendMessage(player, "&eYour enchanting level is too low!");
@@ -493,8 +495,7 @@ public final class MaterialUtil {
         .or(CharMatcher.is('-')).retainFrom(enchantmentStatString));
 
     itemLevel = Math.max(1, Math.min(100, itemLevel));
-    double enchantingLevel = PlayerDataUtil.getEffectiveLifeSkill(player,
-        LifeSkillType.ENCHANTING, true);
+    double enchantingLevel = data.getLevelWithBonus();
 
     double enchantingBonus = Math.min(2.5, Math.max(1, enchantingLevel / itemLevel));
     float enhanceRoll = 0.1f + 0.2f * (float) Math.pow(Math.random(), 1.25);
@@ -739,7 +740,7 @@ public final class MaterialUtil {
     lore.remove(index);
 
     double enchantSkill = PlayerDataUtil
-        .getEffectiveLifeSkill(player, LifeSkillType.ENCHANTING, true);
+        .getSkillLevels(player, LifeSkillType.CRAFTING, true).getLevelWithBonus();
 
     List<String> added = new ArrayList<>();
     if (!tome.getLore().isEmpty()) {

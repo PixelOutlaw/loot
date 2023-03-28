@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import lombok.Getter;
 import ninja.amp.ampmenus.menus.ItemMenu;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -52,8 +51,7 @@ public class SalvageMenu extends ItemMenu {
     setItem(6, new ToolIcon(this));
 
     setItem(12, new SalvageConfirmIcon(this));
-    setItem(13, new SalvageConfirmIcon(this));
-    setItem(14, new SalvageConfirmIcon(this));
+    setItem(14, new CancelIcon());
   }
 
   public ItemStack getEquipment(Player player) {

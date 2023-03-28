@@ -34,6 +34,7 @@ import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.regex.Pattern;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.PlayerDataUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -174,9 +175,9 @@ public final class CraftingListener implements Listener {
       return;
     }
 
-    int craftingLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.CRAFTING);
-    double effectiveCraftLevel = PlayerDataUtil.getEffectiveLifeSkill(player,
-        LifeSkillType.CRAFTING, true);
+    SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
+    int craftingLevel = data.getLevel();
+    double effectiveCraftLevel = data.getLevelWithBonus();
 
     CraftResultData crData = new CraftResultData(event.getInventory().getMatrix(), resultStack);
 

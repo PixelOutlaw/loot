@@ -36,6 +36,7 @@ import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.PlayerDataUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -228,9 +229,9 @@ public final class PreCraftListener implements Listener {
 
     ItemStack result = recipe.getResult().clone();
 
-    int craftingLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.CRAFTING);
-    double effectiveCraftLevel = PlayerDataUtil.getEffectiveLifeSkill(player,
-        LifeSkillType.CRAFTING, true);
+    SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
+    int craftingLevel = data.getLevel();
+    double effectiveCraftLevel = data.getLevelWithBonus();
 
     CraftResultData crData = new CraftResultData(craftingInventory.getMatrix(), result);
 
