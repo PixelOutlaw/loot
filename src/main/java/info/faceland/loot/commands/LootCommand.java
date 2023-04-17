@@ -65,7 +65,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import land.face.dinvy.DeluxeInvyPlugin;
-import land.face.dinvy.pojo.PlayerData;
+import land.face.dinvy.entity.PlayerData;
 import land.face.dinvy.windows.equipment.EquipmentMenu.DeluxeSlot;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;

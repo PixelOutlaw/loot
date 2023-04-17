@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import land.face.strife.data.champion.LifeSkillType;
 import lombok.Getter;
 import lombok.Setter;
 import ninja.amp.ampmenus.menus.ItemMenu;

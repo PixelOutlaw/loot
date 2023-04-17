@@ -101,12 +101,18 @@ public class PawnManager {
       return new PriceData(amount * price, false);
     }
     if (MaterialUtil.getTierFromStack(stack) != null) {
-      boolean unique = TextUtils.getLore(stack).get(1).contains("Unique");
+      boolean cool = false;
+      List<String> lore = TextUtils.getLore(stack);
+      if (lore.size() > 1 && (lore.get(1).contains("\uD86D\uDFEA") ||
+          lore.get(1).contains("\uD86D\uDFE9") ||
+          lore.get(1).contains("\uD86D\uDFE8"))) {
+        cool = true;
+      }
       double itemLevel = MaterialUtil.getLevelRequirement(stack);
       int itemPlus = MaterialUtil.getUpgradeLevel(ItemStackExtensionsKt.getDisplayName(stack));
       price = (int) (baseEquipmentPrice + itemLevel * equipPricePerLevel);
       price *= Math.pow(1.1, itemPlus);
-      return new PriceData(amount * price, itemPlus > 4 || unique);
+      return new PriceData(amount * price, itemPlus > 4 || cool);
     }
     if (stack.getType() == Material.KELP) {
       int rarity = MaterialUtil.getItemRarity(stack);

@@ -55,10 +55,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Pattern;
+import land.face.dinvy.entity.PlayerData;
 import land.face.dinvy.events.EquipmentUpdateEvent;
-import land.face.dinvy.pojo.PlayerData;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.data.pojo.SkillLevelData;
@@ -72,8 +71,6 @@ import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -162,7 +159,7 @@ public final class MaterialUtil {
     success -= scroll.getFlatDecay() * targetPlus;
     success *= 1 - (scroll.getPercentDecay() * targetPlus);
     success = Math.pow(success, scroll.getExponent());
-    success += PlayerDataUtil.getSkillLevels(player, LifeSkillType.ENCHANTING, true).getLevelWithBonus() * 0.01;
+    success += PlayerDataUtil.getSkillLevels(player, LifeSkillType.ENCHANTING, true).getLevelWithBonus() * 0.001;
     if (success <= 1) {
       success += (1 - success) * getFailureMod(getFailureBonus(scrollStack));
     }
@@ -760,7 +757,7 @@ public final class MaterialUtil {
     if (tome.getBar()) {
       double skillRatio = Math.min(1, enchantSkill / 100);
       double roll = skillRatio * Math.random() + (1 - skillRatio) * Math.pow(Math.random(), 2.5);
-      double size = 8 + 22 * roll;
+      double size = 14 + 20 * roll;
       added.add(buildEnchantmentBar((int) size, (int) size).getLeft());
     }
 

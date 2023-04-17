@@ -22,7 +22,7 @@ import info.faceland.loot.LootPlugin;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.utils.MaterialUtil;
 import land.face.dinvy.DeluxeInvyPlugin;
-import land.face.dinvy.pojo.PlayerData;
+import land.face.dinvy.entity.PlayerData;
 import land.face.dinvy.windows.equipment.EquipmentMenu.DeluxeSlot;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
