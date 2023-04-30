@@ -19,41 +19,27 @@
 package info.faceland.loot.menu.pawn;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
-import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.data.PawnDeal;
+import info.faceland.loot.data.PawnShopType;
 import info.faceland.loot.data.PriceData;
 import info.faceland.loot.data.SaleRewards;
-import info.faceland.loot.events.PawnDealCreateEvent;
 import info.faceland.loot.menu.TransparentIcon;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import lombok.Getter;
-import lombok.Setter;
 import ninja.amp.ampmenus.menus.ItemMenu;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class PawnMenu extends ItemMenu {
 
+  @Getter
   private final LootPlugin plugin;
-
-  private static PawnMenu mainPawnMenu;
-  private static final Map<String, PawnMenu> pawnMenuPool = new HashMap<>();
+  @Getter
+  private String dealId = null;
 
   private final List<SaleIcon> saleIcons = new ArrayList<>();
-  @Getter
-  private String dealId;
-  @Getter @Setter
-  private PawnDeal dealOne;
-  @Getter @Setter
-  private PawnDeal dealTwo;
-  @Getter @Setter
-  private PawnDeal dealThree;
 
   public PawnMenu(LootPlugin plugin) {
     super(TextUtils.color(plugin.getSettings().getString("language.menu.pawn.name")), Size.fit(35), plugin);
@@ -67,7 +53,6 @@ public class PawnMenu extends ItemMenu {
     setItem(31, new SellIcon(this));
     setItem(32, new SellIcon(this));
     fillEmptySlots(new TransparentIcon());
-    mainPawnMenu = this;
   }
 
   public PawnMenu(LootPlugin plugin, String dealId) {
@@ -92,57 +77,6 @@ public class PawnMenu extends ItemMenu {
     setItem(26, new DealIcon(this, 3));
 
     fillEmptySlots(new TransparentIcon());
-    pawnMenuPool.put(dealId, this);
-    checkDealChange();
-  }
-
-  public static void checkAll() {
-    for (PawnMenu menu : pawnMenuPool.values()) {
-      menu.checkDealChange();
-    }
-  }
-
-  public void checkDealChange() {
-    boolean update = false;
-    if (dealOne == null || dealOne.getMinutesRemaining() == 0) {
-      PawnDealCreateEvent event = new PawnDealCreateEvent(dealId, 1);
-      Bukkit.getPluginManager().callEvent(event);
-      if (event.getResult() != null) {
-        dealOne = event.getResult();
-        dealOne.setMinutesRemaining(4 + (int) (Math.random() * 3.5));
-        update = true;
-      }
-    }
-    else {
-      dealOne.setMinutesRemaining(dealOne.getMinutesRemaining() - 1);
-    }
-    if (dealTwo == null || dealTwo.getMinutesRemaining() == 0) {
-      PawnDealCreateEvent event = new PawnDealCreateEvent(dealId, 2);
-      Bukkit.getPluginManager().callEvent(event);
-      if (event.getResult() != null) {
-        dealTwo = event.getResult();
-        dealTwo.setMinutesRemaining(8 + (int) (Math.random() * 4.5));
-        update = true;
-      }
-    } else {
-      dealTwo.setMinutesRemaining(dealTwo.getMinutesRemaining() - 1);
-    }
-    if (dealThree == null || dealThree.getMinutesRemaining() == 0) {
-      PawnDealCreateEvent event = new PawnDealCreateEvent(dealId, 3);
-      Bukkit.getPluginManager().callEvent(event);
-      if (event.getResult() != null) {
-        dealThree = event.getResult();
-        dealThree.setMinutesRemaining(17 + (int) (Math.random() * 7.5));
-        update = true;
-      }
-    } else {
-      dealThree.setMinutesRemaining(dealThree.getMinutesRemaining() - 1);
-    }
-    if (update) {
-      for (Player p : Bukkit.getOnlinePlayers()) {
-        update(p);
-      }
-    }
   }
 
   public List<ItemStack> getReturnStacks() {
@@ -179,12 +113,13 @@ public class PawnMenu extends ItemMenu {
       }
       double amount = saleIcon.getPrice();
       if (dealId != null) {
-        if (dealOne.matches(saleIcon.getTargetStack())) {
-          amount *= dealOne.getMultiplier();
-        } else if (dealTwo.matches(saleIcon.getTargetStack())) {
-          amount *= dealTwo.getMultiplier();
-        } else if (dealThree.matches(saleIcon.getTargetStack())) {
-          amount *= dealThree.getMultiplier();
+        PawnShopType type = plugin.getPawnManager().getPawnTypes().get(dealId);
+        if (type.getDealOne().matches(saleIcon.getTargetStack())) {
+          amount *= type.getDealOne().getMultiplier();
+        } else if (type.getDealTwo().matches(saleIcon.getTargetStack())) {
+          amount *= type.getDealTwo().getMultiplier();
+        } else if (type.getDealThree().matches(saleIcon.getTargetStack())) {
+          amount *= type.getDealThree().getMultiplier();
         }
       }
       total += amount;
@@ -214,33 +149,22 @@ public class PawnMenu extends ItemMenu {
     double tradeXp = 0;
     int stackQuantity = saleIcon.getTargetStack().getAmount();
     if (dealId != null) {
-      if (dealOne.matches(saleIcon.getTargetStack())) {
-        amount *= dealOne.getMultiplier();
-        tradeXp += dealOne.getTradeXp() * stackQuantity;
-      } else if (dealTwo.matches(saleIcon.getTargetStack())) {
-        amount *= dealTwo.getMultiplier();
-        tradeXp += dealTwo.getTradeXp() * stackQuantity;
-      } else if (dealThree.matches(saleIcon.getTargetStack())) {
-        amount *= dealThree.getMultiplier();
-        tradeXp += dealThree.getTradeXp() * stackQuantity;
+      PawnShopType type = plugin.getPawnManager().getPawnTypes().get(dealId);
+      if (type.getDealOne().matches(saleIcon.getTargetStack())) {
+        amount *= type.getDealOne().getMultiplier();
+        tradeXp += type.getDealOne().getTradeXp() * stackQuantity;
+      } else if (type.getDealTwo().matches(saleIcon.getTargetStack())) {
+        amount *= type.getDealTwo().getMultiplier();
+        tradeXp += type.getDealTwo().getTradeXp() * stackQuantity;
+      } else if (type.getDealThree().matches(saleIcon.getTargetStack())) {
+        amount *= type.getDealThree().getMultiplier();
+        tradeXp += type.getDealThree().getTradeXp() * stackQuantity;
       }
     }
     saleIcon.setPrice(0);
     saleIcon.setTargetStack(null);
     saleIcon.setCheckRare(false);
     return new SaleRewards(amount, tradeXp);
-  }
-
-  public static PawnMenu getPawnMenu(String dealId) {
-    if (StringUtils.isBlank(dealId)) {
-      return mainPawnMenu;
-    }
-    return pawnMenuPool.get(dealId);
-  }
-
-  public static void clearPool() {
-    mainPawnMenu = null;
-    pawnMenuPool.clear();
   }
 }
 

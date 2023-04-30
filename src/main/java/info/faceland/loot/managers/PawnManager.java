@@ -1,10 +1,13 @@
 package info.faceland.loot.managers;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
+import info.faceland.loot.data.PawnShopType;
 import info.faceland.loot.data.PriceData;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.enchantments.EnchantmentTome;
+import info.faceland.loot.menu.pawn.PawnMenu;
 import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -15,11 +18,13 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import land.face.strife.util.ItemUtil;
+import lombok.Getter;
 import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class PawnManager {
@@ -35,6 +40,8 @@ public class PawnManager {
   private double tomeWeightHalf;
   private double scrollWeightHalf;
 
+  @Getter
+  private Map<String, PawnShopType> pawnTypes = new HashMap<>();
   private Map<Material, Double> materialPrices = new HashMap<>();
   private Map<String, Double> namedPrices = new HashMap<>();
 
@@ -61,6 +68,8 @@ public class PawnManager {
 
     loadMaterialPrices();
     loadNamePrices();
+
+    pawnTypes.put("fishmonger", new PawnShopType("fishmonger"));
   }
 
   public PriceData getPrice(ItemStack stack) {
@@ -137,6 +146,19 @@ public class PawnManager {
       return new PriceData(amount * materialPrices.get(stack.getType()).intValue(), false);
     }
     return new PriceData(-1, false);
+  }
+
+  public PawnMenu getPawnMenu(String dealId) {
+    if (StringUtils.isBlank(dealId)) {
+      return new PawnMenu(plugin);
+    }
+    return new PawnMenu(plugin, dealId);
+  }
+
+  public void checkAll() {
+    for (PawnShopType type : pawnTypes.values()) {
+      type.checkDealChange();
+    }
   }
 
   public void loadMaterialPrices() {

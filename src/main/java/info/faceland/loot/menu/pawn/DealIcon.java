@@ -21,6 +21,7 @@ package info.faceland.loot.menu.pawn;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.data.PawnDeal;
+import info.faceland.loot.data.PawnShopType;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -46,10 +47,11 @@ public class DealIcon extends MenuItem {
 
   @Override
   public ItemStack getFinalIcon(Player player) {
+    PawnShopType type = menu.getPlugin().getPawnManager().getPawnTypes().get(menu.getDealId());
     PawnDeal deal = switch (slot) {
-      case 1 -> menu.getDealOne();
-      case 2 -> menu.getDealTwo();
-      case 3 -> menu.getDealThree();
+      case 1 -> type.getDealOne();
+      case 2 -> type.getDealTwo();
+      case 3 -> type.getDealThree();
       default -> null;
     };
     if (deal == null) {

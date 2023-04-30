@@ -61,7 +61,8 @@ public final class CraftingListener implements Listener {
   private final double CRAFT_EXP;
   private final double CRAFT_LEVEL_MULT;
   private final double CRAFT_QUALITY_MULT;
-  private final float MAX_QUALITY;
+  private final float
+      MAX_QUALITY;
 
   private final ItemMeta dupeStatMeta;
   private final ItemMeta powerfulEssenceMeta;
@@ -190,17 +191,17 @@ public final class CraftingListener implements Listener {
     }
 
     int itemLevel = (int) Math.max(1, Math.min(100, crData.getItemLevel() - random.nextInt(4)));
-    float effectiveLevelAdvantage = (float) Math.max(0, effectiveCraftLevel - crData.getItemLevel());
+    float effectiveLevelAdvantage = (float) Math.max(-8, effectiveCraftLevel - crData.getItemLevel());
 
-    float minRarityFromLevel = Math.min(3, effectiveLevelAdvantage / 20);
-    float minRarityFromQuality = Math.max(-1, Math.min(3, crData.getQuality() - 2));
+    float minRarityFromLevel = Math.min(3, (8 + effectiveLevelAdvantage) / 8);
+    float minRarityFromQuality = Math.max(0, Math.min(3, crData.getQuality() - 1));
     float minRarity = (minRarityFromLevel + minRarityFromQuality) / 2;
     minRarity = Math.min(MAX_QUALITY, Math.max(0f, minRarity));
 
     BuiltItem builtItem = plugin.getNewItemBuilder()
         .withTier(tier)
         .withRarity(plugin.getRarityManager().getRandomRarityWithMinimum(minRarity))
-        .withSlotScore(crData.openSlotChance(effectiveLevelAdvantage))
+        .withSlotScore(crData.openSlotChance(Math.max(0, effectiveLevelAdvantage)))
         .withEnchantable(craftingLevel >= 10 || random.nextFloat() < 0.15)
         .withExtendSlots(random.nextFloat() < MaterialUtil.getExtendChance(craftingLevel) ? 1 : 0)
         .withAlwaysEssence(craftingLevel > 85)

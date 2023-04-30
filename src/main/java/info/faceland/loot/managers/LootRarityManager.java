@@ -75,7 +75,7 @@ public class LootRarityManager implements RarityManager {
 
   @Override
   public ItemRarity getRandomRarityWithMinimum(double minimum) {
-    double amount = Math.floor(minimum);
+    int amount = (int) Math.floor(minimum);
     if (Math.random() < minimum % 1) {
       amount++;
     }
@@ -146,7 +146,7 @@ public class LootRarityManager implements RarityManager {
   }
 
   private double getTotalRarityWeightWithMinimum(double minimum) {
-    double weight = 0;
+    int weight = (int) Math.floor(minimum);
     for (ItemRarity rarity : getLoadedRarities().values()) {
       if (rarity.getPower() < minimum) {
         continue;

@@ -19,8 +19,8 @@
 package info.faceland.loot.menu.pawn;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
-import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import info.faceland.loot.data.PawnShopType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,14 +57,15 @@ public class SaleIcon extends MenuItem {
     double displayPrice = price;
     boolean bonus = false;
     if (menu.getDealId() != null) {
-      if (menu.getDealOne().matches(targetStack)) {
-        displayPrice *= menu.getDealOne().getMultiplier();
+      PawnShopType type = menu.getPlugin().getPawnManager().getPawnTypes().get(menu.getDealId());
+      if (type.getDealOne().matches(targetStack)) {
+        displayPrice *= type.getDealOne().getMultiplier();
         bonus = true;
-      } else if (menu.getDealTwo().matches(targetStack)) {
-        displayPrice *= menu.getDealTwo().getMultiplier();
+      } else if (type.getDealTwo().matches(targetStack)) {
+        displayPrice *= type.getDealTwo().getMultiplier();
         bonus = true;
-      } else if (menu.getDealThree().matches(targetStack)) {
-        displayPrice *= menu.getDealThree().getMultiplier();
+      } else if (type.getDealThree().matches(targetStack)) {
+        displayPrice *= type.getDealThree().getMultiplier();
         bonus = true;
       }
     }

@@ -51,7 +51,10 @@ public class ScrollManager {
       return null;
     }
     String name = ItemStackExtensionsKt.getDisplayName(stack);
-    if (StringUtils.isBlank(name) || !name.endsWith("Upgrade Scroll")) {
+    if (StringUtils.isBlank(name)) {
+      return null;
+    }
+    if (!name.endsWith("Upgrade Scroll")) {
       return null;
     }
     name = ChatColor.stripColor(name);

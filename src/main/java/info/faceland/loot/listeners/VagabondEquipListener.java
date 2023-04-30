@@ -1,15 +1,15 @@
 /**
  * The MIT License Copyright (c) 2015 Teal Cube Games
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
  * including without limitation the rights to use, copy, modify, merge, publish, distribute,
  * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in all copies or
  * substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
  * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
  * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
@@ -18,28 +18,29 @@
  */
 package info.faceland.loot.listeners;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.ItemRarity;
-import info.faceland.loot.items.LootCustomItem;
 import info.faceland.loot.tier.Tier;
 import info.faceland.loot.utils.DropUtil;
 import info.faceland.loot.utils.InventoryUtil;
+import info.faceland.loot.utils.MaterialUtil;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import java.util.WeakHashMap;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.StrifeMob;
 import land.face.strife.events.VagabondEquipEvent;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.LivingEntity;
@@ -55,14 +56,16 @@ import org.bukkit.inventory.meta.ItemMeta;
 public final class VagabondEquipListener implements Listener {
 
   private final LootPlugin plugin;
-  private final Map<LivingEntity, AnnounceData> dropData = new WeakHashMap<>();
+  private final String itemFoundFormat;
   private final Map<String, VagabondData> vagabondData = new HashMap<>();
+  private final Map<LivingEntity, Boolean> vagabonds = new WeakHashMap<>();
   private final float vagabondUniqueChance;
 
   private final Random random = new Random();
 
   public VagabondEquipListener(LootPlugin plugin) {
     this.plugin = plugin;
+    itemFoundFormat = plugin.getSettings().getString("language.broadcast.found-item", "");
     vagabondUniqueChance = (float) plugin.getSettings()
         .getDouble("config.vagabond-unique-chance", 0);
   }
@@ -73,7 +76,6 @@ public final class VagabondEquipListener implements Listener {
       return;
     }
     VagabondData data = vagabondData.get(event.getCombatClass());
-    List<EquipmentSlot> announceSlots = new ArrayList<>();
     for (EquipmentSlot slot : EquipmentSlot.values()) {
       int upgradeLevel = 3;
       while (upgradeLevel < 15 && random.nextFloat() < 0.5) {
@@ -84,9 +86,6 @@ public final class VagabondEquipListener implements Listener {
         List<CustomItem> potentialItems = buildPotentialItems(data, slot, event.getLevel());
         if (potentialItems.size() > 1) {
           CustomItem customItem = selectItemByWeight(potentialItems);
-          if (customItem.isBroadcast()) {
-            announceSlots.add(slot);
-          }
           item = customItem.toItemStack(1);
         }
       }
@@ -105,53 +104,53 @@ public final class VagabondEquipListener implements Listener {
             .withCreator(null)
             .build()
             .getStack();
-        if (rarity.isBroadcast()) {
-          announceSlots.add(slot);
-        }
       }
       DropUtil.upgradeItem(item, upgradeLevel);
-      if (upgradeLevel >= 10) {
-        announceSlots.add(slot);
-      }
-
       ItemMeta m = item.getItemMeta();
       m.setUnbreakable(true);
       item.setItemMeta(m);
       event.getLivingEntity().getEquipment().setItem(slot, item);
       event.getLivingEntity().getEquipment().setDropChance(slot, 0f);
     }
-    dropData.put(event.getLivingEntity(), new AnnounceData(announceSlots));
+    vagabonds.put(event.getLivingEntity(), true);
   }
 
   @EventHandler(priority = EventPriority.LOW)
   public void onVagabondDeath(EntityDeathEvent event) {
-    if (dropData.containsKey(event.getEntity())) {
-
-      StrifeMob mob = StrifePlugin.getInstance().getStrifeMobManager()
-          .getStatMob(event.getEntity());
-      Player killer = mob.getTopDamager();
+    if (!vagabonds.containsKey(event.getEntity())) {
+      return;
+    }
+    StrifeMob mob = StrifePlugin.getInstance().getStrifeMobManager()
+        .getStatMob(event.getEntity());
+    Player killer = mob.getTopDamager();
+    if (killer == null) {
+      killer = event.getEntity().getKiller();
       if (killer == null) {
-        killer = event.getEntity().getKiller();
-        if (killer == null) {
-          event.getDrops().clear();
-          return;
-        }
+        event.getDrops().clear();
+        return;
       }
+    }
 
-      for (EquipmentSlot slot : EquipmentSlot.values()) {
-        ItemStack stack = event.getEntity().getEquipment().getItem(slot);
-        if (stack == null || stack.getType() == Material.AIR) {
-          continue;
-        }
-        ItemMeta m = stack.getItemMeta();
-        m.setUnbreakable(false);
-        stack.setItemMeta(m);
-        event.getEntity().getLocation().getWorld()
-            .dropItemNaturally(event.getEntity().getLocation(), stack);
-        if (dropData.get(event.getEntity()).getAnnounceSlots().contains(slot)) {
-          InventoryUtil.sendToDiscord(killer, event.getEntity().getEquipment().getItem(slot),
-              "broadcast", true);
-        }
+    for (EquipmentSlot slot : EquipmentSlot.values()) {
+      if (Math.random() > 0.3) {
+        continue;
+      }
+      ItemStack stack = event.getEntity().getEquipment().getItem(slot);
+      if (stack == null || stack.getType() == Material.AIR) {
+        continue;
+      }
+      ItemMeta m = stack.getItemMeta();
+      m.setUnbreakable(false);
+      stack.setItemMeta(m);
+
+      int rarity = MaterialUtil.getItemRarity(stack);
+      boolean announce = MaterialUtil.getUpgradeLevel(stack) > 6 || rarity > 3;
+      Color dropRgb = rarity == 4 ? FaceColor.RED.getRawColor() : FaceColor.PURPLE.getRawColor();
+      ChatColor glow = rarity == 4 ? ChatColor.RED : ChatColor.DARK_PURPLE;
+
+      ItemUtils.dropItem(event.getEntity().getLocation(), stack, killer, 0, dropRgb, glow, true);
+      if (announce) {
+        InventoryUtil.sendToDiscord(killer, stack, itemFoundFormat);
       }
     }
   }
@@ -212,14 +211,6 @@ public final class VagabondEquipListener implements Listener {
     }
     Bukkit.getLogger().warning("[Loot] Somehow, unique weight for vagabonds has failed.");
     return null;
-  }
-
-  public static class AnnounceData {
-    @Getter
-    private final Set<EquipmentSlot> announceSlots = new HashSet<>();
-    public AnnounceData(List<EquipmentSlot> slots) {
-      announceSlots.addAll(slots);
-    }
   }
 
   public static class VagabondData {

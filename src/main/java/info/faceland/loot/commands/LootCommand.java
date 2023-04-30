@@ -612,7 +612,7 @@ public class LootCommand extends BaseCommand {
     if (target == null || !target.getPlayer().isValid()) {
       return;
     }
-    PawnMenu menu = PawnMenu.getPawnMenu(dealId);
+    PawnMenu menu = plugin.getPawnManager().getPawnMenu(dealId);
     if (menu == null) {
       sender.sendMessage("[Loot] No pawn menu found for ID " + dealId);
       return;

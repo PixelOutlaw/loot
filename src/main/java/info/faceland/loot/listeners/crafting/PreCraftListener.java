@@ -21,12 +21,14 @@ package info.faceland.loot.listeners.crafting;
 import static info.faceland.loot.utils.InventoryUtil.stripColor;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.ShaderStyle;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils;
 import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.CraftResultData;
+import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.tier.Tier;
 import info.faceland.loot.utils.MaterialUtil;
@@ -278,31 +280,55 @@ public final class PreCraftListener implements Listener {
     int minItemLevel = (int) Math.max(1, crData.getItemLevel() - 3);
     int maxItemLevel = (int) Math.max(1, Math.min(100, crData.getItemLevel()));
 
-    float effectiveLevelAdvantage = (float) Math.max(0,
+    float effectiveLevelAdvantage = (float) Math.max(-8,
         effectiveCraftLevel - crData.getItemLevel());
 
-    float minRarityFromLevel = Math.min(3, effectiveLevelAdvantage / 20);
+    float minRarityFromLevel = Math.min(3, (effectiveLevelAdvantage + 8) / 8);
     float minRarityFromQuality = Math.max(0, Math.min(3, crData.getQuality() - 1));
     float minRarity = Math.min(2.9f, (minRarityFromLevel + minRarityFromQuality) / 2);
     minRarity = Math.min(MAX_QUALITY, Math.max(0f, minRarity));
     int minSockets = MaterialUtil.getMinSockets(craftingLevel);
     int maxSockets = MaterialUtil.getMaxSockets(minRarityFromQuality);
     int extendChance = (int) (100 * MaterialUtil.getExtendChance(craftingLevel));
-    float slotScore = crData.openSlotChance(effectiveLevelAdvantage);
+    float slotScore = crData.openSlotChance(Math.max(0, effectiveLevelAdvantage));
 
     List<String> newLore = new ArrayList<>();
-    newLore.add(FaceColor.WHITE + "Level Requirement: " + minItemLevel + " ~ " + maxItemLevel + "");
-    newLore.add(FaceColor.WHITE + getRarityTag(minRarity) + "~" + " \uD86D\uDFE9" + tier.getName());
+    newLore.add(FaceColor.WHITE + "Level Requirement: " + minItemLevel + "⇒" + maxItemLevel);
+    newLore.add(FaceColor.WHITE + getRarityTag(minRarity) + "⇒" + "\uD86D\uDFE9" + tier.getName());
     newLore.add("");
     newLore.add(FaceColor.LIGHT_GRAY + tier.getPrimaryStat().getStatString().replace("{}", "X"));
     newLore.add(FaceColor.LIGHT_GRAY + "+X Secondary Stat");
+    for (ItemStat s : tier.getSecondaryStats()) {
+      newLore.add(FaceColor.GRAY + " " + s.getStatString()
+          .replace("+{}% ", "").replace("+{} ", "") + "?");
+    }
     newLore.add("");
-    newLore.add(FaceColor.CYAN + "+X Random Stat");
-    newLore.add(FaceColor.CYAN + "+X Random Stat");
-    newLore.add(FaceColor.CYAN + "+X Random Stat " + FaceColor.LIGHT_GRAY + "(?)");
-    newLore.add(FaceColor.CYAN + "+X Random Stat " + FaceColor.LIGHT_GRAY + "(?)");
-    newLore.add(FaceColor.CYAN + "+X Random Stat " + FaceColor.LIGHT_GRAY + "(?)");
-    newLore.add(FaceColor.LIME + "Stat -> Essence Slot: (" + Math.round(100 * slotScore * 0.2) + "%)");
+    newLore.add(FaceColor.RAINBOW + "Stat⇒Essence Slot: (" + Math.round(100 * slotScore * 0.2) + "%)");
+    int certainStats = 5;
+    int maybeStats = 1;
+    if (craftingLevel < 45) {
+      certainStats--;
+    }
+    if (minRarity < 1) {
+      certainStats--;
+      maybeStats++;
+    }
+    if (minRarity < 2) {
+      certainStats--;
+      maybeStats++;
+    }
+    if (minRarity < 3) {
+      certainStats--;
+      maybeStats++;
+    }
+    while (certainStats > 0) {
+      newLore.add(FaceColor.CYAN + "+X Random Stat");
+      certainStats--;
+    }
+    while (maybeStats > 0) {
+      newLore.add(FaceColor.CYAN + "+X Random Stat " + FaceColor.LIGHT_GRAY.shaded(ShaderStyle.WAVE) + "(?)");
+      maybeStats--;
+    }
     newLore.add("");
     newLore.add(FaceColor.TRUE_WHITE + "傜" + FaceColor.BLUE +
         (craftingLevel >= 10 ? " (100%)" : " (15%)"));
@@ -327,11 +353,7 @@ public final class PreCraftListener implements Listener {
     if (tier.getMaximumSockets() > 0 || tier.getMaximumExtendSlots() > 0) {
       newLore.add("");
     }
-
-    newLore.add(FaceColor.LIME + "Improve the quality of your");
-    newLore.add(FaceColor.LIME + "items by leveling crafting");
-    newLore.add(FaceColor.LIME + "and using better materials!");
-    newLore.add(FaceColor.YELLOW + "Use /skills for more info!");
+    newLore.add(FaceColor.YELLOW.shaded(ShaderStyle.BOUNCE) + "Use /skills for more info!");
 
     TextUtils.setLore(craftingInventory.getResult(), newLore, false);
   }

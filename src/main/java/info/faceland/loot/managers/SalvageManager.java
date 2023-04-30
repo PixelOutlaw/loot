@@ -59,7 +59,8 @@ public class SalvageManager {
   }
 
   public void destroy(Player player, ItemStack selectedStack, ItemStack toolStack) {
-    if (selectedStack == null || toolStack == null) {
+    if (selectedStack == null || toolStack == null ||
+        selectedStack.getAmount() < 1 || toolStack.getAmount() < 1) {
       player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
       return;
     }

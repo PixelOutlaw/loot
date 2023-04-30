@@ -53,6 +53,7 @@ public record PawnMenuListener(LootPlugin plugin) implements Listener {
       Item item = event.getPlayer().getWorld().dropItem(event.getPlayer().getLocation(), stack);
       item.setOwner(event.getPlayer().getUniqueId());
     }
+    pawnMenu.destroy();
   }
 
   @EventHandler(priority = EventPriority.LOW)

@@ -102,6 +102,9 @@ public final class SocketGemManager {
   }
 
   public SocketGem getSocketGem(ItemStack stack) {
+    if (stack.getType() != Material.EMERALD) {
+      return null;
+    }
     String name = ItemStackExtensionsKt.getDisplayName(stack);
     if (StringUtils.isBlank(name)) {
       return null;

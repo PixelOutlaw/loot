@@ -209,12 +209,8 @@ public final class LootPlugin extends FacePlugin {
     PurifyingScroll.rebuild();
     ShardOfFailure.rebuild();
 
-    PawnMenu.clearPool();
-    new PawnMenu(this);
-    new PawnMenu(this, "fishmonger");
-
-    checkDealsTask = Bukkit.getScheduler().runTaskTimer(this,
-        PawnMenu::checkAll, 200L, 60 * 20L);
+    checkDealsTask = Bukkit.getScheduler().runTaskTimer(this, () ->
+        getPawnManager().checkAll(), 200L, 60 * 20L);
 
     strifePlugin = (StrifePlugin) Bukkit.getPluginManager().getPlugin("Strife");
 
