@@ -232,21 +232,22 @@ public class EnchantMenu extends ItemMenu {
         SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.ENCHANTING, true);
         double enchantLevel = data.getLevel();
         double effectiveLevel = data.getLevelWithBonus();
+        double enchantPower = Math.min(itemLevel, effectiveLevel);
         ItemStat stat = LootPlugin.getInstance().getStatManager().getStat(tome.getStat());
         double rarityBonus = MaterialUtil.getBaseEnchantBonus(enchantLevel);
 
         String minStat = ChatColor.stripColor(
-            (plugin.getStatManager().getFinalStat(stat, effectiveLevel, rarityBonus, false, RollStyle.MIN))
+            (plugin.getStatManager().getFinalStat(stat, enchantPower, rarityBonus, false, RollStyle.MIN))
                 .getStatString());
         String maxStat = ChatColor.stripColor(
-            (plugin.getStatManager().getFinalStat(stat, effectiveLevel, rarityBonus, false, RollStyle.MAX))
+            (plugin.getStatManager().getFinalStat(stat, enchantPower, rarityBonus, false, RollStyle.MAX))
                 .getStatString());
 
         for (String s : validEnchantLore) {
           lore.add(s.replace("{min}", minStat).replace("{max}", maxStat));
         }
         lore.add("");
-        lore.add("&bEnchantment Power: &f" + Math.min(itemLevel, (int) effectiveLevel));
+        lore.add("&bEnchantment Power: &f" + (int) enchantPower);
         lore.add("&7 Determines max/min enchant");
         lore.add("&7 values! This number is the");
         lore.add("&7 lowest between your enchant");

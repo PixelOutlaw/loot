@@ -61,8 +61,7 @@ public final class CraftingListener implements Listener {
   private final double CRAFT_EXP;
   private final double CRAFT_LEVEL_MULT;
   private final double CRAFT_QUALITY_MULT;
-  private final float
-      MAX_QUALITY;
+  private final float MAX_QUALITY;
 
   private final ItemMeta dupeStatMeta;
   private final ItemMeta powerfulEssenceMeta;
