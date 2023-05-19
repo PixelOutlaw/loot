@@ -234,12 +234,10 @@ public final class PreCraftListener implements Listener {
     SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
     int craftingLevel = data.getLevel();
     double effectiveCraftLevel = data.getLevelWithBonus();
-
     CraftResultData crData = new CraftResultData(craftingInventory.getMatrix(), result);
+    int requiredLevel = (int) crData.getItemLevel() - 10;
 
-    double levelAdvantage = craftingLevel + 10 - crData.getItemLevel();
-
-    if (levelAdvantage < 0) {
+    if (craftingLevel < requiredLevel) {
       craftingInventory.getResult().setType(Material.BARRIER);
       ItemStackExtensionsKt.setCustomModelData(craftingInventory.getResult(), 150);
       ItemStackExtensionsKt.setDisplayName(craftingInventory.getResult(),
@@ -248,7 +246,7 @@ public final class PreCraftListener implements Listener {
           FaceColor.WHITE + FaceColor.BOLD.s() +
               "Base Item Level: " + (int) crData.getItemLevel(),
           FaceColor.RED + FaceColor.BOLD.s() +
-              "Required Crafting Level: " + FaceColor.UNDERLINE + (int) (craftingLevel - levelAdvantage),
+              "Required Crafting Level: " + FaceColor.UNDERLINE + requiredLevel,
           FaceColor.YELLOW + FaceColor.BOLD.s() +
               "Your Crafting Level: " + craftingLevel,
           FaceColor.GRAY +
@@ -293,7 +291,7 @@ public final class PreCraftListener implements Listener {
     float slotScore = crData.openSlotChance(Math.max(0, effectiveLevelAdvantage));
 
     List<String> newLore = new ArrayList<>();
-    newLore.add(FaceColor.WHITE + "Level Requirement: " + minItemLevel + "⇒" + maxItemLevel);
+    newLore.add(FaceColor.WHITE + "Item Level: " + minItemLevel + "⇒" + maxItemLevel);
     newLore.add(FaceColor.WHITE + getRarityTag(minRarity) + "⇒" + "\uD86D\uDFE9" + tier.getName());
     newLore.add("");
     newLore.add(FaceColor.LIGHT_GRAY + tier.getPrimaryStat().getStatString().replace("{}", "X"));
