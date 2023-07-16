@@ -33,7 +33,7 @@ import info.faceland.loot.commands.UpdateItemCommand;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.MatchMaterial;
-import info.faceland.loot.data.UniqueLoot;
+import info.faceland.loot.data.MobLootTable;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.enchantments.LootEnchantmentTomeBuilder;
@@ -49,7 +49,6 @@ import info.faceland.loot.listeners.crafting.*;
 import info.faceland.loot.listeners.anticheat.*;
 import info.faceland.loot.managers.*;
 import info.faceland.loot.menu.gemcutter.GemcutterMenu;
-import info.faceland.loot.menu.pawn.PawnMenu;
 import info.faceland.loot.menu.salvage.SalvageMenu;
 import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.sockets.SocketGemBuilder;
@@ -167,7 +166,7 @@ public final class LootPlugin extends FacePlugin {
     itemGroupManager = new LootItemGroupManager();
     tierManager = new TierManager();
     statManager = new StatManager();
-    rarityManager = new LootRarityManager();
+    rarityManager = new RarityManager();
     nameManager = new LootNameManager();
     customItemManager = new CustomItemManager();
     socketGemManager = new SocketGemManager(this);
@@ -397,21 +396,21 @@ public final class LootPlugin extends FacePlugin {
         continue;
       }
       ConfigurationSection cs = uniqueDropsYAML.getConfigurationSection(key);
-      UniqueLoot uniqueLoot = new UniqueLoot();
-      uniqueLoot.setQuantityMultiplier(cs.getDouble("quantity-multiplier", 1D));
-      uniqueLoot.setQualityMultiplier(cs.getDouble("rarity-multiplier", 1D));
+      MobLootTable mobLootTable = new MobLootTable();
+      mobLootTable.setAmountMultiplier(cs.getDouble("quantity-multiplier", 1D));
+      mobLootTable.setRarityMultiplier(cs.getDouble("rarity-multiplier", 1D));
       if (cs.getConfigurationSection("gem-drops") != null) {
         for (String g : cs.getConfigurationSection("gem-drops").getKeys(false)) {
-          uniqueLoot.getGemMap().put(g, cs.getConfigurationSection("gem-drops").getDouble(g));
+          mobLootTable.getGemMap().put(g, cs.getConfigurationSection("gem-drops").getDouble(g));
         }
       }
       List<String> extraEquipment = cs.getStringList("extra-equipment");
       for (String s : extraEquipment) {
-        uniqueLoot.getBonusEquipment().add(rarityManager.getRarity(s));
+        mobLootTable.getBonusTierItems().add(rarityManager.getRarity(s));
       }
       if (cs.getConfigurationSection("tome-drops") != null) {
         for (String t : cs.getConfigurationSection("tome-drops").getKeys(false)) {
-          uniqueLoot.getTomeMap().put(t, cs.getConfigurationSection("tome-drops").getDouble(t));
+          mobLootTable.getTomeMap().put(t, cs.getConfigurationSection("tome-drops").getDouble(t));
         }
       }
       ConfigurationSection cds = cs.getConfigurationSection("custom-drops");
@@ -421,10 +420,10 @@ public final class LootPlugin extends FacePlugin {
           for (String customName : cds.getConfigurationSection(tableName).getKeys(false)) {
             tableMap.put(customName, cds.getConfigurationSection(tableName).getDouble(customName));
           }
-          uniqueLoot.getCustomItemMap().put(tableName, tableMap);
+          mobLootTable.getCustomItemMap().put(tableName, tableMap);
         }
       }
-      uniqueDropsManager.addData(key, uniqueLoot);
+      uniqueDropsManager.addData(key, mobLootTable);
     }
   }
 
@@ -617,7 +616,6 @@ public final class LootPlugin extends FacePlugin {
       rarity.setAlwaysGlow(cs.getBoolean("always-glow", false));
       rarity.setAlwaysTrail(cs.getBoolean("always-trail", false));
       rarity.setWeight(cs.getDouble("weight"));
-      rarity.setIdWeight(cs.getDouble("id-weight"));
       rarity.setPower(cs.getDouble("power"));
       rarity.setMinimumBonusStats(cs.getInt("min-bonus-stats"));
       rarity.setMaximumBonusStats(cs.getInt("max-bonus-stats") + 1);
@@ -629,6 +627,7 @@ public final class LootPlugin extends FacePlugin {
       rarity.setLivedTicks(cs.getInt("base-ticks-lived", 0));
       getRarityManager().addRarity(key, rarity);
     }
+    getRarityManager().setLowestRarityWeight();
     debug("Loaded rarities: " + getRarityManager().getLoadedRarities().toString());
   }
 
@@ -645,7 +644,7 @@ public final class LootPlugin extends FacePlugin {
       ConfigurationSection cs = tierYAML.getConfigurationSection(key);
       TierBuilder builder = getNewTierBuilder(key);
       builder.withName(PaletteUtil.color(cs.getString("tier-name")));
-      builder.withLevelRequirement(cs.getBoolean("level-req"));
+      builder.withSkillRequirement(cs.getBoolean("skill-req", false));
       builder.withPrimaryStat(getStatManager().getLoadedStats().get(cs.getString("primary-stat")));
 
       List<ItemStat> secondaryStats = new ArrayList<>();

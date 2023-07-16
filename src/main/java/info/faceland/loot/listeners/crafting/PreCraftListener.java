@@ -302,10 +302,10 @@ public final class PreCraftListener implements Listener {
     }
     newLore.add("");
     newLore.add(FaceColor.RAINBOW + "Stat⇒Essence Slot: (" + Math.round(100 * slotScore * 0.2) + "%)");
-    int certainStats = 5;
+    int certainStats = 3;
     int maybeStats = 1;
-    if (craftingLevel < 45) {
-      certainStats--;
+    if (craftingLevel > 45 && (effectiveCraftLevel - 20 >= minItemLevel)) {
+      certainStats++;
     }
     if (minRarity < 1) {
       certainStats--;
@@ -319,6 +319,7 @@ public final class PreCraftListener implements Listener {
       certainStats--;
       maybeStats++;
     }
+    certainStats = Math.max(1, certainStats);
     while (certainStats > 0) {
       newLore.add(FaceColor.CYAN + "+X Random Stat");
       certainStats--;

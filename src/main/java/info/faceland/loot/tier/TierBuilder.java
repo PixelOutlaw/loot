@@ -45,8 +45,8 @@ public final class TierBuilder {
     return tier;
   }
 
-  public TierBuilder withLevelRequirement(boolean b) {
-    tier.setLevelRequirement(b);
+  public TierBuilder withSkillRequirement(boolean b) {
+    tier.setSkillRequirement(b);
     return this;
   }
 

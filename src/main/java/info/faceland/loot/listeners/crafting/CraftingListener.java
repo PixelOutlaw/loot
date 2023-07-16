@@ -182,6 +182,7 @@ public final class CraftingListener implements Listener {
     CraftResultData crData = new CraftResultData(event.getInventory().getMatrix(), resultStack);
 
     double levelAdvantage = craftingLevel + 10 - (int) crData.getItemLevel();
+    double bonusLevelAdvantage = data.getLevelWithBonus() + 10 - (int) crData.getItemLevel();
 
     if (levelAdvantage < 0) {
       sendMessage(player, plugin.getSettings().getString("language.craft.low-level-craft", ""));
@@ -199,12 +200,12 @@ public final class CraftingListener implements Listener {
 
     BuiltItem builtItem = plugin.getNewItemBuilder()
         .withTier(tier)
-        .withRarity(plugin.getRarityManager().getRandomRarityWithMinimum(minRarity))
+        .withRarity(plugin.getRarityManager().getRandomRarity(1, minRarity))
         .withSlotScore(crData.openSlotChance(Math.max(0, effectiveLevelAdvantage)))
         .withEnchantable(craftingLevel >= 10 || random.nextFloat() < 0.15)
         .withExtendSlots(random.nextFloat() < MaterialUtil.getExtendChance(craftingLevel) ? 1 : 0)
         .withAlwaysEssence(craftingLevel > 85)
-        .withCraftBonusStats(craftingLevel >= 45 ? 1 : 0)
+        .withCraftBonusStats((craftingLevel >= 45 && bonusLevelAdvantage >= 20) ? 0 : -1)
         .withSockets(MaterialUtil.getSockets(minRarity, craftingLevel))
         .withLevel(itemLevel)
         .withCreator(player)

@@ -22,8 +22,11 @@ import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.send
 import static org.bukkit.ChatColor.stripColor;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ToastUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.UnicodeUtil;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils;
@@ -362,7 +365,7 @@ public final class MaterialUtil {
     }
     List<String> lore = TextUtils.getLore(stack);
     for (String s : lore) {
-      if ("< Cannot be upgraded >".equals(stripColor(s))) {
+      if ("< Cannot be upgraded >".equalsIgnoreCase(stripColor(s))) {
         return false;
       }
     }
@@ -577,7 +580,9 @@ public final class MaterialUtil {
     if (!isEnchanted(equipment) || isArcaneEnchanted(equipment)) {
       return;
     }
-
+    if (MaterialUtil.getMissingEnchantmentPower(equipment) < 1) {
+      return;
+    }
     Pair<String, Integer> enchantBar = getEnchantBar(equipment);
     double enchantLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.ENCHANTING);
     double itemLevel = MaterialUtil.getLevelRequirement(equipment);
@@ -700,7 +705,9 @@ public final class MaterialUtil {
       lore.remove(enchantBar.getRight() - 1);
       TextUtils.setLore(stack, lore);
     } else if (depletionResult.getRight() < 5) {
-      sendMessage(player, LootPlugin.getInstance().getSettings().getString("language.enchant.bar-low", ""));
+      ToastUtils.sendToast(player, FaceColor.NO_SHADOW +
+          UnicodeUtil.unicodePlacehold("<toast_low_enchant>"), ItemUtils.BLANK);
+      //sendMessage(player, LootPlugin.getInstance().getSettings().getString("language.enchant.bar-low", ""));
       lore.set(enchantBar.getRight(), depletionResult.getLeft());
       TextUtils.setLore(stack, lore);
     } else {
@@ -736,8 +743,7 @@ public final class MaterialUtil {
     int index = strippedLore.indexOf(MaterialUtil.ENCHANTABLE_TAG_S);
     lore.remove(index);
 
-    double enchantSkill = PlayerDataUtil
-        .getSkillLevels(player, LifeSkillType.CRAFTING, true).getLevelWithBonus();
+    SkillLevelData enchantSkill = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
 
     List<String> added = new ArrayList<>();
     if (!tome.getLore().isEmpty()) {
@@ -746,16 +752,16 @@ public final class MaterialUtil {
 
     if (!StringUtils.isBlank(tome.getStat())) {
       int itemLevel = MaterialUtil.getLevelRequirement(targetItem);
-      double eLevel = Math.max(1, Math.min(enchantSkill, itemLevel));
-      double rarity = MaterialUtil.getBaseEnchantBonus(enchantSkill);
+      double enchantPower = Math.max(1, Math.min(enchantSkill.getLevelWithBonus(), itemLevel));
+      double rarity = MaterialUtil.getBaseEnchantBonus(enchantSkill.getLevelWithBonus());
 
       ItemStat stat = LootPlugin.getInstance().getStatManager().getStat(tome.getStat());
       added.add(LootPlugin.getInstance().getStatManager()
-          .getFinalStat(stat, eLevel, rarity, false).getStatString());
+          .getFinalStat(stat, enchantPower, rarity, false).getStatString());
     }
 
     if (tome.getBar()) {
-      double skillRatio = Math.min(1, enchantSkill / 100);
+      double skillRatio = Math.min(1, enchantSkill.getLevelWithBonus() / 100);
       double roll = skillRatio * Math.random() + (1 - skillRatio) * Math.pow(Math.random(), 2.5);
       double size = 14 + 20 * roll;
       added.add(buildEnchantmentBar((int) size, (int) size).getLeft());
@@ -1077,10 +1083,11 @@ public final class MaterialUtil {
       return -1;
     }
     String lvlReqString = ChatColor.stripColor(TextUtils.getLore(stack).get(0));
-    if (!lvlReqString.startsWith("Level Requirement:")) {
-      return -1;
+    if (lvlReqString.startsWith("Level Requirement:") ||
+        lvlReqString.startsWith("Skill Requirement:")) {
+      return getDigit(TextUtils.getLore(stack).get(0));
     }
-    return getDigit(TextUtils.getLore(stack).get(0));
+    return -1;
   }
 
   public static boolean updateItem(ItemStack stack) {

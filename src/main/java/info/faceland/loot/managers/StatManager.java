@@ -139,6 +139,7 @@ public class StatManager {
           stat.setMaxSaturation((float) cs.getDouble("max-saturation", 0.83));
           stat.setMinBrightness((float) cs.getDouble("min-brightness", 1));
           stat.setMaxBrightness((float) cs.getDouble("max-brightness", 1));
+          stat.setMinimumItemLevel(cs.getInt("minimum-item-level", -10));
           stat.getNamePrefixes().clear();
           stat.getNamePrefixes().addAll(cs.getStringList("prefixes"));
           addStat(key, stat);

@@ -29,8 +29,7 @@ public class LootUtil {
     switch (itemType) {
       case TIER_ITEM -> {
         Tier tier = LootPlugin.getInstance().getTierManager().getRandomTier();
-        ItemRarity rarity = LootPlugin.getInstance().getRarityManager()
-            .getRandomRarityWithBonus(1 - rarityMultiplier);
+        ItemRarity rarity = LootPlugin.getInstance().getRarityManager().getRandomRarity(rarityMultiplier, -1);
         BuiltItem builtItem = LootPlugin.getInstance().getNewItemBuilder()
             .withTier(tier)
             .withRarity(rarity)

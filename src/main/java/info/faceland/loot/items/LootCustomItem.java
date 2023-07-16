@@ -50,7 +50,6 @@ public final class LootCustomItem implements CustomItem {
   private int levelRange;
   private int customDataNumber;
   private boolean broadcast;
-  private boolean quality;
   private Set<ItemFlag> flags;
   private Set<String> canBreak;
 
@@ -184,11 +183,6 @@ public final class LootCustomItem implements CustomItem {
     return broadcast;
   }
 
-  @Override
-  public boolean canBeQuality() {
-    return quality;
-  }
-
   public Set<ItemFlag> getFlags() {
     return flags;
   }
@@ -207,10 +201,6 @@ public final class LootCustomItem implements CustomItem {
 
   void setBroadcast(boolean broadcast) {
     this.broadcast = broadcast;
-  }
-
-  void setQuality(boolean quality) {
-    this.quality = quality;
   }
 
   void setMaterial(Material material) {

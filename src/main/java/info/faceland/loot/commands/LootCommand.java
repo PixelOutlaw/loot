@@ -92,7 +92,7 @@ public class LootCommand extends BaseCommand {
   private final GemcutterMenu gemcutterMenu;
   private final GemSmashMenu gemsmasherMenu;
 
-  private Gson gson = new Gson();
+  private final Gson gson = new Gson();
 
   public LootCommand(LootPlugin plugin) {
     this.plugin = plugin;
@@ -365,14 +365,21 @@ public class LootCommand extends BaseCommand {
     @CommandCompletion("@players @tiers @rarities amount level distorted")
     public void giveTier(CommandSender sender, OnlinePlayer player, String tier, String rarity,
         @Default("1") int amount, @Default("-1") int level, @Default("false") boolean distorted) {
-      Tier t = tier.equalsIgnoreCase("random") ? null : plugin.getTierManager().getTier(tier);
-      ItemRarity r =
-          rarity.equalsIgnoreCase("random") ? null : plugin.getRarityManager().getRarity(rarity);
+      Tier t = tier.equalsIgnoreCase("random") ?
+          null : plugin.getTierManager().getTier(tier);
+      if (t == null) {
+        t = plugin.getTierManager().getRandomTier();
+      }
+      ItemRarity r = rarity.equalsIgnoreCase("random") ?
+          null : plugin.getRarityManager().getRarity(rarity);
+      if (r == null) {
+        r = plugin.getRarityManager().getRandomRarity(1, -1);
+      }
       for (int i = 0; i < amount; i++) {
         player.getPlayer().getInventory().addItem(
             plugin.getNewItemBuilder().withItemGenerationReason(ItemGenerationReason.COMMAND)
-                .withTier(t == null ? plugin.getTierManager().getRandomTier() : t)
-                .withRarity(r == null ? plugin.getRarityManager().getRandomRarity() : r)
+                .withTier(t)
+                .withRarity(r)
                 .withLevel(level == -1 ? 1 + random.nextInt(100) : level)
                 .withDistortion(distorted)
                 .withCreator(player.getPlayer())

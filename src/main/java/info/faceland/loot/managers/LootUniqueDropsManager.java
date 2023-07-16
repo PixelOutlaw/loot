@@ -1,25 +1,25 @@
 package info.faceland.loot.managers;
 
 import info.faceland.loot.api.managers.UniqueDropsManager;
-import info.faceland.loot.data.UniqueLoot;
+import info.faceland.loot.data.MobLootTable;
 import java.util.HashMap;
 import java.util.Map;
 
 public class LootUniqueDropsManager implements UniqueDropsManager {
 
-  private Map<String, UniqueLoot> lootMap;
+  private Map<String, MobLootTable> lootMap;
 
   public LootUniqueDropsManager() {
     this.lootMap = new HashMap<>();
   }
 
   @Override
-  public UniqueLoot getData(String name) {
+  public MobLootTable getData(String name) {
     return lootMap.getOrDefault(name, null);
   }
 
   @Override
-  public void addData(String name, UniqueLoot loot) {
+  public void addData(String name, MobLootTable loot) {
     lootMap.put(name, loot);
   }
 }

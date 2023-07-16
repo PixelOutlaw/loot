@@ -81,18 +81,9 @@ public final class CustomItemManager {
     return material + name + enchantable + gemData;
   }
 
-  public void addCustomItem(CustomItem ci) {
-    customItemMap.put(ci.getName().toLowerCase(), ci);
+  public void addCustomItem(String key, CustomItem ci) {
+    customItemMap.put(key.toLowerCase(), ci);
     uneditedHash.put(customItemSerial(ci.toItemStack(1)), ci);
-  }
-
-  public void removeCustomItem(String name) {
-    if (customItemMap.containsKey(name.toLowerCase())) {
-      CustomItem ci = customItemMap.remove(name.toLowerCase());
-      if (ci != null) {
-        uneditedHash.values().remove(ci);
-      }
-    }
   }
 
   public CustomItem getRandomCustomItem() {
@@ -187,7 +178,6 @@ public final class CustomItemManager {
           builder.withLevelRange(cs.getInt("level-range"));
           builder.withCustomData(cs.getInt("custom-data-value", -1));
           builder.withBroadcast(cs.getBoolean("broadcast"));
-          builder.withQuality(cs.getBoolean("can-be-quality-enhanced"));
           List<String> flags = cs.getStringList("flags");
           Set<ItemFlag> itemFlags = new HashSet<>();
           for (String s : flags) {
@@ -195,7 +185,7 @@ public final class CustomItemManager {
           }
           builder.withFlags(itemFlags);
           builder.withCanBreak(new HashSet<>(cs.getStringList("can-break")));
-          customItemMap.put(key, builder.build());
+          addCustomItem(key, builder.build());
         } catch (Exception e) {
           Bukkit.getLogger().warning("[Loot] Failed to load unique named " + key + " from file " + file.getName());
           e.printStackTrace();

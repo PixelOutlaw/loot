@@ -18,12 +18,12 @@
  */
 package info.faceland.loot.api.managers;
 
-import info.faceland.loot.data.UniqueLoot;
+import info.faceland.loot.data.MobLootTable;
 
 public interface UniqueDropsManager {
 
-  UniqueLoot getData(String name);
+  MobLootTable getData(String name);
 
-  void addData(String name, UniqueLoot loot);
+  void addData(String name, MobLootTable loot);
 
 }

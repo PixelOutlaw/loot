@@ -32,6 +32,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -51,6 +52,24 @@ public record SalvageMenuListener(LootPlugin plugin) implements Listener {
         plugin.getSalvageMenu().setEquipment(event.getPlayer(), null);
         plugin.getSalvageMenu().open(event.getPlayer());
       }
+    }
+  }
+
+  @EventHandler(priority = EventPriority.HIGHEST)
+  public void openSalvageFromInvy(InventoryClickEvent event) {
+    if (event.getWhoClicked().getOpenInventory().getType() != InventoryType.CRAFTING) {
+      return;
+    }
+    if (event.getClick() != ClickType.RIGHT) {
+      return;
+    }
+    if (event.getWhoClicked().getOpenInventory().getBottomInventory() != event.getClickedInventory()) {
+      return;
+    }
+    if (plugin.getSalvageManager().getToolData(event.getCurrentItem()) != null) {
+      plugin.getSalvageMenu().setTool((Player) event.getWhoClicked(), event.getCurrentItem());
+      plugin.getSalvageMenu().setEquipment((Player) event.getWhoClicked(), null);
+      plugin.getSalvageMenu().open((Player) event.getWhoClicked());
     }
   }
 

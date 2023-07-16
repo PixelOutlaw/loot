@@ -22,6 +22,7 @@ import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.tuple.Pair;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemStat;
+import info.faceland.loot.data.StatResponse;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
@@ -229,19 +230,16 @@ public class EnchantMenu extends ItemMenu {
       }
       if (StringUtils.isNotBlank(tome.getStat())) {
         int itemLevel = MaterialUtil.getLevelRequirement(selectedEquipment);
-        SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.ENCHANTING, true);
-        double enchantLevel = data.getLevel();
-        double effectiveLevel = data.getLevelWithBonus();
-        double enchantPower = Math.min(itemLevel, effectiveLevel);
+        SkillLevelData enchantSkill = PlayerDataUtil.getSkillLevels(player, LifeSkillType.ENCHANTING, true);
         ItemStat stat = LootPlugin.getInstance().getStatManager().getStat(tome.getStat());
-        double rarityBonus = MaterialUtil.getBaseEnchantBonus(enchantLevel);
 
-        String minStat = ChatColor.stripColor(
-            (plugin.getStatManager().getFinalStat(stat, enchantPower, rarityBonus, false, RollStyle.MIN))
-                .getStatString());
-        String maxStat = ChatColor.stripColor(
-            (plugin.getStatManager().getFinalStat(stat, enchantPower, rarityBonus, false, RollStyle.MAX))
-                .getStatString());
+        double enchantPower = Math.max(1, Math.min(enchantSkill.getLevelWithBonus(), itemLevel));
+        double rarity = MaterialUtil.getBaseEnchantBonus(enchantSkill.getLevelWithBonus());
+
+        StatResponse srMin = plugin.getStatManager().getFinalStat(stat, enchantPower, rarity, false, RollStyle.MIN);
+        StatResponse srMax = plugin.getStatManager().getFinalStat(stat, enchantPower, rarity, false, RollStyle.MAX);
+        String minStat = ChatColor.stripColor(srMin.getStatString());
+        String maxStat = ChatColor.stripColor(srMax.getStatString());
 
         for (String s : validEnchantLore) {
           lore.add(s.replace("{min}", minStat).replace("{max}", maxStat));
@@ -253,7 +251,7 @@ public class EnchantMenu extends ItemMenu {
         lore.add("&7 lowest between your enchant");
         lore.add("&7 skill and the item's level.");
         lore.add("");
-        lore.add("&dEnchantment Bonus: &f+" + rarityBonus * 100 + "%");
+        lore.add("&dEnchantment Bonus: &f+" + DF.format(rarity * 100) + "%");
         lore.add("&7 Extra power based on your");
         lore.add("&7 enchanting skill, applied");
         lore.add("&7 after all other numbers!");

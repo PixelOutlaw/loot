@@ -37,7 +37,8 @@ import org.bukkit.Material;
 
 public final class Tier implements Comparable<Tier> {
 
-  private boolean levelRequirement;
+  @Getter @Setter
+  private boolean skillRequirement = false;
   private String id;
   private String name;
   private ItemStat primaryStat;
@@ -68,14 +69,6 @@ public final class Tier implements Comparable<Tier> {
     this.secondaryStats = new ArrayList<>();
     this.bonusStats = new ArrayList<>();
     this.itemGroups = new HashSet<>();
-  }
-
-  public boolean isLevelRequirement() {
-    return levelRequirement;
-  }
-
-  public void setLevelRequirement(boolean levelRequirement) {
-    this.levelRequirement = levelRequirement;
   }
 
   public String getId() {

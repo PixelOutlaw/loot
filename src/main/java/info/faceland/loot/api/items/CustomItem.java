@@ -52,8 +52,6 @@ public interface CustomItem {
 
     boolean isBroadcast();
 
-    boolean canBeQuality();
-
     Set<ItemFlag> getFlags();
 
     Set<String> getCanBreak();

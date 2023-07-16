@@ -90,7 +90,7 @@ public final class VagabondEquipListener implements Listener {
         }
       }
       if (item == null) {
-        ItemRarity rarity = plugin.getRarityManager().getRandomRarityWithMinimum(2.0);
+        ItemRarity rarity = plugin.getRarityManager().getRandomRarity(1, 2.0);
         // TODO: this is ugly
         String selectedTier = data.getTierList().get(slot)
             .get(random.nextInt(data.getTierList().get(slot).size()));

@@ -1,6 +1,5 @@
 package info.faceland.loot.listeners;
 
-import info.faceland.loot.LootPlugin;
 import info.faceland.loot.events.LootDropEvent;
 import info.faceland.loot.utils.DropUtil;
 import land.face.containers.data.Prefab;
@@ -24,13 +23,12 @@ public class ContainerOpenListener implements Listener {
 
     switch (prefab.getId()) {
       case "generic-chest" -> {
-
         LootDropEvent lootEvent = new LootDropEvent();
         lootEvent.setLocation(event.getLocation());
         lootEvent.setLooterUUID(event.getPlayer().getUniqueId());
         lootEvent.setMonsterLevel(event.getData().getLevel());
-        lootEvent.setQualityMultiplier(4.0 + bonusAmount * 2);
-        lootEvent.setQuantityMultiplier(6.0 + bonusQuality * 2);
+        lootEvent.setRarityBonus(4.0 + bonusAmount * 2);
+        lootEvent.setAmountBonus(6.0 + bonusQuality * 2);
         lootEvent.setDistance(1);
         lootEvent.setLooterUUID(event.getPlayer() == null ? null : event.getPlayer().getUniqueId());
         lootEvent.setEntity(null);
@@ -42,8 +40,8 @@ public class ContainerOpenListener implements Listener {
         lootEvent.setLocation(event.getLocation());
         lootEvent.setLooterUUID(event.getPlayer().getUniqueId());
         lootEvent.setMonsterLevel(event.getData().getLevel());
-        lootEvent.setQualityMultiplier(0.5 + bonusQuality / 3);
-        lootEvent.setQuantityMultiplier(0.75 + bonusAmount / 3);
+        lootEvent.setRarityBonus(0.5 + bonusQuality / 3);
+        lootEvent.setAmountBonus(0.75 + bonusAmount / 3);
         lootEvent.setDistance(1);
         lootEvent.setLooterUUID(event.getPlayer() == null ? null : event.getPlayer().getUniqueId());
         lootEvent.setEntity(null);
@@ -51,7 +49,5 @@ public class ContainerOpenListener implements Listener {
         DropUtil.dropLoot(lootEvent);
       }
     }
-
-
   }
 }

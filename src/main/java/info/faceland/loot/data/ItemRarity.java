@@ -16,7 +16,6 @@ public class ItemRarity {
   private ChatColor glowColor;
   private String name;
   private double weight;
-  private double idWeight;
   private int minimumBonusStats;
   private int maximumBonusStats;
   private int enchantments;

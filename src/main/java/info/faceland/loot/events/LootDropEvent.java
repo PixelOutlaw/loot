@@ -5,14 +5,19 @@ import info.faceland.loot.data.ItemRarity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
 public class LootDropEvent extends LootCancellableEvent {
 
-  private double quantityMultiplier = 1;
-  private double qualityMultiplier = 1;
-  private final List<ItemRarity> bonusTierItems = new ArrayList<>();
+  @Getter @Setter
+  private double amountBonus = 1;
+  @Getter @Setter
+  private double rarityBonus = 1;
+  @Getter
+  private final List<ItemRarity> bonusTierDrops = new ArrayList<>();
   private Location location;
   private double distance;
   private UUID looterUUID;
@@ -42,26 +47,6 @@ public class LootDropEvent extends LootCancellableEvent {
 
   public void setMonsterLevel(int monsterLevel) {
     this.monsterLevel = monsterLevel;
-  }
-
-  public double getQuantityMultiplier() {
-    return quantityMultiplier;
-  }
-
-  public void setQuantityMultiplier(double quantityMultiplier) {
-    this.quantityMultiplier = quantityMultiplier;
-  }
-
-  public double getQualityMultiplier() {
-    return qualityMultiplier;
-  }
-
-  public void setQualityMultiplier(double qualityMultiplier) {
-    this.qualityMultiplier = qualityMultiplier;
-  }
-
-  public List<ItemRarity> getBonusTierItems() {
-    return bonusTierItems;
   }
 
   public Location getLocation() {

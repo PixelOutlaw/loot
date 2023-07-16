@@ -19,8 +19,6 @@
 package info.faceland.loot.listeners;
 
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
-import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils;
-import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ViolationData;
 import info.faceland.loot.events.LootDropEvent;
@@ -35,19 +33,11 @@ import land.face.strife.stats.StrifeStat;
 import land.face.strife.util.SpecialStatusUtil;
 import land.face.strife.util.StatUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Rabbit;
-import org.bukkit.entity.Rabbit.Type;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.potion.PotionEffectType;
@@ -72,10 +62,6 @@ public final class EntityDeathListener implements Listener {
       return;
     }
     if (land.face.containers.utils.DropUtil.isContainer(event.getEntity())) {
-      return;
-    }
-    if (event.getEntity().getType() == EntityType.RABBIT
-        && ((Rabbit) event.getEntity()).getRabbitType() != Type.THE_KILLER_BUNNY) {
       return;
     }
     if (SpecialStatusUtil.isGuildMob(event.getEntity())) {
@@ -107,15 +93,11 @@ public final class EntityDeathListener implements Listener {
     double bonusRarityMult = 1D;
     double penaltyMult = 1D;
 
-    if (!isValidDamageType(event.getEntity().getLastDamageCause().getCause())) {
-      penaltyMult *= 0.3D;
-    }
-
     UUID looter = killer.getUniqueId();
 
     handleAntiCheeseViolations(killer, event.getEntity());
     double vl = violationMap.get(killer).getViolationLevel();
-    penaltyMult *= Math.max(0.05, Math.min(1, 1.5 - vl * 0.06));
+    penaltyMult *= Math.max(0.1, Math.min(1, 1.5 - vl * 0.06));
 
     double distance = event.getEntity().getLocation().distanceSquared(event.getEntity().getWorld()
         .getSpawnLocation());
@@ -126,7 +108,7 @@ public final class EntityDeathListener implements Listener {
     bonusRarityMult += pStats.getStat(StrifeStat.ITEM_RARITY) / 100;
 
     if (killer.hasPotionEffect(PotionEffectType.LUCK)) {
-      bonusRarityMult += 0.5;
+      bonusRarityMult += 0.1;
     }
 
     if (StringUtils.isNotBlank(mob.getUniqueEntityId())) {
@@ -136,7 +118,7 @@ public final class EntityDeathListener implements Listener {
 
     int mobLevel = StatUtil.getMobLevel(event.getEntity());
     int diff = killer.getLevel() - mobLevel;
-    double levelPenalty = diff >= 12 ? Math.max(0.15, 1 - (diff - 12) * 0.07) : 1;
+    double levelPenalty = diff >= 12 ? Math.max(0.35, 1 - (diff - 12) * 0.07) : 1;
 
     LootDropEvent lootEvent = new LootDropEvent();
     lootEvent.setLocation(event.getEntity().getLocation());
@@ -146,11 +128,11 @@ public final class EntityDeathListener implements Listener {
       int modLevel = mob.getMods().size();
       List<String> rarities = plugin.getSettings().getStringList("config.mob-mod-bonus." + modLevel);
       for (String r : rarities) {
-        lootEvent.getBonusTierItems().add(plugin.getRarityManager().getRarity(r));
+        lootEvent.getBonusTierDrops().add(plugin.getRarityManager().getRarity(r));
       }
     }
-    lootEvent.setQualityMultiplier(bonusRarityMult * penaltyMult * levelPenalty);
-    lootEvent.setQuantityMultiplier(bonusDropMult * penaltyMult * levelPenalty);
+    lootEvent.setRarityBonus(bonusRarityMult * penaltyMult * levelPenalty);
+    lootEvent.setAmountBonus(bonusDropMult * penaltyMult * levelPenalty);
     lootEvent.setDistance(distance);
     lootEvent.setEntity(event.getEntity());
     if (mob.getUniqueEntityId() != null) {
@@ -174,12 +156,7 @@ public final class EntityDeathListener implements Listener {
       violationMap.put(killer, new ViolationData());
     }
     boolean violation = false;
-    if (!isWaterMob(victim)) {
-      if (isWater(victim.getLocation()) || isWater(killer.getLocation())) {
-        violation = true;
-      }
-    }
-    if (isClimbing(killer.getLocation())) {
+    if (killer.isClimbing()) {
       violation = true;
     }
     if (violationMap.get(killer).isEntityTooClose(killer.getLocation(), victim.getLocation())) {
@@ -191,45 +168,5 @@ public final class EntityDeathListener implements Listener {
     } else {
       data.setViolationLevel(Math.max(0, data.getViolationLevel() - 1));
     }
-  }
-
-  private boolean isWater(Location location) {
-    Block b = location.getBlock();
-    return b.isLiquid();
-  }
-
-  private boolean isClimbing(Location location) {
-    Block b = location.getBlock();
-    return b.getType() == Material.LADDER || b.getType() == Material.VINE;
-  }
-
-  private boolean isValidDamageType(DamageCause cause) {
-    return cause == DamageCause.ENTITY_ATTACK || cause == DamageCause.ENTITY_EXPLOSION ||
-        cause == DamageCause.PROJECTILE || cause == DamageCause.MAGIC ||
-        cause == DamageCause.FIRE_TICK || cause == DamageCause.WITHER ||
-        cause == DamageCause.CUSTOM;
-  }
-
-  private boolean isWaterMob(Entity entity) {
-    switch (entity.getType()) {
-      case GUARDIAN:
-      case ELDER_GUARDIAN:
-      case SQUID:
-      case TURTLE:
-      case DROWNED:
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  private int levelFromString(String string) {
-    if (!plugin.getSettings().getBoolean("config.beast.beast-mode-activate", false)) {
-      return 1;
-    }
-    if (StringUtils.isBlank(string)) {
-      return 1;
-    }
-    return NumberUtils.toInt(CharMatcher.digit().retainFrom(ChatColor.stripColor(string)));
   }
 }

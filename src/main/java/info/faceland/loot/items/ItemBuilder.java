@@ -24,7 +24,6 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.ItemGenerationReason;
-import info.faceland.loot.api.managers.RarityManager;
 import info.faceland.loot.data.BuiltItem;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.ItemStat;
@@ -37,7 +36,6 @@ import info.faceland.loot.tier.Tier;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import org.bukkit.Bukkit;
@@ -54,7 +52,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 public final class ItemBuilder {
 
   private final StatManager statManager;
-  private final RarityManager rarityManager;
   private final LootNameManager nameManager;
 
   public static final String SOCKET = PaletteUtil.color("|none|哀\uF822|orange|Socket");
@@ -83,9 +80,7 @@ public final class ItemBuilder {
 
   public ItemBuilder(LootPlugin plugin) {
     statManager = plugin.getStatManager();
-    rarityManager = plugin.getRarityManager();
     nameManager = plugin.getNameManager();
-
     specialStatChance = plugin.getSettings()
         .getDouble("config.special-stats.pool-chance", 0.5D);
   }
@@ -161,20 +156,6 @@ public final class ItemBuilder {
 
   public ItemBuilder withItemGenerationReason(ItemGenerationReason reason) {
     itemGenerationReason = reason;
-    if (itemGenerationReason == ItemGenerationReason.IDENTIFYING) {
-      double totalWeight = 0D;
-      for (ItemRarity rarity : rarityManager.getLoadedRarities().values()) {
-        totalWeight += rarity.getIdWeight();
-      }
-      double chosenWeight = random.nextDouble() * totalWeight;
-      double currentWeight = 0D;
-      for (ItemRarity rarity : rarityManager.getLoadedRarities().values()) {
-        currentWeight += rarity.getIdWeight();
-        if (currentWeight >= chosenWeight) {
-          this.rarity = rarity;
-        }
-      }
-    }
     return this;
   }
 
@@ -207,7 +188,11 @@ public final class ItemBuilder {
     boolean crafted = itemGenerationReason == ItemGenerationReason.CRAFTING;
     FaceColor color = crafted ? FaceColor.CYAN : rarity.getColor();
 
-    lore.add(FaceColor.WHITE + "Level Requirement: " + level);
+    if (tier.isSkillRequirement()) {
+      lore.add(FaceColor.WHITE + "Skill Requirement: " + level);
+    } else{
+      lore.add(FaceColor.WHITE + "Level Requirement: " + level);
+    }
     if (distorted && !Bukkit.getOnlinePlayers().isEmpty()) {
       while (creator == null) {
         for (Player p : Bukkit.getOnlinePlayers()) {
@@ -229,6 +214,7 @@ public final class ItemBuilder {
     lore.add("");
 
     List<ItemStat> bonusStatList = new ArrayList<>(tier.getBonusStats());
+    bonusStatList.removeIf(stat -> level < stat.getMinimumItemLevel());
     if (specialStat) {
       ItemStat stat;
       if (tier.getSpecialStats().size() > 0 && random.nextDouble() < specialStatChance) {
@@ -244,6 +230,8 @@ public final class ItemBuilder {
     if (itemGenerationReason == ItemGenerationReason.CRAFTING) {
       bonusStats += craftBonusStats;
     }
+
+    bonusStats = Math.max(1, bonusStats);
 
     int invertedIndex = -1;
     int distortionBonus = 0;
