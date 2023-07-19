@@ -18,6 +18,7 @@
  */
 package info.faceland.loot.managers;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.UnicodeUtil;
 import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.CustomItemBuilder;
 import info.faceland.loot.items.LootCustomItemBuilder;
@@ -171,7 +172,7 @@ public final class CustomItemManager {
           Material material = Material.valueOf(matString);
           CustomItemBuilder builder = new LootCustomItemBuilder(key, material);
           builder.withDisplayName(cs.getString("display-name"));
-          builder.withLore(cs.getStringList("lore"));
+          builder.withLore(UnicodeUtil.unicodePlacehold(cs.getStringList("lore")));
           builder.withWeight(cs.getDouble("weight"));
           builder.withDistanceWeight(cs.getDouble("distance-weight"));
           builder.withLevelBase(cs.getInt("level-base"));

@@ -121,6 +121,7 @@ public final class LootPlugin extends FacePlugin {
   @Getter private UniqueDropsManager uniqueDropsManager;
   @Getter private SalvageManager salvageManager;
   @Getter private ScrollManager scrollManager;
+  @Getter private TradeMenuManager tradeMenuManager;
 
   private StrifePlugin strifePlugin;
 
@@ -183,6 +184,7 @@ public final class LootPlugin extends FacePlugin {
 
     gemcutterMenu = new GemcutterMenu(this);
     salvageMenu = new SalvageMenu(this);
+    tradeMenuManager = new TradeMenuManager(this);
 
     setupPlayerPoints();
 
@@ -199,6 +201,7 @@ public final class LootPlugin extends FacePlugin {
     loadEnchantmentStones();
     loadUniqueDrops();
     loadScrolls();
+    tradeMenuManager.loadVillagerTrades(defaultLoadConfig("trades.yml").getConfigurationSection("trades"));
 
     MaterialUtil.refreshConfig();
     DropUtil.refresh();

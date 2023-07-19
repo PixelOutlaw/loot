@@ -165,6 +165,12 @@ public class LootCommand extends BaseCommand {
     sendMessage(sender, success ? "success" : "fail");
   }
 
+  @Subcommand("trade")
+  @CommandPermission("loot.admin")
+  public void tradeOpen(CommandSender sender, OnlinePlayer player, String tradeId, String menuName) {
+    plugin.getTradeMenuManager().startTrade(player.getPlayer(), tradeId, menuName);
+  }
+
   @Subcommand("export")
   @CommandPermission("loot.export")
   public void exportCommand(CommandSender sender) {
