@@ -1,21 +1,21 @@
 package info.faceland.loot.data;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.Data;
 
 @Data
 public class ItemStat {
 
-  private double minBaseValue;
-  private double maxBaseValue;
-  private double perLevelIncrease;
-  private double perLevelMultiplier;
-  private double perRarityIncrease;
-  private double perRarityMultiplier;
+  private float minBaseValue;
+  private float maxBaseValue;
+  private float perLevelIncrease;
+  private float perLevelMultiplier;
+  private float perRarityIncrease;
+  private float perRarityMultiplier;
   private String statString;
-  private String statPrefix;
-  private String perfectStatPrefix;
   private String specialStatPrefix;
   private float minHue;
   private float maxHue;
@@ -25,4 +25,21 @@ public class ItemStat {
   private float maxBrightness;
   private final List<String> namePrefixes = new ArrayList<>();
   private int minimumItemLevel;
+
+  private Map<String, Float> minValues = new HashMap<>();
+  private Map<String, Float> maxValues = new HashMap<>();
+
+  public float getValue(float level, float rarity, float roll) {
+    float statValue;
+    if (minBaseValue >= maxBaseValue) {
+      statValue = minBaseValue;
+    } else {
+      statValue = minBaseValue + roll * (maxBaseValue - minBaseValue);
+    }
+    statValue += level * perLevelIncrease;
+    statValue += rarity * perRarityIncrease;
+    float multiplier = 1 + (level * perLevelMultiplier) + (rarity * perRarityMultiplier);
+    statValue *= multiplier;
+    return statValue;
+  }
 }

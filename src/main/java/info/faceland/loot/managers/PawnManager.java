@@ -31,19 +31,19 @@ public class PawnManager {
 
   private LootPlugin plugin;
 
-  private double baseEquipmentPrice;
-  private double baseGemPrice;
-  private double baseTomePrice;
-  private double baseScrollPrice;
-  private double equipPricePerLevel;
-  private double gemWeightHalf;
-  private double tomeWeightHalf;
-  private double scrollWeightHalf;
+  private final double baseEquipmentPrice;
+  private final double baseGemPrice;
+  private final double baseTomePrice;
+  private final double baseScrollPrice;
+  private final double equipPricePerLevel;
+  private final double gemWeightHalf;
+  private final double tomeWeightHalf;
+  private final double scrollWeightHalf;
 
   @Getter
-  private Map<String, PawnShopType> pawnTypes = new HashMap<>();
-  private Map<Material, Double> materialPrices = new HashMap<>();
-  private Map<String, Double> namedPrices = new HashMap<>();
+  private final Map<String, PawnShopType> pawnTypes = new HashMap<>();
+  private final Map<Material, Double> materialPrices = new HashMap<>();
+  private final Map<String, Double> namedPrices = new HashMap<>();
 
   Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
 
@@ -77,12 +77,13 @@ public class PawnManager {
     int price;
     String itemName = ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack));
     if (namedPrices.containsKey(itemName)) {
-      return new PriceData(amount * namedPrices.get(itemName).intValue(), false);
+      return new PriceData(amount * namedPrices.get(itemName), namedPrices.get(itemName) > 500);
     }
     SocketGem socketGem = plugin.getSocketGemManager().getSocketGem(stack);
     if (socketGem != null) {
       double divisor = (gemWeightHalf + socketGem.getWeight()) / gemWeightHalf;
       price = (int) (baseGemPrice * 2 * Math.pow(0.5, divisor));
+      price = Math.max(8, price);
       return new PriceData(amount * price, socketGem.getWeight() < 100);
     }
     UpgradeScroll scroll = plugin.getScrollManager().getScroll(stack);
@@ -136,16 +137,25 @@ public class PawnManager {
       return new PriceData(1, false);
     }
     double quality = MaterialUtil.getQuality(stack);
-    if (quality > 0) {
-      double itemLevel = MaterialUtil.getItemLevel(stack);
-      double priceMult = 1 + (itemLevel / 100);
-      price = (int) (1D * priceMult * quality);
-      return new PriceData(amount * price, quality > 3);
+    double itemPrice = materialPrices.getOrDefault(stack.getType(), -1D);
+    double itemLevel = MaterialUtil.getItemLevel(stack);
+    if (itemLevel >= 1) {
+      itemPrice = Math.max(itemPrice, 1);
+      itemPrice *= 1 + (itemLevel / 25);
     }
-    if (materialPrices.containsKey(stack.getType())) {
-      return new PriceData(amount * materialPrices.get(stack.getType()).intValue(), false);
+    switch ((int) quality) {
+      case 1 -> itemPrice = Math.max(0, itemPrice);
+      case 2 -> itemPrice += 0.35;
+      case 3 -> {
+        itemPrice *= 1.75;
+        itemPrice += 3;
+      }
+      case 4 -> {
+        itemPrice *= 3;
+        itemPrice += 5;
+      }
     }
-    return new PriceData(-1, false);
+    return new PriceData(Math.max(-1, itemPrice * amount), false);
   }
 
   public PawnMenu getPawnMenu(String dealId) {

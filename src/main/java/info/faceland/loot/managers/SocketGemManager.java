@@ -102,7 +102,7 @@ public final class SocketGemManager {
   }
 
   public SocketGem getSocketGem(ItemStack stack) {
-    if (stack.getType() != Material.EMERALD) {
+    if (stack == null || stack.getType() != Material.EMERALD) {
       return null;
     }
     String name = ItemStackExtensionsKt.getDisplayName(stack);

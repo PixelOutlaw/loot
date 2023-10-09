@@ -60,7 +60,6 @@ public final class ItemBuilder {
   public static final String EXTEND_S = ChatColor.stripColor(EXTEND);
 
   private boolean built = false;
-  private boolean specialStat;
   private Tier tier;
   private ItemRarity rarity;
   private int level;
@@ -124,11 +123,6 @@ public final class ItemBuilder {
     return this;
   }
 
-  public ItemBuilder withSpecialStat(boolean b) {
-    specialStat = b;
-    return this;
-  }
-
   public ItemBuilder withDistortion(boolean b) {
     distorted = b;
     return this;
@@ -183,7 +177,7 @@ public final class ItemBuilder {
     }
     stack = new ItemStack(material);
     List<String> lore = new ArrayList<>();
-    double rarityPower = rarity.getPower();
+    float rarityPower = (float) rarity.getPower();
 
     boolean crafted = itemGenerationReason == ItemGenerationReason.CRAFTING;
     FaceColor color = crafted ? FaceColor.CYAN : rarity.getColor();
@@ -208,23 +202,13 @@ public final class ItemBuilder {
 
     lore.add("");
 
-    lore.add(statManager.getFinalStat(tier.getPrimaryStat(), level, rarityPower, false).getStatString());
-    lore.add(statManager.getFinalStat(getRandomSecondaryStat(), level, rarityPower, false).getStatString());
+    lore.add(statManager.getFinalStat(tier.getPrimaryStat(), level, rarityPower).getStatString());
+    lore.add(statManager.getFinalStat(getRandomSecondaryStat(), level, rarityPower).getStatString());
 
     lore.add("");
 
     List<ItemStat> bonusStatList = new ArrayList<>(tier.getBonusStats());
     bonusStatList.removeIf(stat -> level < stat.getMinimumItemLevel());
-    if (specialStat) {
-      ItemStat stat;
-      if (tier.getSpecialStats().size() > 0 && random.nextDouble() < specialStatChance) {
-        stat = getRandomSpecialStat();
-      } else {
-        stat = bonusStatList.get(random.nextInt(bonusStatList.size()));
-      }
-      StatResponse rStat = statManager.getFinalStat(stat, level, rarityPower, true);
-      lore.add(rStat.getStatString());
-    }
 
     int bonusStats = random.nextIntRange(rarity.getMinimumBonusStats(), rarity.getMaximumBonusStats());
     if (itemGenerationReason == ItemGenerationReason.CRAFTING) {
@@ -252,7 +236,7 @@ public final class ItemBuilder {
         continue;
       }
       ItemStat stat = bonusStatList.get(random.nextInt(bonusStatList.size()));
-      StatResponse rStat = statManager.getFinalStat(stat, level, rarityPower, false);
+      StatResponse rStat = statManager.getFinalStat(stat, level, rarityPower);
       if (invertedIndex == i) {
         rStat.setInverted(true);
       } else if (crafted) {

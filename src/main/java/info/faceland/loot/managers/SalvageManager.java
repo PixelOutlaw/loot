@@ -4,7 +4,6 @@ import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.send
 import static info.faceland.loot.utils.MaterialUtil.buildEssence;
 import static info.faceland.loot.utils.MaterialUtil.getLevelRequirement;
 
-import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
@@ -13,7 +12,6 @@ import info.faceland.loot.tier.Tier;
 import info.faceland.loot.utils.CraftingUtil;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
-import java.util.ArrayList;
 import java.util.List;
 import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.data.pojo.SkillLevelData;
@@ -112,7 +110,7 @@ public class SalvageManager {
     ItemStack essence = null;
     float essenceChance = (effectiveLevelAdvantage / 100) + craftToolData.getQuality() * 0.2f;
     if (Math.random() < essenceChance) {
-      if (possibleStats.size() > 0) {
+      if (!possibleStats.isEmpty()) {
         player.playSound(player.getEyeLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.4F, 2F);
         Tier tier = MaterialUtil.getTierFromStack(selectedStack);
         essence = buildEssence(tier, itemLevel, possibleStats);

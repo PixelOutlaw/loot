@@ -70,15 +70,11 @@ public final class InteractListener implements Listener {
   private final LootRandom random;
 
   private final boolean customEnchantingEnabled;
-  private final String noDropMessage;
-  private final Set<UUID> dropFromInvySet = new HashSet<>();
 
   public InteractListener(LootPlugin plugin) {
     this.plugin = plugin;
     this.random = new LootRandom();
     customEnchantingEnabled = plugin.getSettings().getBoolean("config.custom-enchanting", true);
-    noDropMessage = StringExtensionsKt.chatColorize(plugin.getSettings().getString(
-        "language.generic.no-drop", "aaaa"));
   }
 
   @EventHandler(priority = EventPriority.LOWEST)
@@ -126,36 +122,6 @@ public final class InteractListener implements Listener {
     }
     GemCacheData gemCacheData = plugin.getGemCacheManager().getGemCacheData(player.getUniqueId());
     gemCacheData.updateArmorCache();
-  }
-
-  @EventHandler(priority = EventPriority.MONITOR)
-  public void onPlayerDropItem(InventoryClickEvent e) {
-    if (e.getWhoClicked().getGameMode() == GameMode.CREATIVE) {
-      return;
-    }
-    //Bukkit.getLogger().info("cursor: " + e.getCursor());
-    if (e.getAction() == InventoryAction.DROP_ALL_CURSOR ||
-        e.getAction() == InventoryAction.DROP_ONE_CURSOR ||
-        e.getAction() == InventoryAction.DROP_ALL_SLOT ||
-        e.getAction() == InventoryAction.DROP_ONE_SLOT) {
-      dropFromInvySet.add(e.getWhoClicked().getUniqueId());
-    }
-  }
-
-  @EventHandler(priority = EventPriority.LOWEST)
-  public void onPlayerDropItem(PlayerDropItemEvent e) {
-    if (e.getPlayer().getGameMode() == GameMode.CREATIVE) {
-      return;
-    }
-    if (dropFromInvySet.contains(e.getPlayer().getUniqueId())) {
-      dropFromInvySet.remove(e.getPlayer().getUniqueId());
-      return;
-    }
-    if (e.getPlayer().getInventory().firstEmpty() != -1 || e.getItemDrop().getItemStack()
-        .isSimilar(e.getPlayer().getInventory().getItem(e.getPlayer().getInventory().getHeldItemSlot()))) {
-      e.setCancelled(true);
-      MessageUtils.sendMessage(e.getPlayer(), noDropMessage);
-    }
   }
 
   @EventHandler(priority = EventPriority.HIGHEST)

@@ -2,15 +2,15 @@ package info.faceland.loot.data;
 
 public class PriceData {
 
-  private int price;
+  private double price;
   private boolean rare;
 
-  public PriceData (int price, boolean rare) {
+  public PriceData (double price, boolean rare) {
     this.price = price;
     this.rare = rare;
   }
 
-  public int getPrice() {
+  public double getPrice() {
     return price;
   }
 

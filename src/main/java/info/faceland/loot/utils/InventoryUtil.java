@@ -153,9 +153,8 @@ public final class InventoryUtil {
   }
 
   public static net.md_5.bungee.api.ChatColor getRollColor(ItemStat stat, double roll) {
-    return getRollColor(roll, stat.getMinHue(), stat.getMaxHue(), stat.getMinSaturation(),
-        stat.getMaxSaturation(),
-        stat.getMinBrightness(), stat.getMaxBrightness());
+    return getRollColor(Math.max(0.01, roll), stat.getMinHue(), stat.getMaxHue(), stat.getMinSaturation(),
+        stat.getMaxSaturation(), stat.getMinBrightness(), stat.getMaxBrightness());
   }
 
   public static net.md_5.bungee.api.ChatColor getRollColor(double roll, float minHue, float maxHue,

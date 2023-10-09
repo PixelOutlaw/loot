@@ -233,11 +233,11 @@ public class EnchantMenu extends ItemMenu {
         SkillLevelData enchantSkill = PlayerDataUtil.getSkillLevels(player, LifeSkillType.ENCHANTING, true);
         ItemStat stat = LootPlugin.getInstance().getStatManager().getStat(tome.getStat());
 
-        double enchantPower = Math.max(1, Math.min(enchantSkill.getLevelWithBonus(), itemLevel));
-        double rarity = MaterialUtil.getBaseEnchantBonus(enchantSkill.getLevelWithBonus());
+        float enchantPower = Math.max(1, Math.min(enchantSkill.getLevelWithBonus(), itemLevel));
+        float rarity = (float) MaterialUtil.getBaseEnchantBonus(enchantSkill.getLevelWithBonus());
 
-        StatResponse srMin = plugin.getStatManager().getFinalStat(stat, enchantPower, rarity, false, RollStyle.MIN);
-        StatResponse srMax = plugin.getStatManager().getFinalStat(stat, enchantPower, rarity, false, RollStyle.MAX);
+        StatResponse srMin = plugin.getStatManager().getFinalStat(stat, enchantPower, rarity, RollStyle.MIN);
+        StatResponse srMax = plugin.getStatManager().getFinalStat(stat, enchantPower, rarity, RollStyle.MAX);
         String minStat = ChatColor.stripColor(srMin.getStatString());
         String maxStat = ChatColor.stripColor(srMax.getStatString());
 
@@ -299,7 +299,7 @@ public class EnchantMenu extends ItemMenu {
       }
       int enchantingLevel = plugin.getStrifePlugin().getChampionManager().getChampion(player)
           .getLifeSkillLevel(LifeSkillType.ENCHANTING);
-      if (enchantingLevel < getEnhanceRequirement(MaterialUtil.getItemLevel(selectedEquipment))) {
+      if (enchantingLevel < getEnhanceRequirement(MaterialUtil.getLevelRequirement(selectedEquipment))) {
         updateConfirmDisplay(noEnhanceLevel, noEnhanceLevelLore, 62);
         return;
       }

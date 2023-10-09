@@ -66,6 +66,9 @@ import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.ItemUtil;
 import land.face.strife.util.PlayerDataUtil;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound.Source;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -122,6 +125,9 @@ public final class MaterialUtil {
   public static final String TAG_RARE = "\uD86D\uDFE8";
   public static final String TAG_EPIC = "\uD86D\uDFE9";
   public static final String TAG_UNIQUE = "\uD86D\uDFEA";
+
+  private static final net.kyori.adventure.sound.Sound UPGRADE_ITEM = net.kyori.adventure.sound.Sound.sound(
+      Key.key("minecraft:custom.sfx.item_upgrade"), Source.MASTER, 1f, 1f);
 
   public static void refreshConfig() {
     upgradeFailureMsg = LootPlugin.getInstance().getSettings()
@@ -238,7 +244,8 @@ public final class MaterialUtil {
           .addExperience(player, LifeSkillType.ENCHANTING, exp, false, false);
 
       sendMessage(player, upgradeSuccessMsg);
-      player.playSound(player.getEyeLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1F, 2F);
+      Audience audience = Audience.audience(player);
+      audience.playSound(UPGRADE_ITEM);
 
       if (targetLevel >= 10) {
         InventoryUtil.sendToDiscord(player, stack, upgradeSuccessBroadcast);
@@ -752,12 +759,11 @@ public final class MaterialUtil {
 
     if (!StringUtils.isBlank(tome.getStat())) {
       int itemLevel = MaterialUtil.getLevelRequirement(targetItem);
-      double enchantPower = Math.max(1, Math.min(enchantSkill.getLevelWithBonus(), itemLevel));
-      double rarity = MaterialUtil.getBaseEnchantBonus(enchantSkill.getLevelWithBonus());
+      float enchantPower = Math.max(1, Math.min(enchantSkill.getLevelWithBonus(), itemLevel));
+      float rarity = (float) MaterialUtil.getBaseEnchantBonus(enchantSkill.getLevelWithBonus());
 
       ItemStat stat = LootPlugin.getInstance().getStatManager().getStat(tome.getStat());
-      added.add(LootPlugin.getInstance().getStatManager()
-          .getFinalStat(stat, enchantPower, rarity, false).getStatString());
+      added.add(LootPlugin.getInstance().getStatManager().getFinalStat(stat, enchantPower, rarity).getStatString());
     }
 
     if (tome.getBar()) {
@@ -934,6 +940,9 @@ public final class MaterialUtil {
         return 3;
       }
       if (line.contains(TAG_EPIC)) {
+        return 4;
+      }
+      if (line.contains(TAG_UNIQUE)) {
         return 4;
       }
     }
@@ -1127,16 +1136,14 @@ public final class MaterialUtil {
       return true;
     }
 
-    if (stack.getType() == Material.NETHER_STAR &&
-        "Socket Extender".equals(ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)))) {
+    if (SocketExtender.isSimilar(stack)) {
       ItemStack newStack = SocketExtender.build();
       stack.setType(newStack.getType());
       stack.setItemMeta(newStack.getItemMeta());
       return true;
     }
 
-    if (stack.getType() == Material.MAGMA_CREAM &&
-        "Arcane Enhancer".equals(ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)))) {
+    if (ArcaneEnhancer.isSimilar(stack)) {
       ItemStack newStack = ArcaneEnhancer.get();
       stack.setType(newStack.getType());
       stack.setItemMeta(newStack.getItemMeta());
@@ -1357,20 +1364,21 @@ public final class MaterialUtil {
     if (stack.getItemMeta() == null) {
       return 0;
     }
-    if (TextUtils.getLore(stack).get(0) == null) {
+    List<String> lore = TextUtils.getLore(stack);
+    if (lore.isEmpty() || StringUtils.isEmpty(TextUtils.getLore(stack).get(0))) {
       return 0;
     }
-    String lvlReqString = ChatColor.stripColor(TextUtils.getLore(stack).get(0));
-    if (!lvlReqString.startsWith("Item Level:")) {
-      return 0;
+    String strippedString = ChatColor.stripColor(TextUtils.getLore(stack).get(0));
+    if (strippedString.startsWith("Item Level:")) {
+      return getDigit(strippedString);
     }
-    return getDigit(TextUtils.getLore(stack).get(0));
+    return 0;
   }
 
-  public static int getDigit(String string) {
-    String lev = CharMatcher.digit().or(CharMatcher.is('-')).negate()
-        .collapseFrom(ChatColor.stripColor(string), ' ').trim();
-    return NumberUtils.toInt(lev.split(" ")[0], 0);
+  public static int getDigit(String input) {
+    input = ChatColor.stripColor(input);
+    String num = input.replaceAll("[^\\d-]", "");
+    return Integer.parseInt(num);
   }
 
   private static double rollMult(boolean lucky) {

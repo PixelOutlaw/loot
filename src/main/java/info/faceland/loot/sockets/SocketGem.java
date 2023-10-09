@@ -30,6 +30,7 @@ import land.face.strife.StrifePlugin;
 import land.face.strife.data.LoreAbility;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -208,8 +209,12 @@ public final class SocketGem implements Comparable<SocketGem> {
   }
 
   public void setStrifeLoreAbility(String strifeLoreAbility) {
-    this.strifeLoreAbility = strifeLoreAbility;
-    loreAbility = StrifePlugin.getInstance().getLoreAbilityManager().getLoreAbilityFromId(strifeLoreAbility);
+    if (StrifePlugin.getInstance().getLoreAbilityManager() != null) {
+      this.strifeLoreAbility = strifeLoreAbility;
+      loreAbility = StrifePlugin.getInstance().getLoreAbilityManager().getLoreAbilityFromId(strifeLoreAbility);
+    } else {
+      Bukkit.getLogger().info("[Loot] Failed to set lore ability desc on gem??");
+    }
   }
 
   public String getTriggerText() {

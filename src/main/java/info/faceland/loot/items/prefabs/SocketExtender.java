@@ -24,11 +24,9 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.items.ItemBuilder;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.Arrays;
-import land.face.strife.util.ItemUtil;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.Nullable;
 
 public final class SocketExtender {
 
@@ -37,9 +35,9 @@ public final class SocketExtender {
 
   public static ItemStack build() {
     ItemStack stack = new ItemStack(Material.NETHER_STAR);
-    ItemStackExtensionsKt.setDisplayName(stack, FaceColor.PURPLE + name);
+    ItemStackExtensionsKt.setDisplayName(stack, FaceColor.RED + name);
     TextUtils.setLore(stack, PaletteUtil.color(Arrays.asList(
-        "|white|\uD86D\uDFE8Ս",
+        "|white|\uD86D\uDFE9Ս",
         "",
         "|lgray|An upgrade item that can",
         "|lgray|be used on equipment with",

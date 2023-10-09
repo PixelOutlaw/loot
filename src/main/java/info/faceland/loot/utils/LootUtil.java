@@ -35,7 +35,6 @@ public class LootUtil {
             .withRarity(rarity)
             .withLevel(Math.max(1, Math.min(itemLevel, 100)))
             .withItemGenerationReason(ItemGenerationReason.EXTERNAL)
-            .withSpecialStat(false)
             .build();
         return new LootResponse(builtItem.getStack(), rarity.isBroadcast());
       }

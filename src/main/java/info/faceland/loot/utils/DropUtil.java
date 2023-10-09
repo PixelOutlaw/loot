@@ -100,10 +100,8 @@ public class DropUtil implements Listener {
     }
 
     String worldName = event.getLocation().getWorld().getName();
-    boolean specialStat = false;
     if (event.getEntity() != null) {
       EntityType entityType = event.getEntity().getType();
-      specialStat = addSpecialStat(entityType, worldName);
     }
 
     if (LearninBooksPlugin.instance.getKnowledgeManager()
@@ -135,7 +133,6 @@ public class DropUtil implements Listener {
           .withDistortion(distort)
           .withItemGenerationReason(ItemGenerationReason.MONSTER)
           .withCreator(killer)
-          .withSpecialStat(specialStat)
           .build();
 
       ItemStack tierItem = builtItem.getStack();
@@ -191,7 +188,7 @@ public class DropUtil implements Listener {
     }
     if (random.nextDouble() < amountBonus * enhancerDropChance) {
       dropItem(event.getLocation(), ArcaneEnhancer.get(), killer, true,
-          FaceColor.RED.getRawColor(), ChatColor.RED);
+          FaceColor.RED.getRawColor(), ChatColor.DARK_PURPLE);
     }
     if (random.nextDouble() < amountBonus * purityDropChance) {
       dropItem(event.getLocation(), PurifyingScroll.get(), killer, false,

@@ -38,17 +38,17 @@ public final class ArcaneEnhancer {
 
   public static void rebuild() {
     ItemStack stack = new ItemStack(Material.MAGMA_CREAM);
-    ItemStackExtensionsKt.setDisplayName(stack, FaceColor.RED + name);
+    ItemStackExtensionsKt.setDisplayName(stack, FaceColor.PURPLE + name);
     TextUtils.setLore(stack, PaletteUtil.color(Arrays.asList(
-        "|white|\uD86D\uDFE9Ս",
+        "|white|\uD86D\uDFE8Ս",
         "",
         "|lgray|Use this at an enchantment table",
-        "|lgray|to |red|Enhance |lgray|the power of an",
+        "|lgray|to |purple|increase |lgray|the power of an",
         "|lgray|item's |blue|enchantment|lgray|!",
         "",
-        "|dgray||i|Enhanced items cannot have their",
-        "|dgray||i|enchantment refilled and will",
-        "|dgray||i|slowly revert to " + MaterialUtil.ENCHANTABLE_TAG
+        "|gray||i|Enhanced items cannot have their",
+        "|gray||i|enchantment refilled and will",
+        "|gray||i|slowly revert to " + MaterialUtil.ENCHANTABLE_TAG
     )));
     stack.setDurability((short) 11);
     ItemStackExtensionsKt.setCustomModelData(stack, 79);

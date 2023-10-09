@@ -15,7 +15,7 @@ import teammt.villagerguiapi.classes.VillagerTrade;
 
 public class TradeMenuManager {
 
-  private LootPlugin plugin;
+  private final LootPlugin plugin;
   private final Map<String, List<VillagerTrade>> storedTrades = new HashMap<>();
 
   public TradeMenuManager(LootPlugin plugin) {
@@ -65,7 +65,4 @@ public class TradeMenuManager {
       storedTrades.put(nameSection, trades);
     }
   }
-
-
-
 }
