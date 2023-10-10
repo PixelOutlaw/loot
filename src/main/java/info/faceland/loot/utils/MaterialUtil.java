@@ -46,7 +46,6 @@ import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.listeners.crafting.PreCraftListener;
-import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.tier.Tier;
@@ -88,7 +87,6 @@ public final class MaterialUtil {
   private static final double TOOL_QUALITY_ESS_MULT = 0.08;
   private static final double MIN_BONUS_ESS_MULT = 0.25;
   private static final double BASE_ESSENCE_MULT = 0.3;
-  private static final LootRandom random = new LootRandom();
 
   public static final Pattern ONLY_LETTERS = Pattern.compile("[^A-za-z]");
   private static final Pattern DIGITS = Pattern.compile("[^0-9.-]");
@@ -189,7 +187,7 @@ public final class MaterialUtil {
   }
 
   public static double getUpgradeFailureDamagePercent(UpgradeScroll scroll, int itemPlus) {
-    return random.nextDouble() * getMaxFailureDamagePercent(scroll, itemPlus);
+    return LootPlugin.RNG.nextFloat() * getMaxFailureDamagePercent(scroll, itemPlus);
   }
 
   public static double getMaxFailureDamagePercent(UpgradeScroll scroll, int itemPlus) {
@@ -236,7 +234,7 @@ public final class MaterialUtil {
     scrollStack.setAmount(scrollStack.getAmount() - 1);
 
     // SUCCESS!
-    if (successChance >= random.nextDouble()) {
+    if (successChance >= LootPlugin.RNG.nextFloat()) {
       bumpItemPlus(stack, itemUpgradeLevel, 1, targetLevel - itemUpgradeLevel);
 
       double exp = 4f + (float) Math.pow(1.45, targetLevel);
@@ -263,7 +261,7 @@ public final class MaterialUtil {
       if (damagePercentage < 1) {
         sendMessage(player, upgradeItemNoDamageMsg);
         if (itemUpgradeLevel > 5) {
-          shards += itemUpgradeLevel / 4 + random.nextIntRange(0, itemUpgradeLevel - 5);
+          shards += itemUpgradeLevel / 4 + LootPlugin.RNG.nextInt(0, itemUpgradeLevel - 5);
         }
         distributeShards(player, shards);
         return;
@@ -292,7 +290,7 @@ public final class MaterialUtil {
       }
       stack.setAmount(0);
       if (itemUpgradeLevel > 5) {
-        shards += itemUpgradeLevel / 4 + random.nextIntRange(0, itemUpgradeLevel - 5);
+        shards += itemUpgradeLevel / 4 + LootPlugin.RNG.nextInt(0, itemUpgradeLevel - 5);
       }
       distributeShards(player, shards);
       return;
@@ -505,7 +503,7 @@ public final class MaterialUtil {
     double enchantingLevel = data.getLevelWithBonus();
 
     double enchantingBonus = Math.min(2.5, Math.max(1, enchantingLevel / itemLevel));
-    float enhanceRoll = 0.1f + 0.2f * (float) Math.pow(Math.random(), 1.25);
+    float enhanceRoll = 0.1f + 0.2f * (float) Math.pow(LootPlugin.RNG.nextFloat(), 1.25);
 
     int newValue = statValue + (int) (statValue * enhanceRoll * enchantingBonus);
     newValue++;
@@ -593,7 +591,7 @@ public final class MaterialUtil {
     Pair<String, Integer> enchantBar = getEnchantBar(equipment);
     double enchantLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.ENCHANTING);
     double itemLevel = MaterialUtil.getLevelRequirement(equipment);
-    int addAmount = 2 + (int) (random.nextDouble() *
+    int addAmount = 2 + (int) (LootPlugin.RNG.nextFloat() *
         (2 + Math.max(0, (enchantLevel - itemLevel) * 0.2)));
     Pair<String, Integer> result = refillEnchantBar(enchantBar.getLeft(), addAmount);
     List<String> lore = TextUtils.getLore(equipment);
@@ -768,7 +766,7 @@ public final class MaterialUtil {
 
     if (tome.getBar()) {
       double skillRatio = Math.min(1, enchantSkill.getLevelWithBonus() / 100);
-      double roll = skillRatio * Math.random() + (1 - skillRatio) * Math.pow(Math.random(), 2.5);
+      double roll = skillRatio * LootPlugin.RNG.nextFloat() + (1 - skillRatio) * Math.pow(LootPlugin.RNG.nextFloat(), 2.5);
       double size = 14 + 20 * roll;
       added.add(buildEnchantmentBar((int) size, (int) size).getLeft());
     }
@@ -954,11 +952,11 @@ public final class MaterialUtil {
     int essLevel = Math.max(1, (int) (Math.floor(itemLevel) / 10) * 10);
 
     String statString = ChatColor
-        .stripColor(possibleStats.get(random.nextInt(possibleStats.size())));
+        .stripColor(possibleStats.get(LootPlugin.RNG.nextInt(possibleStats.size())));
     int statVal = getDigit(statString);
 
     String newStatString = statString.replace(String.valueOf(statVal),
-        String.valueOf((int) Math.max(1, statVal * (0.8 + Math.random() * 0.2))));
+        String.valueOf((int) Math.max(1, statVal * (0.8 + LootPlugin.RNG.nextFloat() * 0.2))));
 
     return createEssence(tier.getName(), essLevel, ChatColor.stripColor(newStatString));
   }
@@ -1070,7 +1068,7 @@ public final class MaterialUtil {
       return minSockets;
     }
     int result = minSockets;
-    while (result < maxSockets && random.nextFloat() > 0.5f) {
+    while (result < maxSockets && LootPlugin.RNG.nextFloat() > 0.5f) {
       result++;
     }
     return result;
@@ -1238,7 +1236,7 @@ public final class MaterialUtil {
     }
 
     List<Integer> keysAsArray = new ArrayList<>(validTargetStats.keySet());
-    int selectedIndex = keysAsArray.get(random.nextInt(keysAsArray.size()));
+    int selectedIndex = keysAsArray.get(LootPlugin.RNG.nextInt(keysAsArray.size()));
     itemLore.set(selectedIndex, FaceColor.CYAN + PreCraftListener.ESSENCE_SLOT_TEXT);
     TextUtils.setLore(targetItem, itemLore);
 
@@ -1386,7 +1384,7 @@ public final class MaterialUtil {
   }
 
   private static double rollMult(boolean lucky, double exponent) {
-    return lucky ? random.nextDouble() : Math.pow(random.nextDouble(), exponent);
+    return lucky ? LootPlugin.RNG.nextFloat() : Math.pow(LootPlugin.RNG.nextFloat(), exponent);
   }
 
   public static void applyTierLevelData(ItemStack stack, Tier tier, int level) {

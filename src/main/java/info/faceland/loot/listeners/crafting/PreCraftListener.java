@@ -27,7 +27,6 @@ import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.CraftResultData;
 import info.faceland.loot.data.ItemStat;
-import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.tier.Tier;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
@@ -67,11 +66,8 @@ public final class PreCraftListener implements Listener {
   private final ItemMeta wrongTypeMeta;
   private final ItemMeta noSlotsMeta;
 
-  private final LootRandom random;
-
   public PreCraftListener(LootPlugin plugin) {
     this.plugin = plugin;
-    this.random = new LootRandom();
 
     MAX_QUALITY = (float) plugin.getSettings().getDouble("config.crafting.craft-max-quality", 5);
     ESSENCE_SLOT_TEXT = plugin.getSettings()

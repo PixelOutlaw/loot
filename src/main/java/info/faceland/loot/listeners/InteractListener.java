@@ -23,26 +23,20 @@ import static info.faceland.loot.utils.InventoryUtil.getFirstColor;
 import static info.faceland.loot.utils.MaterialUtil.FAILURE_BONUS;
 import static org.bukkit.ChatColor.stripColor;
 
-import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.data.GemCacheData;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
-import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
 import land.face.strife.StrifePlugin;
 import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -52,11 +46,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.EnchantingInventory;
 import org.bukkit.inventory.Inventory;
@@ -67,13 +59,11 @@ import org.bukkit.inventory.PlayerInventory;
 public final class InteractListener implements Listener {
 
   private final LootPlugin plugin;
-  private final LootRandom random;
 
   private final boolean customEnchantingEnabled;
 
   public InteractListener(LootPlugin plugin) {
     this.plugin = plugin;
-    this.random = new LootRandom();
     customEnchantingEnabled = plugin.getSettings().getBoolean("config.custom-enchanting", true);
   }
 

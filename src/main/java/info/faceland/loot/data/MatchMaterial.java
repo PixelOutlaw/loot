@@ -1,9 +1,9 @@
 package info.faceland.loot.data;
 
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.tier.Tier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,8 +18,6 @@ public class MatchMaterial {
   private int minCustomData;
   private int maxCustomData;
   private final List<Material> results = new ArrayList<>();
-
-  private static final Random random = new Random();
 
   public Material getMaterial() {
     return material;
@@ -50,7 +48,7 @@ public class MatchMaterial {
   }
 
   public static Material getResultMaterial(MatchMaterial data, Set<Material> validMats) {
-    Material material = data.results.get(random.nextInt(data.results.size()));
+    Material material = data.results.get(LootPlugin.RNG.nextInt(data.results.size()));
     if (validMats.contains(material)) {
       return material;
     }

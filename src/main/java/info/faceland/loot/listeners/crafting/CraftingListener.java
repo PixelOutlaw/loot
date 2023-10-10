@@ -26,7 +26,6 @@ import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.BuiltItem;
 import info.faceland.loot.data.CraftResultData;
 import info.faceland.loot.events.LootCraftEvent;
-import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.tier.Tier;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
@@ -71,11 +70,8 @@ public final class CraftingListener implements Listener {
 
   private static final Pattern pattern = Pattern.compile("[^A-za-z]");
 
-  private final LootRandom random;
-
   public CraftingListener(LootPlugin plugin) {
     this.plugin = plugin;
-    this.random = new LootRandom();
 
     CRAFT_EXP = plugin.getSettings().getDouble("config.crafting.base-craft-exp", 1);
     CRAFT_LEVEL_MULT = plugin.getSettings()
@@ -190,7 +186,7 @@ public final class CraftingListener implements Listener {
       return;
     }
 
-    int itemLevel = (int) Math.max(1, Math.min(100, crData.getItemLevel() - random.nextInt(4)));
+    int itemLevel = (int) Math.max(1, Math.min(100, crData.getItemLevel() - LootPlugin.RNG.nextInt(4)));
     float effectiveLevelAdvantage = (float) Math.max(-8, effectiveCraftLevel - crData.getItemLevel());
 
     float minRarityFromLevel = Math.min(3, (8 + effectiveLevelAdvantage) / 8);
@@ -202,8 +198,8 @@ public final class CraftingListener implements Listener {
         .withTier(tier)
         .withRarity(plugin.getRarityManager().getRandomRarity(1, minRarity))
         .withSlotScore(crData.openSlotChance(Math.max(0, effectiveLevelAdvantage)))
-        .withEnchantable(craftingLevel >= 10 || random.nextFloat() < 0.15)
-        .withExtendSlots(random.nextFloat() < MaterialUtil.getExtendChance(craftingLevel) ? 1 : 0)
+        .withEnchantable(craftingLevel >= 10 || LootPlugin.RNG.nextFloat() < 0.15)
+        .withExtendSlots(LootPlugin.RNG.nextFloat() < MaterialUtil.getExtendChance(craftingLevel) ? 1 : 0)
         .withAlwaysEssence(craftingLevel > 70)
         .withCraftBonusStats((craftingLevel >= 45 && bonusLevelAdvantage >= 20) ? 0 : -1)
         .withSockets(MaterialUtil.getSockets(minRarity, craftingLevel))

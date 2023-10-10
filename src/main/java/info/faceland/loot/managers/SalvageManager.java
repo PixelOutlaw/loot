@@ -98,7 +98,7 @@ public class SalvageManager {
     int quality = Math.max(1, equipmentQuality - 1);
 
     float qualityUpChance = CraftingUtil.getQualityUpChance(effectiveLevelAdvantage, craftToolData);
-    while (Math.random() < qualityUpChance && quality < 4) {
+    while (LootPlugin.RNG.nextFloat() < qualityUpChance && quality < 4) {
       quality++;
     }
 
@@ -109,7 +109,7 @@ public class SalvageManager {
 
     ItemStack essence = null;
     float essenceChance = (effectiveLevelAdvantage / 100) + craftToolData.getQuality() * 0.2f;
-    if (Math.random() < essenceChance) {
+    if (LootPlugin.RNG.nextFloat() < essenceChance) {
       if (!possibleStats.isEmpty()) {
         player.playSound(player.getEyeLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.4F, 2F);
         Tier tier = MaterialUtil.getTierFromStack(selectedStack);

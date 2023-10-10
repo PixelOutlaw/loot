@@ -18,8 +18,8 @@
  */
 package info.faceland.loot.managers;
 
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemRarity;
-import info.faceland.loot.math.LootRandom;
 
 import java.util.HashMap;
 import java.util.List;
@@ -29,14 +29,9 @@ public final class LootNameManager {
 
   private final Map<ItemRarity, List<String>> prefixes = new HashMap<>();
   private final Map<ItemRarity, List<String>> suffixes = new HashMap<>();
-  private final LootRandom random;
-
-  public LootNameManager() {
-    random = new LootRandom(System.currentTimeMillis());
-  }
 
   public String getRandomPrefix(ItemRarity rarity) {
-    return prefixes.get(rarity).get(random.nextInt(prefixes.get(rarity).size()));
+    return prefixes.get(rarity).get(LootPlugin.RNG.nextInt(prefixes.get(rarity).size()));
   }
 
   public void setPrefixes(ItemRarity rarity, List<String> prefixes) {
@@ -44,7 +39,7 @@ public final class LootNameManager {
   }
 
   public String getRandomSuffix(ItemRarity rarity) {
-    return suffixes.get(rarity).get(random.nextInt(suffixes.get(rarity).size()));
+    return suffixes.get(rarity).get(LootPlugin.RNG.nextInt(suffixes.get(rarity).size()));
   }
 
   public void setSuffixes(ItemRarity rarity, List<String> suffixes) {

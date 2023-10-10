@@ -18,8 +18,8 @@
  */
 package info.faceland.loot.managers;
 
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.enchantments.EnchantmentTome;
-import info.faceland.loot.math.LootRandom;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,11 +29,9 @@ import java.util.stream.Collectors;
 public final class EnchantTomeManager {
 
   private final Map<String, EnchantmentTome> tomeMap;
-  private final LootRandom random;
 
   public EnchantTomeManager() {
     this.tomeMap = new HashMap<>();
-    this.random = new LootRandom(System.currentTimeMillis());
   }
 
   public EnchantmentTome getEnchantTome(String name) {
@@ -75,7 +73,7 @@ public final class EnchantTomeManager {
 
   public EnchantmentTome getRandomEnchantTome(double bonus) {
     bonus -= 1;
-    double selectedWeight = random.nextDouble() * getTotalWeight(bonus);
+    double selectedWeight = LootPlugin.RNG.nextFloat() * getTotalWeight(bonus);
     double currentWeight = 0D;
     for (EnchantmentTome tome : tomeMap.values()) {
       double weight = Math.max(0, tome.getWeight() + bonus * tome.getBonusWeight());

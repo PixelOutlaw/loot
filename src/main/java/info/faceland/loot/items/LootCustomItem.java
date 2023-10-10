@@ -21,6 +21,7 @@ package info.faceland.loot.items;
 import com.destroystokyo.paper.Namespaced;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.CustomItem;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
@@ -98,7 +99,7 @@ public final class LootCustomItem implements CustomItem {
       // This section exists to clear existing item attributes and enforce
       // no stacking on equipment items
       ItemMeta meta = itemStack.getItemMeta();
-      double serialValue = Math.random() * 0.0001;
+      double serialValue = LootPlugin.RNG.nextFloat() * 0.0001;
       AttributeModifier serial = new AttributeModifier("SERIAL", serialValue, Operation.ADD_NUMBER);
       meta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE, serial);
       itemStack.setItemMeta(meta);

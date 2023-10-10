@@ -61,8 +61,6 @@ public final class VagabondEquipListener implements Listener {
   private final Map<LivingEntity, Boolean> vagabonds = new WeakHashMap<>();
   private final float vagabondUniqueChance;
 
-  private final Random random = new Random();
-
   public VagabondEquipListener(LootPlugin plugin) {
     this.plugin = plugin;
     itemFoundFormat = plugin.getSettings().getString("language.broadcast.found-item", "");
@@ -78,11 +76,11 @@ public final class VagabondEquipListener implements Listener {
     VagabondData data = vagabondData.get(event.getCombatClass());
     for (EquipmentSlot slot : EquipmentSlot.values()) {
       int upgradeLevel = 3;
-      while (upgradeLevel < 15 && random.nextFloat() < 0.5) {
+      while (upgradeLevel < 15 && LootPlugin.RNG.nextFloat() < 0.5) {
         upgradeLevel++;
       }
       ItemStack item = null;
-      if (random.nextFloat() < vagabondUniqueChance) {
+      if (LootPlugin.RNG.nextFloat() < vagabondUniqueChance) {
         List<CustomItem> potentialItems = buildPotentialItems(data, slot, event.getLevel());
         if (potentialItems.size() > 1) {
           CustomItem customItem = selectItemByWeight(potentialItems);
@@ -92,15 +90,14 @@ public final class VagabondEquipListener implements Listener {
       if (item == null) {
         ItemRarity rarity = plugin.getRarityManager().getRandomRarity(1, 2.0);
         // TODO: this is ugly
-        String selectedTier = data.getTierList().get(slot)
-            .get(random.nextInt(data.getTierList().get(slot).size()));
+        String selectedTier = data.getTierList().get(slot).get(LootPlugin.RNG.nextInt(data.getTierList().get(slot).size()));
         Tier tier = plugin.getTierManager().getTier(selectedTier);
         item = plugin.getNewItemBuilder()
             .withItemGenerationReason(ItemGenerationReason.MONSTER)
             .withTier(tier)
             .withRarity(rarity)
             .withLevel(event.getLevel())
-            .withDistortion(Math.random() < 0.05)
+            .withDistortion(LootPlugin.RNG.nextFloat() < 0.05)
             .withCreator(null)
             .build()
             .getStack();
@@ -132,7 +129,7 @@ public final class VagabondEquipListener implements Listener {
     }
 
     for (EquipmentSlot slot : EquipmentSlot.values()) {
-      if (Math.random() > 0.3) {
+      if (LootPlugin.RNG.nextFloat() > 0.3) {
         continue;
       }
       ItemStack stack = event.getEntity().getEquipment().getItem(slot);
@@ -201,7 +198,7 @@ public final class VagabondEquipListener implements Listener {
     for (CustomItem ci : options) {
       totalWeight += ci.getWeight();
     }
-    float selectorValue = random.nextFloat() * totalWeight;
+    float selectorValue = LootPlugin.RNG.nextFloat() * totalWeight;
     float currentWeight = 0;
     for (CustomItem ci : options) {
       currentWeight += ci.getWeight();

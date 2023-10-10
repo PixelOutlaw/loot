@@ -22,7 +22,6 @@ import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ViolationData;
 import info.faceland.loot.events.LootDropEvent;
-import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.utils.DropUtil;
 import java.util.HashMap;
 import java.util.List;
@@ -45,14 +44,12 @@ import org.bukkit.potion.PotionEffectType;
 public final class EntityDeathListener implements Listener {
 
   private final LootPlugin plugin;
-  private final LootRandom random;
   private final Map<Player, ViolationData> violationMap;
 
   private static final String DEFAULT_WORLD_CONFIG = "DEFAULT";
 
   public EntityDeathListener(LootPlugin plugin) {
     this.plugin = plugin;
-    this.random = new LootRandom();
     this.violationMap = new HashMap<>();
   }
 

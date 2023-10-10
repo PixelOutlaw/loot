@@ -62,6 +62,7 @@ import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import io.pixeloutlaw.minecraft.spigot.config.VersionedConfiguration;
 import io.pixeloutlaw.minecraft.spigot.config.VersionedSmartYamlConfiguration;
 import java.io.File;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -89,6 +90,7 @@ import org.bukkit.scheduler.BukkitTask;
 public final class LootPlugin extends FacePlugin {
 
   private static LootPlugin instance;
+  public static SecureRandom RNG;
 
   private PluginLogger debugPrinter;
 
@@ -145,6 +147,7 @@ public final class LootPlugin extends FacePlugin {
   @Override
   public void enable() {
     instance = this;
+    RNG = new SecureRandom();
     debugPrinter = new PluginLogger(this);
 
     configYAML = defaultLoadConfig("config.yml");

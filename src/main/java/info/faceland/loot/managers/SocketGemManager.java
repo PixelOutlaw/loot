@@ -24,7 +24,6 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -49,7 +48,6 @@ public final class SocketGemManager {
 
   private final LootPlugin plugin;
   private final Map<String, SocketGem> gemMap;
-  private final LootRandom random;
 
   // split on "" ?
   public static final String GEM_1_PREFIX = PaletteUtil.color("|ns|\uF808\uF802咰\uF804\uF824");
@@ -61,7 +59,6 @@ public final class SocketGemManager {
   public SocketGemManager(LootPlugin plugin) {
     this.plugin = plugin;
     this.gemMap = new HashMap<>();
-    this.random = new LootRandom();
   }
 
   public List<SocketGem> getSocketGems() {
@@ -141,9 +138,9 @@ public final class SocketGemManager {
     if (!withChance) {
       List<SocketGem> gems = getSocketGems();
       SocketGem[] array = gems.toArray(new SocketGem[gems.size()]);
-      return array[random.nextInt(array.length)];
+      return array[LootPlugin.RNG.nextInt(array.length)];
     }
-    double selectedWeight = random.nextDouble() * getTotalWeight(distance, map);
+    double selectedWeight = LootPlugin.RNG.nextFloat() * getTotalWeight(distance, map);
     double currentWeight = 0D;
     List<SocketGem> gems = getSocketGems();
     for (SocketGem sg : gems) {
@@ -161,7 +158,7 @@ public final class SocketGemManager {
 
   public SocketGem getRandomSocketGemByBonus() {
     double totalWeight = getTotalBonusWeight();
-    double chosenWeight = random.nextDouble() * totalWeight;
+    double chosenWeight = LootPlugin.RNG.nextFloat() * totalWeight;
     double currentWeight = 0;
     for (SocketGem sg : getSocketGems()) {
       currentWeight += sg.getBonusWeight();
@@ -174,7 +171,7 @@ public final class SocketGemManager {
 
   public SocketGem getRandomSocketGemByLevel(int level) {
     double totalWeight = getTotalLevelWeight(level);
-    double chosenWeight = random.nextDouble() * totalWeight;
+    double chosenWeight = LootPlugin.RNG.nextFloat() * totalWeight;
     double currentWeight = 0;
     for (SocketGem sg : getSocketGems()) {
       currentWeight += sg.getWeight() + sg.getWeightPerLevel() * level;

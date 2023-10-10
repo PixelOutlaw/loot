@@ -1,8 +1,8 @@
 package info.faceland.loot.managers;
 
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.StatResponse;
-import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.utils.InventoryUtil;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import java.util.HashMap;
@@ -15,11 +15,9 @@ import org.bukkit.configuration.ConfigurationSection;
 public class StatManager {
 
   private final Map<String, ItemStat> itemStats;
-  private final LootRandom random;
 
   public StatManager() {
     this.itemStats = new HashMap<>();
-    this.random = new LootRandom();
   }
 
   public ItemStat getStat(String name) {
@@ -54,7 +52,7 @@ public class StatManager {
     float statRoll = switch (style) {
       case MAX -> 1;
       case MIN -> 0;
-      case RANDOM -> (float) Math.pow(random.nextDouble(), 2.85);
+      case RANDOM -> (float) Math.pow(LootPlugin.RNG.nextFloat(), 2.85);
     };
     String minMaxId = level + "|" + rarity;
     float minVal;
@@ -87,7 +85,7 @@ public class StatManager {
     component.setText(statString);
     response.setStatString(component.toLegacyText());
     if (!itemStat.getNamePrefixes().isEmpty()) {
-      response.setStatPrefix(itemStat.getNamePrefixes().get(random.nextInt(itemStat.getNamePrefixes().size())));
+      response.setStatPrefix(itemStat.getNamePrefixes().get(LootPlugin.RNG.nextInt(itemStat.getNamePrefixes().size())));
     }
     return response;
   }

@@ -19,19 +19,17 @@
 package info.faceland.loot.managers;
 
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
-import info.faceland.loot.math.LootRandom;
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.tier.Tier;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
 
 public final class TierManager {
 
   private final Set<Tier> loadedTiers = new HashSet<>();
-  private final LootRandom random = new LootRandom();
 
   public List<Tier> getTiersFromName(String id) {
     if (StringUtils.isBlank(id)) {
@@ -73,7 +71,7 @@ public final class TierManager {
 
   public Tier getRandomTier() {
     Set<Tier> allTiers = getLoadedTiers();
-    double selectedWeight = random.nextDouble() * getTotalTierWeight();
+    double selectedWeight = LootPlugin.RNG.nextFloat() * getTotalTierWeight();
     double currentWeight = 0;
     for (Tier t : allTiers) {
       double calcWeight = t.getSpawnWeight();

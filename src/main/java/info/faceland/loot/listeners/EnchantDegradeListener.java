@@ -19,7 +19,6 @@
 package info.faceland.loot.listeners;
 
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.utils.MaterialUtil;
 import land.face.dinvy.DeluxeInvyPlugin;
 import land.face.dinvy.entity.PlayerData;
@@ -36,11 +35,9 @@ import org.bukkit.inventory.ItemStack;
 public final class EnchantDegradeListener implements Listener {
 
   private final LootPlugin plugin;
-  private final LootRandom random;
 
   public EnchantDegradeListener(LootPlugin plugin) {
     this.plugin = plugin;
-    this.random = new LootRandom();
   }
 
   @EventHandler(priority = EventPriority.MONITOR)
@@ -50,11 +47,11 @@ public final class EnchantDegradeListener implements Listener {
     if (p == null) {
       return;
     }
-    if (random.nextDouble() > plugin.getSettings().getDouble("config.enchantment-degrade", 1.0)) {
+    if (LootPlugin.RNG.nextFloat() > plugin.getSettings().getDouble("config.enchantment-degrade", 1.0)) {
       return;
     }
     PlayerData data = DeluxeInvyPlugin.getInstance().getPlayerManager().getPlayerData(p);
-    ItemStack item = switch (random.nextInt(11)) {
+    ItemStack item = switch (LootPlugin.RNG.nextInt(11)) {
       case 0 -> p.getEquipment().getItemInMainHand();
       case 1 -> data.getEquipmentItem(DeluxeSlot.OFF_HAND);
       case 2 -> data.getEquipmentItem(DeluxeSlot.HELMET);

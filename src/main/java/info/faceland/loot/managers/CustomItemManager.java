@@ -19,14 +19,13 @@
 package info.faceland.loot.managers;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.UnicodeUtil;
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.CustomItemBuilder;
 import info.faceland.loot.items.LootCustomItemBuilder;
-import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -46,12 +45,10 @@ public final class CustomItemManager {
   private static final double DISTANCE_SQUARED = Math.pow(DISTANCE, 2);
   private final Map<String, CustomItem> customItemMap;
   private final Map<String, CustomItem> uneditedHash;
-  private final LootRandom random;
 
   public CustomItemManager() {
     customItemMap = new HashMap<>();
     uneditedHash = new HashMap<>();
-    random = new LootRandom(System.currentTimeMillis());
   }
 
   public Set<CustomItem> getCustomItems() {
@@ -104,9 +101,9 @@ public final class CustomItemManager {
     if (!withChance) {
       Set<CustomItem> set = getCustomItems();
       CustomItem[] array = set.toArray(new CustomItem[set.size()]);
-      return array[random.nextInt(array.length)];
+      return array[LootPlugin.RNG.nextInt(array.length)];
     }
-    double selectedWeight = random.nextDouble() * getTotalWeight();
+    double selectedWeight = LootPlugin.RNG.nextFloat() * getTotalWeight();
     double currentWeight = 0D;
     for (CustomItem ci : getCustomItems()) {
       double calcWeight = ci.getWeight() + ((distance / DISTANCE_SQUARED) * ci.getDistanceWeight());
@@ -122,7 +119,7 @@ public final class CustomItemManager {
   }
 
   public CustomItem getRandomCustomItemByLevel(int level) {
-    double selectedWeight = random.nextDouble() * getTotalLevelWeight(level);
+    double selectedWeight = LootPlugin.RNG.nextFloat() * getTotalLevelWeight(level);
     double currentWeight = 0D;
     for (CustomItem ci : getCustomItems()) {
       double diff = Math.abs(ci.getLevelBase() - level);

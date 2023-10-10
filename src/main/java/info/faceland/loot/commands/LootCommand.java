@@ -85,7 +85,6 @@ import org.bukkit.util.Vector;
 public class LootCommand extends BaseCommand {
 
   private final LootPlugin plugin;
-  private final Random random;
   private String awardFormat;
   private String awardFormatSelf;
 
@@ -96,7 +95,6 @@ public class LootCommand extends BaseCommand {
 
   public LootCommand(LootPlugin plugin) {
     this.plugin = plugin;
-    this.random = new Random(System.currentTimeMillis());
     gemcutterMenu = new GemcutterMenu(plugin);
     gemsmasherMenu = new GemSmashMenu(plugin);
     awardFormat = plugin.getSettings().getString("language.broadcast.reward-item", "");
@@ -302,7 +300,7 @@ public class LootCommand extends BaseCommand {
       return;
     }
 
-    int level = minLevel + (int) ((maxLevel - minLevel) * Math.random());
+    int level = minLevel + (int) ((maxLevel - minLevel) * LootPlugin.RNG.nextFloat());
 
     ItemRarity itemRarity = plugin.getRarityManager().getRarity(rarity);
 
@@ -386,7 +384,7 @@ public class LootCommand extends BaseCommand {
             plugin.getNewItemBuilder().withItemGenerationReason(ItemGenerationReason.COMMAND)
                 .withTier(t)
                 .withRarity(r)
-                .withLevel(level == -1 ? 1 + random.nextInt(100) : level)
+                .withLevel(level == -1 ? 1 + LootPlugin.RNG.nextInt(100) : level)
                 .withDistortion(distorted)
                 .withCreator(player.getPlayer())
                 .build()

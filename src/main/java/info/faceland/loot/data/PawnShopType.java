@@ -1,5 +1,6 @@
 package info.faceland.loot.data;
 
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.events.PawnDealCreateEvent;
 import lombok.Data;
 import lombok.Getter;
@@ -30,7 +31,7 @@ public class PawnShopType {
       Bukkit.getPluginManager().callEvent(event);
       if (event.getResult() != null) {
         dealOne = event.getResult();
-        dealOne.setMinutesRemaining(4 + (int) (Math.random() * 3.5));
+        dealOne.setMinutesRemaining(4 + (int) (LootPlugin.RNG.nextFloat() * 3.5));
         update = true;
       }
     }
@@ -42,7 +43,7 @@ public class PawnShopType {
       Bukkit.getPluginManager().callEvent(event);
       if (event.getResult() != null) {
         dealTwo = event.getResult();
-        dealTwo.setMinutesRemaining(8 + (int) (Math.random() * 4.5));
+        dealTwo.setMinutesRemaining(8 + (int) (LootPlugin.RNG.nextFloat() * 4.5));
         update = true;
       }
     } else {
@@ -53,7 +54,7 @@ public class PawnShopType {
       Bukkit.getPluginManager().callEvent(event);
       if (event.getResult() != null) {
         dealThree = event.getResult();
-        dealThree.setMinutesRemaining(17 + (int) (Math.random() * 7.5));
+        dealThree.setMinutesRemaining(17 + (int) (LootPlugin.RNG.nextFloat() * 7.5));
         update = true;
       }
     } else {

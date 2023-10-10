@@ -19,7 +19,7 @@
 package info.faceland.loot.anticheat;
 
 
-import info.faceland.loot.math.LootRandom;
+import info.faceland.loot.LootPlugin;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +34,6 @@ public final class AnticheatTag {
   private final Location entityLocation;
   private final Map<UUID, Location> taggerLocations;
   private final Map<UUID, Double> taggerDamage;
-  private final LootRandom random;
 
   public AnticheatTag(LivingEntity entity) {
     this(entity.getUniqueId(), entity.getLocation());
@@ -45,7 +44,6 @@ public final class AnticheatTag {
     this.entityLocation = entityLocation;
     this.taggerLocations = new HashMap<>();
     this.taggerDamage = new HashMap<>();
-    this.random = new LootRandom();
   }
 
   public UUID getUniqueId() {
@@ -80,9 +78,9 @@ public final class AnticheatTag {
   }
 
   public UUID getRandomWeightedLooter() {
-    if (random.nextDouble() < 0.5) {
+    if (LootPlugin.RNG.nextFloat() < 0.5f) {
       List<UUID> damagers = new ArrayList<>(taggerDamage.keySet());
-      return damagers.get(random.nextInt(damagers.size()));
+      return damagers.get(LootPlugin.RNG.nextInt(damagers.size()));
     }
 
     UUID tagger = null;

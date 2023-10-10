@@ -31,7 +31,6 @@ import info.faceland.loot.data.StatResponse;
 import info.faceland.loot.listeners.crafting.CraftingListener;
 import info.faceland.loot.managers.LootNameManager;
 import info.faceland.loot.managers.StatManager;
-import info.faceland.loot.math.LootRandom;
 import info.faceland.loot.tier.Tier;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -73,7 +72,6 @@ public final class ItemBuilder {
   private int extendSlots = -1;
   private int craftBonusStats = 0;
   private ItemGenerationReason itemGenerationReason = ItemGenerationReason.MONSTER;
-  private LootRandom random = new LootRandom();
 
   private double specialStatChance;
 
@@ -154,11 +152,11 @@ public final class ItemBuilder {
   }
 
   private ItemStat getRandomSecondaryStat() {
-    return tier.getSecondaryStats().get(random.nextInt(tier.getSecondaryStats().size()));
+    return tier.getSecondaryStats().get(LootPlugin.RNG.nextInt(tier.getSecondaryStats().size()));
   }
 
   private ItemStat getRandomSpecialStat() {
-    return tier.getSpecialStats().get(random.nextInt(tier.getSpecialStats().size()));
+    return tier.getSpecialStats().get(LootPlugin.RNG.nextInt(tier.getSpecialStats().size()));
   }
 
   public BuiltItem build() {
@@ -173,7 +171,7 @@ public final class ItemBuilder {
       if (set.size() == 0) {
         throw new RuntimeException("array length is 0 for tier: " + tier.getName());
       }
-      material = array[random.nextInt(array.length)];
+      material = array[LootPlugin.RNG.nextInt(array.length)];
     }
     stack = new ItemStack(material);
     List<String> lore = new ArrayList<>();
@@ -210,7 +208,7 @@ public final class ItemBuilder {
     List<ItemStat> bonusStatList = new ArrayList<>(tier.getBonusStats());
     bonusStatList.removeIf(stat -> level < stat.getMinimumItemLevel());
 
-    int bonusStats = random.nextIntRange(rarity.getMinimumBonusStats(), rarity.getMaximumBonusStats());
+    int bonusStats = LootPlugin.RNG.nextInt(rarity.getMinimumBonusStats(), rarity.getMaximumBonusStats());
     if (itemGenerationReason == ItemGenerationReason.CRAFTING) {
       bonusStats += craftBonusStats;
     }
@@ -223,19 +221,19 @@ public final class ItemBuilder {
       distortionBonus = Math.max(10, level / 3);
       rarityPower += 1;
       level += distortionBonus;
-      invertedIndex = random.nextInt(bonusStats);
+      invertedIndex = LootPlugin.RNG.nextInt(bonusStats);
     }
 
     boolean alwaysEssence = this.alwaysEssence;
     List<StatResponse> responseList = new ArrayList<>();
     int essenceSlots = 0;
     for (int i = 0; i < bonusStats; i++) {
-      if (crafted && (alwaysEssence || random.nextDouble() < slotScore / 5)) {
+      if (crafted && (alwaysEssence || LootPlugin.RNG.nextFloat() < slotScore / 5)) {
         essenceSlots++;
         alwaysEssence = false;
         continue;
       }
-      ItemStat stat = bonusStatList.get(random.nextInt(bonusStatList.size()));
+      ItemStat stat = bonusStatList.get(LootPlugin.RNG.nextInt(bonusStatList.size()));
       StatResponse rStat = statManager.getFinalStat(stat, level, rarityPower);
       if (invertedIndex == i) {
         rStat.setInverted(true);
@@ -293,13 +291,13 @@ public final class ItemBuilder {
     int sockets = this.sockets == -1 ? rarity.getMinimumSockets() : this.sockets;
     sockets = Math.min(sockets, tier.getMaximumSockets());
     int maxSockets = Math.min(rarity.getMaximumSockets(), tier.getMaximumSockets());
-    while (sockets < maxSockets && Math.random() < rarity.getSocketChance()) {
+    while (sockets < maxSockets && LootPlugin.RNG.nextFloat() < rarity.getSocketChance()) {
       sockets++;
     }
 
     int minExtenders = this.extendSlots == -1 ? tier.getMinimumExtendSlots() : this.extendSlots;
     int extenders = Math.min(minExtenders, tier.getMaximumExtendSlots());
-    while (extenders < tier.getMaximumExtendSlots() && Math.random() < rarity.getExtenderChance()) {
+    while (extenders < tier.getMaximumExtendSlots() && LootPlugin.RNG.nextFloat() < rarity.getExtenderChance()) {
       extenders++;
     }
 
@@ -320,11 +318,10 @@ public final class ItemBuilder {
     }
 
     String suffix;
-    if (random.nextDouble() < 0.3) {
+    if (LootPlugin.RNG.nextFloat() < 0.3f) {
       suffix = nameManager.getRandomSuffix(rarity);
     } else {
-      suffix = tier.getItemSuffixes(rarity)
-          .get(random.nextInt(tier.getItemSuffixes(rarity).size()));
+      suffix = tier.getItemSuffixes(rarity).get(LootPlugin.RNG.nextInt(tier.getItemSuffixes(rarity).size()));
     }
 
     ItemStackExtensionsKt.setDisplayName(stack, color + prefix + " " + suffix);
@@ -334,7 +331,7 @@ public final class ItemBuilder {
     // This section exists to clear existing item attributes and enforce
     // no stacking on equipment items
     ItemMeta iMeta = stack.getItemMeta();
-    double serialValue = Math.random() * 0.0001;
+    double serialValue = LootPlugin.RNG.nextFloat() * 0.0001;
     AttributeModifier serial = new AttributeModifier("SERIAL", serialValue, Operation.ADD_NUMBER);
     iMeta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE, serial);
     stack.setItemMeta(iMeta);

@@ -3,8 +3,8 @@ package info.faceland.loot.managers;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.UpgradeScroll;
-import info.faceland.loot.math.LootRandom;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,14 +19,12 @@ public class ScrollManager {
 
   private Map<String, UpgradeScroll> scrolls;
   private Map<UpgradeScroll, ItemStack> cachedScrollStacks;
-  private LootRandom random;
   private Material scrollMaterial;
   private double totalWeight;
 
   public ScrollManager() {
     scrolls = new HashMap<>();
     cachedScrollStacks = new HashMap<>();
-    random = new LootRandom(System.currentTimeMillis());
     scrollMaterial = Material.PAPER;
   }
 
@@ -79,7 +77,7 @@ public class ScrollManager {
   }
 
   public UpgradeScroll getRandomScroll() {
-    double selectedWeight = random.nextDouble() * totalWeight;
+    double selectedWeight = LootPlugin.RNG.nextFloat() * totalWeight;
     double currentWeight = 0;
     for (UpgradeScroll scroll : scrolls.values()) {
       double calcWeight = scroll.getWeight();

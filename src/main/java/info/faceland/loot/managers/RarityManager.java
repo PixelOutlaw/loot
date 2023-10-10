@@ -1,7 +1,7 @@
 package info.faceland.loot.managers;
 
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemRarity;
-import info.faceland.loot.math.LootRandom;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -10,12 +10,10 @@ import java.util.stream.Collectors;
 public class RarityManager {
 
   private final Map<String, ItemRarity> itemRarities;
-  private final LootRandom random;
   private double lowestRarityWeight;
 
   public RarityManager() {
     this.itemRarities = new HashMap<>();
-    this.random = new LootRandom(System.currentTimeMillis());
   }
 
   public ItemRarity getRarity(String name) {
@@ -40,7 +38,7 @@ public class RarityManager {
 
   public ItemRarity getRandomRarity(double bonus, double minimum) {
     bonus -= 1;
-    double selectedWeight = random.nextDouble() * getTotalRarityWeightWithBonus(bonus, minimum);
+    double selectedWeight = LootPlugin.RNG.nextFloat() * getTotalRarityWeightWithBonus(bonus, minimum);
     double weight = 0;
     for (ItemRarity rarity : getLoadedRarities().values()) {
       weight += calcWeight(rarity, bonus, minimum);

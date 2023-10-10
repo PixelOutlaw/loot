@@ -115,7 +115,7 @@ public class GemcutterMenu extends ItemMenu {
     ItemStack result = new ItemStack(material);
     float upgradeChance = 0.3f * ((effectiveCraftLevel + 100) / (itemLevel + 100));
     int quality = 1;
-    while ( quality < 4 && Math.random() < upgradeChance) {
+    while ( quality < 4 && LootPlugin.RNG.nextFloat() < upgradeChance) {
       quality++;
     }
     FaceColor color = switch (quality) {
