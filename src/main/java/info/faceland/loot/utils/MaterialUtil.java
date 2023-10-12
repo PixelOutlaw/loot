@@ -755,9 +755,9 @@ public final class MaterialUtil {
       added.addAll(ListExtensionsKt.chatColorize(tome.getLore()));
     }
 
+    int itemLevel = MaterialUtil.getLevelRequirement(targetItem);
+    float enchantPower = Math.max(1, Math.min(enchantSkill.getLevelWithBonus(), itemLevel));
     if (!StringUtils.isBlank(tome.getStat())) {
-      int itemLevel = MaterialUtil.getLevelRequirement(targetItem);
-      float enchantPower = Math.max(1, Math.min(enchantSkill.getLevelWithBonus(), itemLevel));
       float rarity = (float) MaterialUtil.getBaseEnchantBonus(enchantSkill.getLevelWithBonus());
 
       ItemStat stat = LootPlugin.getInstance().getStatManager().getStat(tome.getStat());
@@ -773,44 +773,14 @@ public final class MaterialUtil {
 
     lore.addAll(index, added);
 
-    if (enchantmentsStack) {
-      for (Map.Entry<Enchantment, Integer> entry : tome.getEnchantments().entrySet()) {
-        if (targetItem.containsEnchantment(entry.getKey())) {
-          int previousLevel = targetItem.getEnchantmentLevel(entry.getKey());
-          int newLevel = previousLevel + entry.getValue();
-          targetItem.removeEnchantment(entry.getKey());
-          targetItem.addUnsafeEnchantment(entry.getKey(), newLevel);
-        } else {
-          targetItem.addUnsafeEnchantment(entry.getKey(), entry.getValue());
-        }
-      }
-    } else {
-      boolean fail = true;
-      for (Map.Entry<Enchantment, Integer> entry : tome.getEnchantments().entrySet()) {
-        if (targetItem.containsEnchantment(entry.getKey())) {
-          if (targetItem.getEnchantmentLevel(entry.getKey()) < entry.getValue()) {
-            targetItem.removeEnchantment(entry.getKey());
-            targetItem.addUnsafeEnchantment(entry.getKey(), entry.getValue());
-            fail = false;
-          }
-        } else {
-          targetItem.addUnsafeEnchantment(entry.getKey(), entry.getValue());
-          fail = false;
-        }
-      }
-      if (fail) {
-        sendMessage(player, enchantPointlessMsg);
-        return false;
-      }
-    }
-
     tomeStack.setAmount(tomeStack.getAmount() - 1);
     TextUtils.setLore(targetItem, lore);
 
-    float weightDivisor = tome.getWeight() == 0 ? 2000 : (float) tome.getWeight();
-    float exp = 10 + 17 * (2000 / weightDivisor);
-    LootPlugin.getInstance().getStrifePlugin().getSkillExperienceManager()
-        .addExperience(player, LifeSkillType.ENCHANTING, exp, false, false);
+    float weightMult = Math.min(1, Math.max(0, (2000f - (float) tome.getWeight()) / 2000f));
+    float exp = 25 + 80 * weightMult;
+    exp *= 1 + (enchantPower / 50);
+    LootPlugin.getInstance().getStrifePlugin().getSkillExperienceManager().addExperience(player,
+        LifeSkillType.ENCHANTING, exp, false, false);
     sendMessage(player, enchantSuccessMsg);
     player.playSound(player.getEyeLocation(), Sound.BLOCK_PORTAL_TRAVEL, 0.4f, 2.0f);
     return true;
