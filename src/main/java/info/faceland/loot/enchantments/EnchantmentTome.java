@@ -29,10 +29,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 
+@Getter @Setter
 public class EnchantmentTome {
 
   private final String name;
@@ -44,8 +47,8 @@ public class EnchantmentTome {
   private String stat;
   private boolean bar;
   private double sellPrice;
+  private double enchantXp;
   private String description;
-  private Map<Enchantment, Integer> enchantments;
 
   public EnchantmentTome(String name) {
     this.name = name;
@@ -69,58 +72,6 @@ public class EnchantmentTome {
     EnchantmentTome that = (EnchantmentTome) o;
 
     return !(name != null ? !name.equals(that.name) : that.name != null);
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public List<String> getLore() {
-    return lore;
-  }
-
-  public void setLore(List<String> lore) {
-    this.lore = lore;
-  }
-
-  public String getStat() {
-    return stat;
-  }
-
-  void setStat(String stat) {
-    this.stat = stat;
-  }
-
-  public boolean getBar() {
-    return bar;
-  }
-
-  void setBar(boolean bar) {
-    this.bar = bar;
-  }
-
-  public double getSellPrice() {
-    return sellPrice;
-  }
-
-  public void setSellPrice(double sellPrice) {
-    this.sellPrice = sellPrice;
-  }
-
-  public double getWeight() {
-    return weight;
-  }
-
-  void setWeight(double weight) {
-    this.weight = weight;
-  }
-
-  public double getBonusWeight() {
-    return bonusWeight;
-  }
-
-  public void setBonusWeight(double bonusWeight) {
-    this.bonusWeight = bonusWeight;
   }
 
   public static List<String> UNCOLORED_TOME_DESC = Arrays.asList(
@@ -155,36 +106,8 @@ public class EnchantmentTome {
     return sb.toString();
   }
 
-  public boolean isBroadcast() {
-    return broadcast;
-  }
-
-  void setBroadcast(boolean broadcast) {
-    this.broadcast = broadcast;
-  }
-
   public List<ItemGroup> getItemGroups() {
     return new ArrayList<>(itemGroups);
-  }
-
-  void setItemGroups(List<ItemGroup> itemGroups) {
-    this.itemGroups = itemGroups;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  void setDescription(String description) {
-    this.description = description;
-  }
-
-  public Map<Enchantment, Integer> getEnchantments() {
-    return new HashMap<>(enchantments);
-  }
-
-  void setEnchantments(Map<Enchantment, Integer> enchantments) {
-    this.enchantments = enchantments;
   }
 
 }

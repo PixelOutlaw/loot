@@ -42,11 +42,11 @@ public interface EnchantmentTomeBuilder {
 
   EnchantmentTomeBuilder withSellPrice(double d);
 
+  EnchantmentTomeBuilder withEnchantXp(double d);
+
   EnchantmentTomeBuilder withBroadcast(boolean b);
 
   EnchantmentTomeBuilder withItemGroups(List<ItemGroup> l);
 
   EnchantmentTomeBuilder withDescription(String s);
-
-  EnchantmentTomeBuilder withEnchantments(Map<Enchantment, Integer> map);
 }

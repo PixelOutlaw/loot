@@ -125,20 +125,6 @@ drops:
   unidentified-item: 0.1
 
 
-special-stats:
-  # Chance that a special stat will use a stat from the
-  # tier's special pool, instead of an additional bonus stat
-  pool-chance: 0.5
-  # Probability that a normal tier item will have an
-  # additional stat from its stat list added to the top
-  entities:
-    ENDERMAN: 0.1
-    ENDERMITE: 0.1
-  worlds:
-    end-world-name: 1.0
-    meme-world-name: 0.1
-
-
 custom-model-data:
   tier-start-value: 12000
   tier-per-level: 10

@@ -256,13 +256,6 @@ public class EnchantMenu extends ItemMenu {
         lore.add("&7 enchanting skill, applied");
         lore.add("&7 after all other numbers!");
       }
-      if (!tome.getEnchantments().isEmpty()) {
-        lore.add("&fApplied Enchantments:");
-        for (Enchantment enchantment : tome.getEnchantments().keySet()) {
-          lore.add(" &9" + WordUtils.capitalizeFully(enchantment.getKey().getKey()) + " " + NumberUtil
-              .toRoman(tome.getEnchantments().get(enchantment)));
-        }
-      }
       updateConfirmDisplay(validEnchant, ListExtensionsKt.chatColorize(lore), 60);
       return;
     }

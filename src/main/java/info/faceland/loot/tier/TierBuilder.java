@@ -21,6 +21,7 @@ package info.faceland.loot.tier;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.groups.ItemGroup;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import land.face.market.data.PlayerMarketState.FilterFlagA;
 
@@ -67,11 +68,6 @@ public final class TierBuilder {
 
   public TierBuilder withBonusStats(List<ItemStat> itemStats) {
     tier.setBonusStats(itemStats);
-    return this;
-  }
-
-  public TierBuilder withSpecialStats(List<ItemStat> itemStats) {
-    tier.setSpecialStats(itemStats);
     return this;
   }
 
@@ -122,6 +118,11 @@ public final class TierBuilder {
 
   public TierBuilder withItemGroups(Set<ItemGroup> s) {
     tier.setItemGroups(s);
+    return this;
+  }
+
+  public TierBuilder withCategoryLimits(Map<String, Integer> s) {
+    tier.setStatCategoryLimits(s);
     return this;
   }
 }

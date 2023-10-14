@@ -116,6 +116,7 @@ public class StatManager {
           stat.setMinimumItemLevel(cs.getInt("minimum-item-level", -10));
           stat.getNamePrefixes().clear();
           stat.getNamePrefixes().addAll(cs.getStringList("prefixes"));
+          stat.setCategory(cs.getString("category", null));
           addStat(key, stat);
         } catch (Exception e) {
           Bukkit.getLogger().warning("[Loot] Failed to load stat named " + key + " from file " + file.getName());

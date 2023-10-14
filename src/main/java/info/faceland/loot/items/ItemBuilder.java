@@ -1,20 +1,18 @@
 /**
  * The MIT License Copyright (c) 2015 Teal Cube Games
  * <p>
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
  * <p>
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
  * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
- * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package info.faceland.loot.items;
 
@@ -35,7 +33,9 @@ import info.faceland.loot.tier.Tier;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -78,8 +78,6 @@ public final class ItemBuilder {
   public ItemBuilder(LootPlugin plugin) {
     statManager = plugin.getStatManager();
     nameManager = plugin.getNameManager();
-    specialStatChance = plugin.getSettings()
-        .getDouble("config.special-stats.pool-chance", 0.5D);
   }
 
   public boolean isBuilt() {
@@ -155,10 +153,6 @@ public final class ItemBuilder {
     return tier.getSecondaryStats().get(LootPlugin.RNG.nextInt(tier.getSecondaryStats().size()));
   }
 
-  private ItemStat getRandomSpecialStat() {
-    return tier.getSpecialStats().get(LootPlugin.RNG.nextInt(tier.getSpecialStats().size()));
-  }
-
   public BuiltItem build() {
     if (isBuilt()) {
       throw new IllegalStateException("already built");
@@ -168,7 +162,7 @@ public final class ItemBuilder {
     if (material == null) {
       Set<Material> set = tier.getAllowedMaterials();
       Material[] array = set.toArray(new Material[0]);
-      if (set.size() == 0) {
+      if (set.isEmpty()) {
         throw new RuntimeException("array length is 0 for tier: " + tier.getName());
       }
       material = array[LootPlugin.RNG.nextInt(array.length)];
@@ -182,7 +176,7 @@ public final class ItemBuilder {
 
     if (tier.isSkillRequirement()) {
       lore.add(FaceColor.WHITE + "Skill Requirement: " + level);
-    } else{
+    } else {
       lore.add(FaceColor.WHITE + "Level Requirement: " + level);
     }
     if (distorted && !Bukkit.getOnlinePlayers().isEmpty()) {
@@ -226,6 +220,7 @@ public final class ItemBuilder {
 
     boolean alwaysEssence = this.alwaysEssence;
     List<StatResponse> responseList = new ArrayList<>();
+    Map<String, Integer> categories = new HashMap<>();
     int essenceSlots = 0;
     for (int i = 0; i < bonusStats; i++) {
       if (crafted && (alwaysEssence || LootPlugin.RNG.nextFloat() < slotScore / 5)) {
@@ -242,6 +237,13 @@ public final class ItemBuilder {
       }
       responseList.add(rStat);
       bonusStatList.remove(stat);
+      if (stat.getCategory() != null) {
+        categories.put(stat.getCategory(), categories.getOrDefault(stat.getCategory(), 0) + 1);
+        if (categories.get(stat.getCategory()) >= tier.getStatCategoryLimits().getOrDefault(stat.getCategory(), 100)) {
+          bonusStatList.removeIf(bs -> stat.getCategory().equals(bs.getCategory()));
+          categories.remove(stat.getCategory());
+        }
+      }
     }
 
     if (distorted) {

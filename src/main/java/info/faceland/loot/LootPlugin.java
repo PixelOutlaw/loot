@@ -295,30 +295,6 @@ public final class LootPlugin extends FacePlugin {
     }
   }
 
-  public Map<EntityType, Double> fetchSpecialStatEntities() {
-    Map<EntityType, Double> entityChanceMap = new HashMap<>();
-    ConfigurationSection entities = configYAML.getConfigurationSection("special-stats.entities");
-    for (String key : entities.getKeys(false)) {
-      EntityType entityType;
-      try {
-        entityType = EntityType.valueOf(key);
-      } catch (Exception e) {
-        continue;
-      }
-      entityChanceMap.put(entityType, entities.getDouble(key, 0D));
-    }
-    return entityChanceMap;
-  }
-
-  public Map<String, Double> fetchSpecialStatWorlds() {
-    Map<String, Double> worldChanceMap = new HashMap<>();
-    ConfigurationSection entities = configYAML.getConfigurationSection("special-stats.worlds");
-    for (String key : entities.getKeys(false)) {
-      worldChanceMap.put(key, entities.getDouble(key, 0D));
-    }
-    return worldChanceMap;
-  }
-
   private void loadEnchantmentStones() {
     Set<EnchantmentTome> tomes = new HashSet<>();
     List<String> loadedTomes = new ArrayList<>();
@@ -335,6 +311,7 @@ public final class LootPlugin extends FacePlugin {
       builder.withStat(cs.getString("stat", ""));
       builder.withBar(cs.getBoolean("enable-bar", true));
       builder.withSellPrice(cs.getDouble("sell-price", -1));
+      builder.withEnchantXp(cs.getDouble("enchant-xp", -1));
       builder.withBroadcast(cs.getBoolean("broadcast", false));
       List<ItemGroup> groups = new ArrayList<>();
       for (String groop : cs.getStringList("item-groups")) {
@@ -356,7 +333,6 @@ public final class LootPlugin extends FacePlugin {
           enchantments.put(ench, i);
         }
       }
-      builder.withEnchantments(enchantments);
       builder.withItemGroups(groups);
       EnchantmentTome stone = builder.build();
       tomes.add(stone);
@@ -665,12 +641,6 @@ public final class LootPlugin extends FacePlugin {
       }
       builder.withBonusStats(bonusStats);
 
-      List<ItemStat> specialStats = new ArrayList<>();
-      for (String statName : cs.getStringList("special-stats")) {
-        specialStats.add(getStatManager().getStat(statName));
-      }
-      builder.withSpecialStats(specialStats);
-
       builder.withSpawnWeight(cs.getDouble("spawn-weight"));
       builder.withIdentifyWeight(cs.getDouble("identify-weight"));
       builder.withStartingCustomData(cs.getInt("base-custom-data", -1));
@@ -698,6 +668,13 @@ public final class LootPlugin extends FacePlugin {
         }
       }
       builder.withItemGroups(itemGroups);
+      if (cs.getConfigurationSection("stat-category-limits") != null) {
+        Map<String, Integer> limitMap = new HashMap<>();
+        for (String category : cs.getConfigurationSection("stat-category-limits").getKeys(false)) {
+          limitMap.put(category, cs.getInt("stat-category-limits." + category));
+        }
+        builder.withCategoryLimits(limitMap);
+      }
       Tier t = builder.build();
       List<String> suffixes = cs.getStringList("suffixes.generic");
       for (ItemRarity r : rarityManager.getLoadedRarities().values()) {

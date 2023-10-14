@@ -4,9 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter @Setter
 public class ItemStat {
 
   private float minBaseValue;
@@ -25,6 +26,7 @@ public class ItemStat {
   private float maxBrightness;
   private final List<String> namePrefixes = new ArrayList<>();
   private int minimumItemLevel;
+  private String category;
 
   private Map<String, Float> minValues = new HashMap<>();
   private Map<String, Float> maxValues = new HashMap<>();

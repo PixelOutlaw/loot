@@ -19,8 +19,6 @@ sword:
   - "WEAPON-BONUS-LIFE-STEAL"
   - "WEAPON-BONUS-GOLD-FIND"
   - "WEAPON-BONUS-ITEM-DISC"
-  special-stats:
-  - "WEAPON-SPECIAL-HP-ON-HIT"
   spawn-weight: 5
   identify-weight: 10
   item-groups:

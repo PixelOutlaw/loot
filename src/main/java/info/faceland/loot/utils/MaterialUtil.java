@@ -764,7 +764,7 @@ public final class MaterialUtil {
       added.add(LootPlugin.getInstance().getStatManager().getFinalStat(stat, enchantPower, rarity).getStatString());
     }
 
-    if (tome.getBar()) {
+    if (tome.isBar()) {
       double skillRatio = Math.min(1, enchantSkill.getLevelWithBonus() / 100);
       double roll = skillRatio * LootPlugin.RNG.nextFloat() + (1 - skillRatio) * Math.pow(LootPlugin.RNG.nextFloat(), 2.5);
       double size = 14 + 20 * roll;
@@ -776,8 +776,13 @@ public final class MaterialUtil {
     tomeStack.setAmount(tomeStack.getAmount() - 1);
     TextUtils.setLore(targetItem, lore);
 
-    float weightMult = Math.min(1, Math.max(0, (2000f - (float) tome.getWeight()) / 2000f));
-    float exp = 25 + 80 * weightMult;
+    float exp;
+    if (tome.getEnchantXp() > 0) {
+      exp = (float) tome.getEnchantXp();
+    } else {
+      float weightMult = Math.min(1, Math.max(0, (2000f - (float) tome.getWeight()) / 2000f));
+      exp = 25 + 80 * weightMult;
+    }
     exp *= 1 + (enchantPower / 50);
     LootPlugin.getInstance().getStrifePlugin().getSkillExperienceManager().addExperience(player,
         LifeSkillType.ENCHANTING, exp, false, false);

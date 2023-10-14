@@ -38,8 +38,6 @@ public class DropUtil implements Listener {
   private static LootPlugin plugin;
 
   private static String itemFoundFormat;
-  private static Map<EntityType, Double> specialStatEntities;
-  private static Map<String, Double> specialStatWorlds;
 
   private static double customizedTierChance;
   private static double normalDropChance;
@@ -53,8 +51,6 @@ public class DropUtil implements Listener {
   public static void refresh() {
     plugin = LootPlugin.getInstance();
     itemFoundFormat = plugin.getSettings().getString("language.broadcast.found-item", "");
-    specialStatEntities = plugin.fetchSpecialStatEntities();
-    specialStatWorlds = plugin.fetchSpecialStatWorlds();
 
     customizedTierChance = plugin.getSettings()
         .getDouble("config.drops.customized-tier-chance", 0D);
@@ -296,13 +292,6 @@ public class DropUtil implements Listener {
     if (broadcast) {
       InventoryUtil.sendToDiscord(looter, itemStack, itemFoundFormat);
     }
-  }
-
-  private static boolean addSpecialStat(EntityType entityType, String worldName) {
-    return (specialStatEntities.containsKey(entityType) && LootPlugin.RNG.nextFloat() < specialStatEntities
-        .get(entityType))
-        || ((specialStatWorlds.containsKey(worldName)) && LootPlugin.RNG.nextFloat() < specialStatWorlds
-        .get(worldName));
   }
 
   public static Tier getTier(Player killer) {

@@ -35,30 +35,26 @@ import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 
+@Getter @Setter
 public final class Tier implements Comparable<Tier> {
 
-  @Getter @Setter
   private boolean skillRequirement = false;
   private String id;
   private String name;
   private ItemStat primaryStat;
   private List<ItemStat> secondaryStats;
   private List<ItemStat> bonusStats;
-  private List<ItemStat> specialStats;
   private double spawnWeight;
   private double identifyWeight;
   private int customDataStart;
   private int customDataInterval;
   private FilterFlagA filterFlag;
   private Set<ItemGroup> itemGroups;
+  private Map<String, Integer> statCategoryLimits = new HashMap<>();
 
-  @Getter @Setter
   private int minimumSockets;
-  @Getter @Setter
   private int maximumSockets;
-  @Getter @Setter
   private int minimumExtendSlots;
-  @Getter @Setter
   private int maximumExtendSlots;
 
   @Getter
@@ -69,90 +65,6 @@ public final class Tier implements Comparable<Tier> {
     this.secondaryStats = new ArrayList<>();
     this.bonusStats = new ArrayList<>();
     this.itemGroups = new HashSet<>();
-  }
-
-  public String getId() {
-    return id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  void setName(String name) {
-    this.name = name;
-  }
-
-  public ItemStat getPrimaryStat() {
-    return primaryStat;
-  }
-
-  public void setPrimaryStat(ItemStat primaryStat) {
-    this.primaryStat = primaryStat;
-  }
-
-  public List<ItemStat> getSecondaryStats() {
-    return secondaryStats;
-  }
-
-  public void setSecondaryStats(List<ItemStat> secondaryStats) {
-    this.secondaryStats = secondaryStats;
-  }
-
-  public List<ItemStat> getBonusStats() {
-    return bonusStats;
-  }
-
-  public void setBonusStats(List<ItemStat> bonusStats) {
-    this.bonusStats = bonusStats;
-  }
-
-  public List<ItemStat> getSpecialStats() {
-    return specialStats;
-  }
-
-  public void setSpecialStats(List<ItemStat> specialStats) {
-    this.specialStats = specialStats;
-  }
-
-  public double getSpawnWeight() {
-    return spawnWeight;
-  }
-
-  public void setSpawnWeight(double spawnWeight) {
-    this.spawnWeight = spawnWeight;
-  }
-
-  public double getIdentifyWeight() {
-    return identifyWeight;
-  }
-
-  public void setIdentifyWeight(double identifyWeight) {
-    this.identifyWeight = identifyWeight;
-  }
-
-  public int getCustomDataStart() {
-    return customDataStart;
-  }
-
-  public void setCustomDataStart(int customDataStart) {
-    this.customDataStart = customDataStart;
-  }
-
-  public int getCustomDataInterval() {
-    return customDataInterval;
-  }
-
-  public void setCustomDataInterval(int customDataInterval) {
-    this.customDataInterval = customDataInterval;
-  }
-
-  public Set<ItemGroup> getItemGroups() {
-    return itemGroups;
-  }
-
-  public void setItemGroups(Set<ItemGroup> itemGroups) {
-    this.itemGroups = itemGroups;
   }
 
   public Set<Material> getAllowedMaterials() {
@@ -187,15 +99,6 @@ public final class Tier implements Comparable<Tier> {
   public void addItemSuffixes(ItemRarity rarity, List<String> list) {
     suffixes.put(rarity, list);
   }
-
-  public FilterFlagA getFilterFlag() {
-    return filterFlag;
-  }
-
-  public void setFilterFlag(FilterFlagA filterFlag) {
-    this.filterFlag = filterFlag;
-  }
-
 
   public int compareTo(Tier o) {
     if (o == null) {

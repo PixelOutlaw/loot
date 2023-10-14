@@ -84,6 +84,12 @@ public final class LootEnchantmentTomeBuilder implements EnchantmentTomeBuilder 
   }
 
   @Override
+  public EnchantmentTomeBuilder withEnchantXp(double d) {
+    tome.setEnchantXp(d);
+    return this;
+  }
+
+  @Override
   public EnchantmentTomeBuilder withBroadcast(boolean b) {
     tome.setBroadcast(b);
     return this;
@@ -98,12 +104,6 @@ public final class LootEnchantmentTomeBuilder implements EnchantmentTomeBuilder 
   @Override
   public EnchantmentTomeBuilder withDescription(String s) {
     tome.setDescription(s);
-    return this;
-  }
-
-  @Override
-  public EnchantmentTomeBuilder withEnchantments(Map<Enchantment, Integer> map) {
-    tome.setEnchantments(map);
     return this;
   }
 
