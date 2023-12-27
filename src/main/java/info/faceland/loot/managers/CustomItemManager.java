@@ -170,12 +170,13 @@ public final class CustomItemManager {
           CustomItemBuilder builder = new LootCustomItemBuilder(key, material);
           builder.withDisplayName(cs.getString("display-name"));
           builder.withLore(UnicodeUtil.unicodePlacehold(cs.getStringList("lore")));
-          builder.withWeight(cs.getDouble("weight"));
-          builder.withDistanceWeight(cs.getDouble("distance-weight"));
+          double weight = cs.getDouble("weight");
+          builder.withWeight(weight);
           builder.withLevelBase(cs.getInt("level-base"));
           builder.withLevelRange(cs.getInt("level-range"));
           builder.withCustomData(cs.getInt("custom-data-value", -1));
           builder.withBroadcast(cs.getBoolean("broadcast"));
+          builder.withExport(cs.getBoolean("export", weight > 0));
           List<String> flags = cs.getStringList("flags");
           Set<ItemFlag> itemFlags = new HashSet<>();
           for (String s : flags) {

@@ -52,6 +52,8 @@ public interface CustomItem {
 
     boolean isBroadcast();
 
+    boolean isExport();
+
     Set<ItemFlag> getFlags();
 
     Set<String> getCanBreak();

@@ -50,6 +50,9 @@ public final class SocketExtender {
   }
 
   public static boolean isSimilar(ItemStack stack) {
+    if (stack == null) {
+      return false;
+    }
     if (stack.isSimilar(EXTENDER)) {
       return true;
     }

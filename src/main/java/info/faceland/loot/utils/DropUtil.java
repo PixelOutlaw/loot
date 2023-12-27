@@ -75,8 +75,8 @@ public class DropUtil implements Listener {
     double amountBonus = event.getAmountBonus();
     double rarityBonus = event.getRarityBonus();
     float mobLevel = event.getMonsterLevel();
-    float itemLevel = (float) ((mobLevel + 2f) - (LootPlugin.RNG.nextFloat() * 6f));
-    itemLevel = Math.min(100, Math.max(1, (int) itemLevel));
+    float itemLevel = (mobLevel + 2f) - (LootPlugin.RNG.nextFloat() * 6f);
+    itemLevel = Math.min(100, Math.max(1, Math.round(itemLevel)));
 
     List<ItemRarity> bonusDrops = new ArrayList<>(event.getBonusTierDrops());
     if (StringUtils.isNotBlank(event.getUniqueEntity())) {
@@ -89,22 +89,19 @@ public class DropUtil implements Listener {
       }
     }
 
-    String worldName = event.getLocation().getWorld().getName();
-    if (event.getEntity() != null) {
-      EntityType entityType = event.getEntity().getType();
-    }
-
-    if (LearninBooksPlugin.instance.getKnowledgeManager()
-        .getKnowledgeLevel(killer, event.getUniqueEntity()) > 2) {
+    if (LearninBooksPlugin.instance.getKnowledgeManager().getKnowledgeLevel(killer, event.getUniqueEntity()) > 2) {
       amountBonus += 0.1;
     }
 
-    boolean normalDrop = amountBonus * normalDropChance > LootPlugin.RNG.nextFloat();
+    float normalBonus = (float) amountBonus;
+    float bonusWithCheesePenalty = normalBonus * event.getCheesePenaltyMult();
+    float bonusWithCheeseAndLevelPenalty = bonusWithCheesePenalty * event.getLevelPenaltyMult();
 
-    while (bonusDrops.size() > 0 || normalDrop) {
+    boolean normalDrop = bonusWithCheeseAndLevelPenalty * normalDropChance > LootPlugin.RNG.nextFloat();
+    while (!bonusDrops.isEmpty() || normalDrop) {
       Tier tier = getTier(killer);
       ItemRarity rarity = plugin.getRarityManager().getRandomRarity(rarityBonus, -1);
-      if (bonusDrops.size() > 0) {
+      if (!bonusDrops.isEmpty()) {
         ItemRarity dropRarity = bonusDrops.get(LootPlugin.RNG.nextInt(0, bonusDrops.size()));
         if (dropRarity.getPower() > rarity.getPower()) {
           rarity = dropRarity;
@@ -154,7 +151,7 @@ public class DropUtil implements Listener {
       }
     }
 
-    if (LootPlugin.RNG.nextFloat() < amountBonus * socketDropChance) {
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * socketDropChance) {
       SocketGem sg;
       if (plugin.getSettings().getBoolean("config.beast.beast-mode-activate", false)) {
         sg = plugin.getSocketGemManager().getRandomSocketGemByLevel((int) mobLevel);
@@ -168,7 +165,7 @@ public class DropUtil implements Listener {
           sg.isBroadcast() ? FaceColor.LIGHT_GREEN.getRawColor() : null,
           sg.isBroadcast() ? ChatColor.GREEN : null);
     }
-    if (LootPlugin.RNG.nextFloat() < amountBonus * tomeDropChance) {
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * tomeDropChance) {
       EnchantmentTome es = plugin.getEnchantTomeManager().getRandomEnchantTome(rarityBonus);
       assert es != null;
       ItemStack his = es.toItemStack(1);
@@ -176,26 +173,26 @@ public class DropUtil implements Listener {
           es.isBroadcast() ? FaceColor.BLUE.getRawColor() : null,
           es.isBroadcast() ? ChatColor.BLUE : null);
     }
-    if (LootPlugin.RNG.nextFloat() < amountBonus * enhancerDropChance) {
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * enhancerDropChance) {
       dropItem(event.getLocation(), ArcaneEnhancer.get(), killer, true,
           FaceColor.RED.getRawColor(), ChatColor.DARK_PURPLE);
     }
-    if (LootPlugin.RNG.nextFloat() < amountBonus * purityDropChance) {
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * purityDropChance) {
       dropItem(event.getLocation(), PurifyingScroll.get(), killer, false,
           FaceColor.WHITE.getRawColor(), null);
     }
-    if (LootPlugin.RNG.nextFloat() < amountBonus * tinkerGearDropChance) {
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * tinkerGearDropChance) {
       dropItem(event.getLocation(), TinkerersGear.get(), killer, true,
           FaceColor.RED.getRawColor(), ChatColor.RED);
     }
-    if (LootPlugin.RNG.nextFloat() < amountBonus * scrollDropChance) {
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * scrollDropChance) {
       UpgradeScroll us = plugin.getScrollManager().getRandomScroll();
       ItemStack stack = plugin.getScrollManager().buildItemStack(us);
       dropItem(event.getLocation(), stack, killer, us.isBroadcast(),
           us.isBroadcast() ? FaceColor.GREEN.getRawColor() : null,
           us.isBroadcast() ? ChatColor.DARK_GREEN : null);
     }
-    if (LootPlugin.RNG.nextFloat() < amountBonus * plugin.getSettings()
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * plugin.getSettings()
         .getDouble("config.drops.custom-item", 0D)) {
       CustomItem ci;
       if (plugin.getSettings().getBoolean("config.beast.beast-mode-activate", false)) {
@@ -211,7 +208,7 @@ public class DropUtil implements Listener {
           broadcast ? FaceColor.ORANGE.getRawColor() : null,
           broadcast ? ChatColor.GOLD : null);
     }
-    if (LootPlugin.RNG.nextFloat() < plugin.getSettings().getDouble("config.drops.socket-extender", 0D)) {
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * plugin.getSettings().getDouble("config.drops.socket-extender", 0D)) {
       ItemStack his = SocketExtender.EXTENDER.clone();
       dropItem(event.getLocation(), his, killer, true,
           FaceColor.TEAL.getRawColor(), ChatColor.AQUA);

@@ -64,7 +64,7 @@ public final class ShardOfFailure {
   }
 
   public static boolean isSimilar(ItemStack stack) {
-    return stack.getType() == item.getType() && MaterialUtil.getCustomData(stack) == 500 &&
+    return stack != null && stack.getType() == item.getType() && MaterialUtil.getCustomData(stack) == 500 &&
         FAILURE_NAME.equals(ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)));
   }
 }

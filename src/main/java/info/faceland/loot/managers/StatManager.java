@@ -76,9 +76,9 @@ public class StatManager {
       float valueOverMinimum = statValue - minVal;
       float actualRoll = valueOverMinimum / maxRange;
       float scaledRoll = (actualRoll - 0.5f) * 2f;
-      float finalRoll = Math.max(0.05f, Math.min(1f, scaledRoll));
+      float finalRoll = Math.max(0f, Math.min(1f, scaledRoll));
       component.setColor(InventoryUtil.getRollColor(itemStat, finalRoll));
-      response.setStatRoll(Math.max(0.5f, finalRoll));
+      response.setStatRoll(actualRoll);
     }
     String value = Integer.toString(statValue);
     String statString = itemStat.getStatString().replace("{}", value);

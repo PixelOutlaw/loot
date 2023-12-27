@@ -237,6 +237,7 @@ public final class LootPlugin extends FacePlugin {
         .registerCompletion("uniques", c -> customItemManager.listCustomItems());
 
     Bukkit.getPluginManager().registerEvents(new EntityDeathListener(this), this);
+    Bukkit.getPluginManager().registerEvents(new GayBoatFix(), this);
     Bukkit.getPluginManager().registerEvents(new CombinerListener(this), this);
     Bukkit.getPluginManager().registerEvents(new InteractListener(this), this);
     Bukkit.getPluginManager().registerEvents(new CraftingListener(this), this);
@@ -360,7 +361,7 @@ public final class LootPlugin extends FacePlugin {
       scroll.setBaseSuccess(cs.getDouble("base-success", 1.0));
       scroll.setFlatDecay(cs.getDouble("flat-decay", 0.01));
       scroll.setPercentDecay(cs.getDouble("percent-decay", 0.01));
-      scroll.setItemDamageMultiplier(cs.getDouble("item-damage-modifier", 1.0));
+      scroll.setItemDamageMultiplier((float) cs.getDouble("item-damage-modifier", 1.0));
       scroll.setExponent(cs.getDouble("exponent", 1.1));
       scroll.setWeight(cs.getDouble("weight", 100));
       scroll.setMinLevel(cs.getInt("min-level", 0));
@@ -423,9 +424,7 @@ public final class LootPlugin extends FacePlugin {
       SocketGemBuilder builder = getNewSocketGemBuilder(key);
       builder.withPrefix(cs.getString("prefix"));
       builder.withSuffix(cs.getString("suffix"));
-      builder.withLore(PaletteUtil.color(cs.getStringList("lore")));
       builder.withWeight(cs.getDouble("weight"));
-      builder.withDistanceWeight(cs.getDouble("distance-weight"));
       builder.withBonusWeight(cs.getDouble("bonus-weight"));
       builder.withWeightPerLevel(cs.getDouble("weight-per-level"));
       builder.withCustomModelData(cs.getInt("custom-model-data", 2000));
@@ -443,6 +442,7 @@ public final class LootPlugin extends FacePlugin {
         groups.add(g);
       }
       builder.withItemGroups(groups);
+      builder.withLore(cs.getStringList("lore"));
       builder.withBroadcast(cs.getBoolean("broadcast"));
       builder.withTriggerable(cs.getBoolean("triggerable"));
       builder.withTriggerText(cs.getString("trigger-text"));
@@ -460,7 +460,7 @@ public final class LootPlugin extends FacePlugin {
     for (SocketGem sg : gems) {
       getSocketGemManager().addSocketGem(sg);
     }
-    debug("Loaded socket gems: " + loadedSocketGems.toString());
+    debug("Loaded socket gems: " + loadedSocketGems);
   }
 
   private List<SmartYamlConfiguration> fetchUniques() {

@@ -97,6 +97,12 @@ public final class LootCustomItemBuilder implements CustomItemBuilder {
   }
 
   @Override
+  public CustomItemBuilder withExport(boolean b) {
+    customItem.setExport(b);
+    return this;
+  }
+
+  @Override
   public CustomItemBuilder withFlags(Set<ItemFlag> flags) {
     customItem.setFlags(flags);
     return this;

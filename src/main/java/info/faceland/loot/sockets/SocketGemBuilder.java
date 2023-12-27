@@ -40,6 +40,7 @@ public final class SocketGemBuilder {
       throw new IllegalStateException("already built");
     }
     built = true;
+    gem.buildStack();
     return gem;
   }
 

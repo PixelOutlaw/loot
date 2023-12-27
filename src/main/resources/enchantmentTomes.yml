@@ -1,7 +1,6 @@
 version: "0.0.2"
 Fire I:
   weight: 100
-  distance-weight: 0
   broadcast: true
   stat: SHIELD-HEALTH
   ## lore is always added, if present. optional.

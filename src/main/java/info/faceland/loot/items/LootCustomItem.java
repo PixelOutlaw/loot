@@ -51,6 +51,7 @@ public final class LootCustomItem implements CustomItem {
   private int levelRange;
   private int customDataNumber;
   private boolean broadcast;
+  private boolean export;
   private Set<ItemFlag> flags;
   private Set<String> canBreak;
 
@@ -184,6 +185,11 @@ public final class LootCustomItem implements CustomItem {
     return broadcast;
   }
 
+  @Override
+  public boolean isExport() {
+    return export;
+  }
+
   public Set<ItemFlag> getFlags() {
     return flags;
   }
@@ -202,6 +208,10 @@ public final class LootCustomItem implements CustomItem {
 
   void setBroadcast(boolean broadcast) {
     this.broadcast = broadcast;
+  }
+
+  void setExport(boolean export) {
+    this.export = export;
   }
 
   void setMaterial(Material material) {

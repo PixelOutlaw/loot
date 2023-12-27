@@ -77,7 +77,8 @@ public class PawnManager {
     int price;
     String itemName = ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack));
     if (namedPrices.containsKey(itemName)) {
-      return new PriceData(amount * namedPrices.get(itemName), namedPrices.get(itemName) > 500);
+      return new PriceData(amount * namedPrices.get(itemName), namedPrices.get(itemName) > 500 &&
+          !(itemName.contains("Silver Bar") || itemName.contains("Gold Bar")));
     }
     SocketGem socketGem = plugin.getSocketGemManager().getSocketGem(stack);
     if (socketGem != null) {

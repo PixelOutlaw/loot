@@ -257,7 +257,7 @@ public final class SocketGemManager {
       }
     }
 
-    List<String> addLore = TextUtils.color(gem.getLore());
+    List<String> addLore = PaletteUtil.color(gem.getLore());
     switch (gem.getCustomModelData()) {
       case 2005, 2004 -> addLore.set(0, SocketGemManager.GEM_SPECIAL_PREFIX + addLore.get(0));
       case 2003 -> addLore.set(0, SocketGemManager.GEM_4_PREFIX + addLore.get(0));

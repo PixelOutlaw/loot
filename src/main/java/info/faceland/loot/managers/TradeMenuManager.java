@@ -46,7 +46,7 @@ public class TradeMenuManager {
           int quantityTwo = section.getInt(key + ".quantity-two", 0);
           ItemStack stack2 = null;
           if (optionTwo != null && quantityTwo >= 1) {
-            stack2 = plugin.getCustomItemManager().getCustomItem(optionOne).toItemStack(quantityOne);
+            stack2 = plugin.getCustomItemManager().getCustomItem(optionTwo).toItemStack(quantityOne);
           }
 
           String result = section.getString(key + ".result");

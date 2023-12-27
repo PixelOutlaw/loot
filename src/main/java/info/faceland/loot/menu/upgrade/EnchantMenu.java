@@ -349,7 +349,8 @@ public class EnchantMenu extends ItemMenu {
       } else {
         damage = selectedEquipment.getDurability();
       }
-      double maxPercent = MaterialUtil.getMaxFailureDamagePercent(scroll, itemPlus);
+      int itemLevel = MaterialUtil.getLevelRequirement(selectedEquipment);
+      double maxPercent = MaterialUtil.getMaxFailureDamagePercent(scroll, itemLevel, itemPlus);
       double maxDamage = maxDura * maxPercent;
       double killChance = 0;
       double damageChance = 0;
@@ -403,6 +404,11 @@ public class EnchantMenu extends ItemMenu {
   boolean doUpgrade(Player player) {
     if (selectedEquipment == null || selectedEquipment.getType() == Material.AIR ||
         selectedEquipment.getAmount() > 1) {
+      player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
+      return false;
+    }
+    if (selectedUpgradeItem == null || selectedUpgradeItem.getType() == Material.AIR ||
+        selectedUpgradeItem.getAmount() < 1) {
       player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
       return false;
     }

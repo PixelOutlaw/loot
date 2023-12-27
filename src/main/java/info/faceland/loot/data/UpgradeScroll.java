@@ -23,7 +23,11 @@
 package info.faceland.loot.data;
 
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public final class UpgradeScroll {
 
     private String id;
@@ -34,114 +38,9 @@ public final class UpgradeScroll {
     private double percentDecay;
     private double exponent;
     private double weight;
-    private double itemDamageMultiplier;
+    private float itemDamageMultiplier;
     private int minLevel;
     private int maxLevel;
     private int customData;
     private boolean broadcast;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getPrefix() {
-        return prefix;
-    }
-
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
-
-    public List<String> getLore() {
-        return lore;
-    }
-
-    public void setLore(List<String> lore) {
-        this.lore = lore;
-    }
-
-    public double getBaseSuccess() {
-        return baseSuccess;
-    }
-
-    public void setBaseSuccess(double baseSuccess) {
-        this.baseSuccess = baseSuccess;
-    }
-
-    public double getFlatDecay() {
-        return flatDecay;
-    }
-
-    public void setFlatDecay(double flatDecay) {
-        this.flatDecay = flatDecay;
-    }
-
-    public double getPercentDecay() {
-        return percentDecay;
-    }
-
-    public void setPercentDecay(double percentDecay) {
-        this.percentDecay = percentDecay;
-    }
-
-    public double getExponent() {
-        return exponent;
-    }
-
-    public void setExponent(double exponent) {
-        this.exponent = exponent;
-    }
-
-    public double getWeight() {
-        return weight;
-    }
-
-    public void setWeight(double weight) {
-        this.weight = weight;
-    }
-
-    public double getItemDamageMultiplier() {
-        return itemDamageMultiplier;
-    }
-
-    public void setItemDamageMultiplier(double itemDamageMultiplier) {
-        this.itemDamageMultiplier = itemDamageMultiplier;
-    }
-
-    public int getMinLevel() {
-        return minLevel;
-    }
-
-    public void setMinLevel(int minLevel) {
-        this.minLevel = minLevel;
-    }
-
-    public int getMaxLevel() {
-        return maxLevel;
-    }
-
-    public void setMaxLevel(int maxLevel) {
-        this.maxLevel = maxLevel;
-    }
-
-    public int getCustomData() {
-        return customData;
-    }
-
-    public void setCustomData(int customData) {
-        this.customData = customData;
-    }
-
-    public boolean isBroadcast() {
-        return broadcast;
-    }
-
-    public void setBroadcast(boolean broadcast) {
-        this.broadcast = broadcast;
-    }
-
 }

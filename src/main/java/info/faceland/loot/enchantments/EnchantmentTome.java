@@ -77,7 +77,7 @@ public class EnchantmentTome {
   public static List<String> UNCOLORED_TOME_DESC = Arrays.asList(
       "",
       "|lgray|Use this at an |purple|Enchantment Table",
-      "|lgray|on an " + MaterialUtil.ENCHANTABLE_TAG + " |lgray|item!",
+      "|lgray|on an " + MaterialUtil.ENCHANTABLE_TAG_BASE + " |lgray|item!",
       "",
       "|cyan|Bonuses Applied:"
   );

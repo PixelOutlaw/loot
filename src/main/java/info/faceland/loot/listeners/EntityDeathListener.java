@@ -88,13 +88,11 @@ public final class EntityDeathListener implements Listener {
 
     double bonusDropMult = 1D;
     double bonusRarityMult = 1D;
-    double penaltyMult = 1D;
+    float penaltyMult = 1f;
 
     UUID looter = killer.getUniqueId();
 
-    handleAntiCheeseViolations(killer, event.getEntity());
-    double vl = violationMap.get(killer).getViolationLevel();
-    penaltyMult *= Math.max(0.1, Math.min(1, 1.5 - vl * 0.06));
+    penaltyMult *= plugin.getStrifePlugin().getViolationManager().getSafespotViolationMult(killer);
 
     double distance = event.getEntity().getLocation().distanceSquared(event.getEntity().getWorld()
         .getSpawnLocation());
@@ -102,7 +100,9 @@ public final class EntityDeathListener implements Listener {
     StrifeMob pStats = plugin.getStrifePlugin().getStrifeMobManager().getStatMob(killer);
 
     bonusDropMult += pStats.getStat(StrifeStat.ITEM_DISCOVERY) / 100;
+    bonusDropMult += mob.getStat(StrifeStat.ITEM_DISCOVERY) / 100;
     bonusRarityMult += pStats.getStat(StrifeStat.ITEM_RARITY) / 100;
+    bonusRarityMult += mob.getStat(StrifeStat.ITEM_RARITY) / 100;
 
     if (killer.hasPotionEffect(PotionEffectType.LUCK)) {
       bonusRarityMult += 0.1;
@@ -115,7 +115,7 @@ public final class EntityDeathListener implements Listener {
 
     int mobLevel = StatUtil.getMobLevel(event.getEntity());
     int diff = killer.getLevel() - mobLevel;
-    double levelPenalty = diff >= 12 ? Math.max(0.35, 1 - (diff - 12) * 0.07) : 1;
+    float levelPenalty = diff >= 12 ? Math.max(0.35f, 1 - (diff - 12) * 0.07f) : 1f;
 
     LootDropEvent lootEvent = new LootDropEvent();
     lootEvent.setLocation(event.getEntity().getLocation());
@@ -128,8 +128,10 @@ public final class EntityDeathListener implements Listener {
         lootEvent.getBonusTierDrops().add(plugin.getRarityManager().getRarity(r));
       }
     }
-    lootEvent.setRarityBonus(bonusRarityMult * penaltyMult * levelPenalty);
-    lootEvent.setAmountBonus(bonusDropMult * penaltyMult * levelPenalty);
+    lootEvent.setRarityBonus(bonusRarityMult);
+    lootEvent.setAmountBonus(bonusDropMult);
+    lootEvent.setCheesePenaltyMult(penaltyMult);
+    lootEvent.setLevelPenaltyMult(levelPenalty);
     lootEvent.setDistance(distance);
     lootEvent.setEntity(event.getEntity());
     if (mob.getUniqueEntityId() != null) {
@@ -145,25 +147,6 @@ public final class EntityDeathListener implements Listener {
   public void onEntityDeathMonitor(EntityDeathEvent event) {
     if (plugin.getAnticheatManager().isTagged(event.getEntity())) {
       plugin.getAnticheatManager().removeTag(event.getEntity());
-    }
-  }
-
-  private void handleAntiCheeseViolations(Player killer, Entity victim) {
-    if (!violationMap.containsKey(killer)) {
-      violationMap.put(killer, new ViolationData());
-    }
-    boolean violation = false;
-    if (killer.isClimbing()) {
-      violation = true;
-    }
-    if (violationMap.get(killer).isEntityTooClose(killer.getLocation(), victim.getLocation())) {
-      violation = true;
-    }
-    ViolationData data = violationMap.get(killer);
-    if (violation) {
-      data.setViolationLevel(Math.min(4, data.getViolationLevel() + 1));
-    } else {
-      data.setViolationLevel(Math.max(0, data.getViolationLevel() - 1));
     }
   }
 }

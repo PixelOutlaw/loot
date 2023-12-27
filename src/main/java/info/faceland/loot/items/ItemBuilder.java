@@ -53,9 +53,11 @@ public final class ItemBuilder {
   private final StatManager statManager;
   private final LootNameManager nameManager;
 
-  public static final String SOCKET = PaletteUtil.color("|none|哀\uF822|orange|Socket");
+  public static final String SOCKET_BASE = "|none|哀\uF822|orange|Socket";
+  public static final String SOCKET = PaletteUtil.color(SOCKET_BASE);
   public static final String SOCKET_S = ChatColor.stripColor(SOCKET);
-  public static final String EXTEND = PaletteUtil.color("|none|品\uF822|teal|Socket");
+  public static final String EXTEND_BASE = "|none|品\uF822|teal|Socket";
+  public static final String EXTEND = PaletteUtil.color(EXTEND_BASE);
   public static final String EXTEND_S = ChatColor.stripColor(EXTEND);
 
   private boolean built = false;

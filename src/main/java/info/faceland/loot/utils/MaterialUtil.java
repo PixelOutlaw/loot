@@ -24,6 +24,7 @@ import static org.bukkit.ChatColor.stripColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.ToastUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.UnicodeUtil;
@@ -108,7 +109,8 @@ public final class MaterialUtil {
   private static boolean enchantmentsStack;
 
   public static final String FAILURE_BONUS = ChatColor.RED + "Failure Bonus";
-  public static final String ENCHANTABLE_TAG = FaceColor.TRUE_WHITE + "傜";
+  public static final String ENCHANTABLE_TAG_BASE = "|none|傜";
+  public static final String ENCHANTABLE_TAG = PaletteUtil.color(ENCHANTABLE_TAG_BASE);
   public static final String ENCHANTABLE_TAG_S = ChatColor.stripColor(ENCHANTABLE_TAG);
 
   private static final String enchantBarStart = "τ\uF801";
@@ -186,12 +188,15 @@ public final class MaterialUtil {
     return 1 - (300D / (300D + failBonus));
   }
 
-  public static double getUpgradeFailureDamagePercent(UpgradeScroll scroll, int itemPlus) {
-    return LootPlugin.RNG.nextFloat() * getMaxFailureDamagePercent(scroll, itemPlus);
+  public static double getUpgradeFailureDamagePercent(UpgradeScroll scroll, int itemLevel, int itemPlus) {
+    return LootPlugin.RNG.nextFloat() * getMaxFailureDamagePercent(scroll, itemLevel, itemPlus);
   }
 
-  public static double getMaxFailureDamagePercent(UpgradeScroll scroll, int itemPlus) {
-    return (0.25 + itemPlus * 0.11) * scroll.getItemDamageMultiplier();
+  public static float getMaxFailureDamagePercent(UpgradeScroll scroll, float itemLevel, float itemPlus) {
+    // scales penalty from 0 at lvl 15 to 3.0555 at level 70
+    float difficultyFromLevel = Math.max(0, Math.min(3, (itemLevel - 15) / 18));
+    float itemDifficulty = itemPlus + difficultyFromLevel;
+    return (0.25f + itemDifficulty * 0.11f) * scroll.getItemDamageMultiplier();
   }
 
   public static void extendItem(Player player, ItemStack stack, ItemStack extender) {
@@ -252,7 +257,8 @@ public final class MaterialUtil {
     }
 
     // DAMAGED
-    double damagePercentage = getUpgradeFailureDamagePercent(scroll, targetLevel);
+    int itemLevel = MaterialUtil.getLevelRequirement(stack);
+    double damagePercentage = getUpgradeFailureDamagePercent(scroll, itemLevel, targetLevel);
     double currentDamagePercentage = ((double) stack.getDurability()) / stack.getType().getMaxDurability();
     short damage;
 
@@ -482,7 +488,7 @@ public final class MaterialUtil {
       return;
     }
 
-    int itemLevel = getItemLevel(item);
+    int itemLevel = getLevelRequirement(item);
     SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.ENCHANTING, true);
     double rawLevel = data.getLevel();
 
@@ -499,17 +505,13 @@ public final class MaterialUtil {
     int statValue = NumberUtils.toInt(CharMatcher.digit()
         .or(CharMatcher.is('-')).retainFrom(enchantmentStatString));
 
-    itemLevel = Math.max(1, Math.min(100, itemLevel));
-    double enchantingLevel = data.getLevelWithBonus();
+    float enhanceRoll = 0.08f * 0.22f * (float) Math.pow(LootPlugin.RNG.nextFloat(), 1.3);
 
-    double enchantingBonus = Math.min(2.5, Math.max(1, enchantingLevel / itemLevel));
-    float enhanceRoll = 0.1f + 0.2f * (float) Math.pow(LootPlugin.RNG.nextFloat(), 1.25);
-
-    int newValue = statValue + (int) (statValue * enhanceRoll * enchantingBonus);
+    int newValue = statValue + 1 + (int) (statValue * enhanceRoll);
     newValue++;
 
     lore.set(enchantBar.getRight() - 1, FaceColor.BLUE + enchantmentStatString
-            .replace(Integer.toString(statValue), Integer.toString(newValue)));
+        .replace(Integer.toString(statValue), Integer.toString(newValue)));
     TextUtils.setLore(item, lore);
 
     enhancer.setAmount(enhancer.getAmount() - 1);
@@ -748,7 +750,7 @@ public final class MaterialUtil {
     int index = strippedLore.indexOf(MaterialUtil.ENCHANTABLE_TAG_S);
     lore.remove(index);
 
-    SkillLevelData enchantSkill = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
+    SkillLevelData enchantSkill = PlayerDataUtil.getSkillLevels(player, LifeSkillType.ENCHANTING, true);
 
     List<String> added = new ArrayList<>();
     if (!tome.getLore().isEmpty()) {
@@ -757,9 +759,9 @@ public final class MaterialUtil {
 
     int itemLevel = MaterialUtil.getLevelRequirement(targetItem);
     float enchantPower = Math.max(1, Math.min(enchantSkill.getLevelWithBonus(), itemLevel));
-    if (!StringUtils.isBlank(tome.getStat())) {
-      float rarity = (float) MaterialUtil.getBaseEnchantBonus(enchantSkill.getLevelWithBonus());
+    float rarity = (float) MaterialUtil.getBaseEnchantBonus(enchantSkill.getLevelWithBonus());
 
+    if (!StringUtils.isBlank(tome.getStat())) {
       ItemStat stat = LootPlugin.getInstance().getStatManager().getStat(tome.getStat());
       added.add(LootPlugin.getInstance().getStatManager().getFinalStat(stat, enchantPower, rarity).getStatString());
     }
@@ -1386,7 +1388,7 @@ public final class MaterialUtil {
 
   private static boolean isBannedUpgradeMaterial(ItemStack item) {
     return switch (item.getType()) {
-      case EMERALD, PAPER, NETHER_STAR, DIAMOND, GHAST_TEAR, AMETHYST_SHARD, PRISMARINE_SHARD,
+      case PLAYER_HEAD, PAPER, NETHER_STAR, DIAMOND, GHAST_TEAR, AMETHYST_SHARD, PRISMARINE_SHARD,
           ENCHANTED_BOOK, NAME_TAG, QUARTZ, TNT_MINECART, SHEARS, WHEAT_SEEDS -> true;
       default -> false;
     };

@@ -32,6 +32,7 @@ import com.tealcube.minecraft.bukkit.shade.acf.annotation.CommandPermission;
 import com.tealcube.minecraft.bukkit.shade.acf.annotation.Default;
 import com.tealcube.minecraft.bukkit.shade.acf.annotation.Subcommand;
 import com.tealcube.minecraft.bukkit.shade.acf.bukkit.contexts.OnlinePlayer;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import com.tealcube.minecraft.bukkit.shade.google.gson.Gson;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.CustomItem;
@@ -177,10 +178,12 @@ public class LootCommand extends BaseCommand {
     for (SocketGem gem : plugin.getSocketGemManager().getSocketGems()) {
       ExportEntry exportGem = new ExportEntry();
       exportGem.setTitle("Socket Gem");
-      exportGem.setName("&6" + gem.getName());
-      exportGem.setStrippedName(ChatColor.stripColor(TextUtils.color(exportGem.getName())));
-      exportGem.setDescription(gem.getLore());
-      //exportGem.setGroupNames(buildItemTags(gem.getItemGroups()));
+      exportGem.setName("|lime|" + gem.getName());
+      exportGem.setStrippedName(ChatColor.stripColor(PaletteUtil.color(exportGem.getName())));
+      List<String> lore = new ArrayList<>(gem.getLore());
+      lore.removeIf(str -> str.contains("Ս") || str.contains("tag_unique"));
+      exportGem.setDescription(lore);
+      exportGem.setGroupNames(buildItemTags(gem.getItemGroups()));
       exportGem.getGroupNames().add("Upgrade");
       if (gem.getWeight() == 0) {
         exportGem.setSpecialFlag(gem.getBonusWeight() > 0 ? "transmute" : "event");
@@ -204,10 +207,12 @@ public class LootCommand extends BaseCommand {
       }
       ExportEntry exportTome = new ExportEntry();
       exportTome.setTitle("Enchantment Tome");
-      exportTome.setName("&9" + tome.getName());
-      exportTome.setStrippedName(ChatColor.stripColor(TextUtils.color(exportTome.getName())));
-      exportTome.setDescription(new ArrayList<>(EnchantmentTome.UNCOLORED_TOME_DESC));
-      exportTome.getDescription().add(tome.getDescription());
+      exportTome.setName("|blue|" + tome.getName());
+      exportTome.setStrippedName(ChatColor.stripColor(PaletteUtil.color(exportTome.getName())));
+      List<String> lore = new ArrayList<>(EnchantmentTome.UNCOLORED_TOME_DESC);
+      lore.add(tome.getDescription());
+      lore.removeIf(str -> str.contains("Ս") || str.contains("tag_upgrade"));
+      exportTome.setDescription(lore);
       exportTome.setGroupNames(buildItemTags(tome.getItemGroups()));
       exportTome.getGroupNames().add("Upgrade");
       exportTome.getGroupNames().add("Enchanting");
@@ -219,14 +224,16 @@ public class LootCommand extends BaseCommand {
 
     List<ExportEntry> exportUniques = new ArrayList<>();
     for (CustomItem customItem : plugin.getCustomItemManager().getCustomItems()) {
-      if (customItem.getWeight() > 10000) {
+      if (customItem.getWeight() > 10000 || !customItem.isExport()) {
         continue;
       }
       ExportEntry exportUnique = new ExportEntry();
       exportUnique.setTitle("Unique Item");
       exportUnique.setName(customItem.getDisplayName());
-      exportUnique.setStrippedName(ChatColor.stripColor(TextUtils.color(exportUnique.getName())));
-      exportUnique.setDescription(customItem.getLore());
+      exportUnique.setStrippedName(ChatColor.stripColor(PaletteUtil.color(exportUnique.getName())));
+      List<String> lore = new ArrayList<>(customItem.getLore());
+      lore.removeIf(str -> str.contains("\uD86D\uDFEA") || str.contains("tag_unique"));
+      exportUnique.setDescription(lore);
       exportUnique.setRarity(
           customItem.getWeight() > 1000 ? "Common" :
               customItem.getWeight() > 100 ? "Uncommon" :
@@ -244,9 +251,14 @@ public class LootCommand extends BaseCommand {
     for (UpgradeScroll scroll : plugin.getScrollManager().getScrolls()) {
       ExportEntry exportScroll = new ExportEntry();
       exportScroll.setTitle("Upgrade Scroll");
-      exportScroll.setName("&2" + scroll.getPrefix() + " Upgrade Scroll");
-      exportScroll.setStrippedName(ChatColor.stripColor(TextUtils.color(exportScroll.getName())));
-      exportScroll.setDescription(LootPlugin.staticAbuse.get(scroll.getId()));
+      exportScroll.setName("|green|" + scroll.getPrefix() + " Upgrade Scroll");
+      exportScroll.setStrippedName(ChatColor.stripColor(PaletteUtil.color(exportScroll.getName())));
+      List<String> lore = new ArrayList<>(LootPlugin.staticAbuse.get(scroll.getId()));
+      lore.removeIf(str -> str.contains("Ս") || str.contains("tag_upgrade"));
+      if (StringUtils.isBlank(lore.get(0))) {
+        lore.remove(0);
+      }
+      exportScroll.setDescription(lore);
       exportScroll.setRarity(
           scroll.getWeight() > 1000 ? "Common" :
               scroll.getWeight() > 250 ? "Uncommon" :

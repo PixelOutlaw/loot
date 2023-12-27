@@ -17,6 +17,7 @@
 package info.faceland.loot.sockets;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.api.sockets.effects.SocketEffect;
@@ -34,6 +35,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+@Getter @Setter
 public final class SocketGem implements Comparable<SocketGem> {
 
   private final String name;
@@ -42,21 +44,20 @@ public final class SocketGem implements Comparable<SocketGem> {
   private double distanceWeight;
   private double weightPerLevel;
   private double bonusWeight;
-  @Getter @Setter
   private int customModelData;
   private String prefix;
   private String suffix;
   private List<String> lore;
   private List<SocketEffect> socketEffects;
-  @Getter @Setter
   private List<ItemGroup> itemGroups;
-  @Getter @Setter
   private String typeDesc;
   private boolean broadcast;
   private boolean triggerable;
   private String triggerText;
   private GemType gemType;
   private LoreAbility loreAbility;
+
+  private ItemStack builtItem;
 
   public SocketGem(String name) {
     this.name = name;
@@ -93,18 +94,6 @@ public final class SocketGem implements Comparable<SocketGem> {
     return Math.min(1, Math.max(compareTo, -1));
   }
 
-  public String getName() {
-    return name;
-  }
-
-  public double getWeight() {
-    return weight;
-  }
-
-  public String getLoreAbilityString() {
-    return strifeLoreAbility;
-  }
-
   public String getPrefix() {
     return prefix != null ? prefix : "";
   }
@@ -129,83 +118,37 @@ public final class SocketGem implements Comparable<SocketGem> {
   }
 
   public ItemStack toItemStack(int amount) {
-    ItemStack itemStack = new ItemStack(Material.EMERALD);
-    ItemStackExtensionsKt.setDisplayName(itemStack, FaceColor.LIME + "Socket Gem - " + getName());
-    itemStack.setAmount(amount);
-    List<String> lore = new ArrayList<>();
-    lore.addAll(List.of(
-        FaceColor.WHITE + itemGroupsToString() + "Ս",
-        "",
-        FaceColor.LIGHT_GRAY + "Place this gem on an item with an",
-        FaceColor.LIGHT_GRAY + "open " + ItemBuilder.SOCKET + FaceColor.LIGHT_GRAY + " to upgrade it!",
-        "",
-        FaceColor.YELLOW + "Bonuses Applied:"
-    ));
-    lore.addAll(getLore());
-    ItemStackExtensionsKt.setCustomModelData(itemStack, customModelData);
-    TextUtils.setLore(itemStack, lore, false);
-    itemStack.setDurability((short) 11);
-    return itemStack;
+    ItemStack newStack = builtItem.clone();
+    newStack.setAmount(amount);
+    return newStack;
   }
 
-  private String itemGroupsToString() {
+  public void buildStack() {
+    ItemStack itemStack = new ItemStack(Material.EMERALD);
+    ItemStackExtensionsKt.setDisplayName(itemStack, FaceColor.LIME + "Socket Gem - " + getName());
+    itemStack.setAmount(1);
+    ItemStackExtensionsKt.setCustomModelData(itemStack, customModelData);
+    List<String> itemLore = new ArrayList<>();
+    itemLore.addAll(List.of(
+        "|white|" + itemGroupsToString(itemGroups) + "Ս",
+        "",
+        "|lgray|" + "Place this gem on an item with an",
+        "|lgray|" + "open " + ItemBuilder.SOCKET_BASE + "|lgray| to upgrade it!",
+        "",
+        "|yellow|Bonuses Applied:"
+    ));
+    itemLore.addAll(getLore());
+    TextUtils.setLore(itemStack, PaletteUtil.color(itemLore), false);
+    itemStack.setDurability((short) 11);
+    builtItem = itemStack;
+  }
+
+  private String itemGroupsToString(List<ItemGroup> groups) {
     StringBuilder sb = new StringBuilder();
-    for (ItemGroup ig : getItemGroups()) {
+    for (ItemGroup ig : groups) {
       sb.append(ig.getTag());
     }
     return sb.toString().trim();
-  }
-
-  public double getDistanceWeight() {
-    return distanceWeight;
-  }
-
-  public double getWeightPerLevel() {
-    return weightPerLevel;
-  }
-
-  void setWeightPerLevel(double weightPerLevel) {
-    this.weightPerLevel = weightPerLevel;
-  }
-
-  void setDistanceWeight(double distanceWeight) {
-    this.distanceWeight = distanceWeight;
-  }
-
-  public boolean isBroadcast() {
-    return broadcast;
-  }
-
-  public boolean isTriggerable() {
-    return triggerable;
-  }
-
-  void setTriggerable(boolean triggerable) {
-    this.triggerable = triggerable;
-  }
-
-  void setBroadcast(boolean broadcast) {
-    this.broadcast = broadcast;
-  }
-
-  void setSocketEffects(List<SocketEffect> socketEffects) {
-    this.socketEffects = socketEffects;
-  }
-
-  void setLore(List<String> lore) {
-    this.lore = lore;
-  }
-
-  void setSuffix(String suffix) {
-    this.suffix = suffix;
-  }
-
-  void setPrefix(String prefix) {
-    this.prefix = prefix;
-  }
-
-  void setWeight(double weight) {
-    this.weight = weight;
   }
 
   public void setStrifeLoreAbility(String strifeLoreAbility) {
@@ -215,26 +158,6 @@ public final class SocketGem implements Comparable<SocketGem> {
     } else {
       Bukkit.getLogger().info("[Loot] Failed to set lore ability desc on gem??");
     }
-  }
-
-  public String getTriggerText() {
-    return triggerText;
-  }
-
-  void setTriggerText(String triggerText) {
-    this.triggerText = triggerText;
-  }
-
-  public double getBonusWeight() {
-    return bonusWeight;
-  }
-
-  void setBonusWeight(double bonusWeight) {
-    this.bonusWeight = bonusWeight;
-  }
-
-  public GemType getGemType() {
-    return gemType;
   }
 
   void setGemType(GemType gemType) {

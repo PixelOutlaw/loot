@@ -2,7 +2,6 @@ version: "0.0.2"
 fuckyeah-sword:
   broadcast: true
   weight: 100
-  distance-weight: 0
   level-base: 1
   level-range: 5
   material: DIAMOND_SWORD

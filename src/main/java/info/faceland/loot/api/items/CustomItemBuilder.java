@@ -48,6 +48,8 @@ public interface CustomItemBuilder {
 
     CustomItemBuilder withBroadcast(boolean b);
 
+    CustomItemBuilder withExport(boolean b);
+
     CustomItemBuilder withFlags(Set<ItemFlag> f);
 
     CustomItemBuilder withCanBreak(Set<String> b);

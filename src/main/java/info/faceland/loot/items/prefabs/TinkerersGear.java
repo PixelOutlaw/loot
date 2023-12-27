@@ -57,7 +57,7 @@ public final class TinkerersGear {
   }
 
   public static boolean isSimilar(ItemStack stack) {
-    return stack.getType() == item.getType() && MaterialUtil.getCustomData(stack) == 3000 && TINKER_NAME
+    return stack != null && stack.getType() == item.getType() && MaterialUtil.getCustomData(stack) == 3000 && TINKER_NAME
         .equals(ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)));
   }
 

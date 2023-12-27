@@ -109,10 +109,11 @@ public final class PreCraftListener implements Listener {
 
   @EventHandler
   public void onCraftEquipment(PrepareItemCraftEvent event) {
-    if (event.getRecipe() != null && net.md_5.bungee.api.ChatColor.stripColor(ItemStackExtensionsKt
-        .getDisplayName(event.getRecipe().getResult())).contains("Equipment Crafting")) {
-      updateEquipmentCraftInvy(event.getInventory(), event.getRecipe(),
-          (Player) event.getViewers().get(0));
+    if (event.getRecipe() != null) {
+      String name = ItemStackExtensionsKt.getDisplayName(event.getRecipe().getResult());
+      if (StringUtils.isNotBlank(name) && ChatColor.stripColor(name).contains("Equipment Crafting")) {
+        updateEquipmentCraftInvy(event.getInventory(), event.getRecipe(), (Player) event.getViewers().get(0));
+      }
     }
   }
 
@@ -239,20 +240,13 @@ public final class PreCraftListener implements Listener {
       ItemStackExtensionsKt.setDisplayName(craftingInventory.getResult(),
           FaceColor.RED + FaceColor.BOLD.s() + FaceColor.UNDERLINE.s() + "Crafting Level Too Low!");
       TextUtils.setLore(craftingInventory.getResult(), List.of(
-          FaceColor.WHITE + FaceColor.BOLD.s() +
-              "Base Item Level: " + (int) crData.getItemLevel(),
-          FaceColor.RED + FaceColor.BOLD.s() +
-              "Required Crafting Level: " + FaceColor.UNDERLINE + requiredLevel,
-          FaceColor.YELLOW + FaceColor.BOLD.s() +
-              "Your Crafting Level: " + craftingLevel,
-          FaceColor.GRAY +
-              "An item's level is determined by the",
-          FaceColor.GRAY +
-              "average level of materials used to",
-          FaceColor.GRAY +
-              "craft it. Use weaker materials or",
-          FaceColor.GRAY +
-              "raise your craft level to do this."
+          FaceColor.WHITE + FaceColor.BOLD.s() + "Base Item Level: " + (int) crData.getItemLevel(),
+          FaceColor.RED + FaceColor.BOLD.s() + "Required Crafting Level: " + FaceColor.UNDERLINE + requiredLevel,
+          FaceColor.YELLOW + FaceColor.BOLD.s() + "Your Crafting Level: " + craftingLevel,
+          FaceColor.GRAY + "An item's level is determined by the",
+          FaceColor.GRAY + "average level of materials used to",
+          FaceColor.GRAY + "craft it. Use weaker materials or",
+          FaceColor.GRAY + "raise your craft level to do this."
       ), false);
       return;
     }
