@@ -19,9 +19,9 @@
 package info.faceland.loot.managers;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.UnicodeUtil;
-import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.CustomItemBuilder;
+import info.faceland.loot.items.CustomItemDropData;
 import info.faceland.loot.items.LootCustomItemBuilder;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
@@ -41,10 +41,10 @@ import org.bukkit.inventory.ItemStack;
 
 public final class CustomItemManager {
 
-  private static final double DISTANCE = 1000;
-  private static final double DISTANCE_SQUARED = Math.pow(DISTANCE, 2);
   private final Map<String, CustomItem> customItemMap;
   private final Map<String, CustomItem> uneditedHash;
+
+  private final Map<Integer, CustomItemDropData> cachedRates = new HashMap<>();
 
   public CustomItemManager() {
     customItemMap = new HashMap<>();
@@ -84,76 +84,34 @@ public final class CustomItemManager {
     uneditedHash.put(customItemSerial(ci.toItemStack(1)), ci);
   }
 
-  public CustomItem getRandomCustomItem() {
-    return getRandomCustomItem(false);
-  }
-
-  public CustomItem getRandomCustomItem(boolean withChance) {
-    return getRandomCustomItem(withChance, 0D);
-  }
-
-  public CustomItem getRandomCustomItem(boolean withChance, double distance) {
-    return getRandomCustomItem(withChance, distance, new HashMap<CustomItem, Double>());
-  }
-
-  public CustomItem getRandomCustomItem(boolean withChance, double distance,
-      Map<CustomItem, Double> map) {
-    if (!withChance) {
-      Set<CustomItem> set = getCustomItems();
-      CustomItem[] array = set.toArray(new CustomItem[set.size()]);
-      return array[LootPlugin.RNG.nextInt(array.length)];
-    }
-    double selectedWeight = LootPlugin.RNG.nextFloat() * getTotalWeight();
-    double currentWeight = 0D;
-    for (CustomItem ci : getCustomItems()) {
-      double calcWeight = ci.getWeight() + ((distance / DISTANCE_SQUARED) * ci.getDistanceWeight());
-      if (map.containsKey(ci)) {
-        calcWeight *= map.get(ci);
-      }
-      currentWeight += calcWeight;
-      if (currentWeight >= selectedWeight) {
-        return ci;
-      }
-    }
-    return null;
-  }
-
   public CustomItem getRandomCustomItemByLevel(int level) {
-    double selectedWeight = LootPlugin.RNG.nextFloat() * getTotalLevelWeight(level);
-    double currentWeight = 0D;
-    for (CustomItem ci : getCustomItems()) {
-      double diff = Math.abs(ci.getLevelBase() - level);
-      if (diff >= ci.getLevelRange()) {
-        continue;
-      }
-      double calcWeight = ci.getWeight() * (1 - diff / ci.getLevelRange());
-      currentWeight += calcWeight;
-      if (currentWeight >= selectedWeight) {
-        return ci;
-      }
+    level = Math.max(0, Math.min(100, level));
+    CustomItemDropData cidd = cachedRates.get(level);
+    if (cidd == null || cidd.getDropTable().isEmpty()) {
+      return null;
     }
-    return null;
+    return cidd.getDrop();
   }
 
-  public double getTotalWeight() {
-    double d = 0;
-    for (CustomItem ci : getCustomItems()) {
-      d += ci.getWeight();
-    }
-    return d;
-  }
-
-  public double getTotalLevelWeight(int level) {
-    double weight = 0;
-    for (CustomItem ci : getCustomItems()) {
-      double diff = Math.abs(ci.getLevelBase() - level);
-      if (diff >= ci.getLevelRange()) {
-        continue;
+  private void cacheDropRates() {
+    cachedRates.clear();
+    for (int i = 0; i <= 100; i++) {
+      double total = 0;
+      Map<CustomItem, Double> weightsMap = new HashMap<>();
+      for (CustomItem ci : customItemMap.values()) {
+        double diff = Math.abs(ci.getLevelBase() - i);
+        if (diff >= ci.getLevelRange()) {
+          continue;
+        }
+        double calcWeight = ci.getWeight() * (1 - diff / ci.getLevelRange());
+        total += calcWeight;
+        weightsMap.put(ci, calcWeight);
       }
-      double d = ci.getWeight() * (1 - diff / ci.getLevelRange());
-      weight += d;
+      if (weightsMap.size() < 50) {
+        Bukkit.getLogger().warning("[Loot] Unique table for Lv" + i + " only contains " + weightsMap.size() + " items");
+      }
+      cachedRates.put(i, new CustomItemDropData(total, weightsMap));
     }
-    return weight;
   }
 
   public void loadFromFiles(List<SmartYamlConfiguration> files) {
@@ -192,6 +150,6 @@ public final class CustomItemManager {
       }
     }
     Bukkit.getLogger().info("[Loot] Loaded " + customItemMap.size() + " items from " + files.size() + " files");
+    cacheDropRates();
   }
-
 }

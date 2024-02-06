@@ -463,13 +463,12 @@ public class LootCommand extends BaseCommand {
     }
 
     @Subcommand("unique")
-    @CommandCompletion("@players @uniques @range:1-100")
+    @CommandCompletion("@players @uniques @range:1-10")
     public void giveUnique(CommandSender sender, OnlinePlayer player, String id,
         @Default("1") int amount) {
       if (id.equalsIgnoreCase("random")) {
         for (int i = 0; i < amount; i++) {
-          giveItem(player.getPlayer(),
-              plugin.getCustomItemManager().getRandomCustomItem(true).toItemStack(1));
+          giveItem(player.getPlayer(), plugin.getCustomItemManager().getRandomCustomItemByLevel(player.getPlayer().getLevel()).toItemStack(1));
         }
         sendMessage(sender,
             plugin.getSettings().getString("language.commands.spawn.custom-success", ""),

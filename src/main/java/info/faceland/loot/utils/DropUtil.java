@@ -1,5 +1,6 @@
 package info.faceland.loot.utils;
 
+import com.tealcube.minecraft.bukkit.facecore.pojo.RandomSound;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
@@ -21,14 +22,13 @@ import info.faceland.loot.tier.Tier;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import land.face.learnin.LearninBooksPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.entity.EntityType;
+import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
@@ -47,6 +47,28 @@ public class DropUtil implements Listener {
   private static double enhancerDropChance;
   private static double tinkerGearDropChance;
   private static double purityDropChance;
+
+  private static final RandomSound distortedDropSound =
+      new RandomSound(SoundCategory.MASTER, Sound.ENTITY_ENDERMAN_HURT, 4f, 1f, 0.05f);
+  private static final RandomSound tieredDropSound =
+      new RandomSound(SoundCategory.MASTER, Sound.ITEM_ARMOR_EQUIP_CHAIN, 4f, 1f, 0.05f);
+  private static final RandomSound gemDropSound =
+      new RandomSound(SoundCategory.MASTER, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 4, 2f, 0f);
+  private static final RandomSound tomeDropSound =
+      new RandomSound(SoundCategory.MASTER, Sound.ITEM_BOOK_PAGE_TURN, 4, 1f, 0f);
+  private static final RandomSound scrollDropSound =
+      new RandomSound(SoundCategory.MASTER, Sound.ITEM_BOOK_PAGE_TURN, 4, 1.0f, 0f);
+  private static final RandomSound extenderDropSound =
+      new RandomSound(SoundCategory.MASTER, Sound.ENTITY_WARDEN_SONIC_BOOM, 4, 2f, 0f);
+  private static final RandomSound arcaneDropSound =
+      new RandomSound(SoundCategory.MASTER, Sound.ENTITY_WARDEN_SONIC_BOOM, 4, 2f, 0f);
+  private static final RandomSound tinkerDropSound =
+      new RandomSound(SoundCategory.MASTER, Sound.ENTITY_WARDEN_SONIC_BOOM, 4, 2f, 0f);
+  private static final RandomSound purifyDropSound =
+      new RandomSound(SoundCategory.MASTER, Sound.BLOCK_CHISELED_BOOKSHELF_INSERT, 4, 1.0f, 0f);
+  private static final RandomSound uniqueDropSound =
+      new RandomSound(SoundCategory.MASTER, Sound.ITEM_BUNDLE_DROP_CONTENTS, 4, 1.0f, 0f);
+
 
   public static void refresh() {
     plugin = LootPlugin.getInstance();
@@ -137,81 +159,73 @@ public class DropUtil implements Listener {
       }
 
       boolean broadcast = rarity.isBroadcast() || upgradeBonus > 4;
-      Color trailColor =
-          broadcast || rarity.isAlwaysTrail() ? rarity.getColor().getRawColor() : null;
+      Color trailColor = broadcast || rarity.isAlwaysTrail() ? rarity.getColor().getRawColor() : null;
       ChatColor glowColor = broadcast || rarity.isAlwaysGlow() ? rarity.getGlowColor() : null;
-      dropItem(event.getLocation(), tierItem, killer, builtItem.getTicksLived(), broadcast,
-          trailColor, glowColor);
+      RandomSound randomSound = null;
       if (distort && rarity.getPower() > 1.5) {
-        event.getLocation().getWorld()
-            .playSound(event.getLocation(), Sound.ENTITY_ENDERMAN_HURT, 2f, 0.5f);
+        randomSound = distortedDropSound;
       } else if (broadcast) {
-        event.getLocation().getWorld()
-            .playSound(event.getLocation(), Sound.BLOCK_ENDER_CHEST_OPEN, 2f, 0.5f);
+        randomSound = tieredDropSound;
       }
+      dropItem(event.getLocation(), tierItem, killer, builtItem.getTicksLived(), broadcast, trailColor, glowColor,
+          randomSound);
     }
 
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * socketDropChance) {
-      SocketGem sg;
-      if (plugin.getSettings().getBoolean("config.beast.beast-mode-activate", false)) {
-        sg = plugin.getSocketGemManager().getRandomSocketGemByLevel((int) mobLevel);
-      } else {
-        sg = plugin.getSocketGemManager().getRandomSocketGem(true, event.getDistance());
-      }
-
+      SocketGem sg = plugin.getSocketGemManager().getRandomSocketGemByLevel((int) mobLevel);
       assert sg != null;
       ItemStack his = sg.toItemStack(1);
-      dropItem(event.getLocation(), his, killer, sg.isBroadcast(),
+      RandomSound rs = sg.isBroadcast() ? gemDropSound : null;
+      dropItem(event.getLocation(), his, killer, 0, sg.isBroadcast(),
           sg.isBroadcast() ? FaceColor.LIGHT_GREEN.getRawColor() : null,
-          sg.isBroadcast() ? ChatColor.GREEN : null);
+          sg.isBroadcast() ? ChatColor.GREEN : null, rs);
     }
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * tomeDropChance) {
       EnchantmentTome es = plugin.getEnchantTomeManager().getRandomEnchantTome(rarityBonus);
       assert es != null;
+      RandomSound rs = es.isBroadcast() ? tomeDropSound : null;
       ItemStack his = es.toItemStack(1);
-      dropItem(event.getLocation(), his, killer, es.isBroadcast(),
+      dropItem(event.getLocation(), his, killer, 0, es.isBroadcast(),
           es.isBroadcast() ? FaceColor.BLUE.getRawColor() : null,
-          es.isBroadcast() ? ChatColor.BLUE : null);
+          es.isBroadcast() ? ChatColor.BLUE : null, rs);
     }
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * enhancerDropChance) {
-      dropItem(event.getLocation(), ArcaneEnhancer.get(), killer, true,
-          FaceColor.RED.getRawColor(), ChatColor.DARK_PURPLE);
+      dropItem(event.getLocation(), ArcaneEnhancer.get(), killer, 0, true,
+          FaceColor.RED.getRawColor(), ChatColor.DARK_PURPLE, arcaneDropSound);
     }
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * purityDropChance) {
-      dropItem(event.getLocation(), PurifyingScroll.get(), killer, false,
-          FaceColor.WHITE.getRawColor(), null);
+      dropItem(event.getLocation(), PurifyingScroll.get(), killer, 0, false,
+          FaceColor.WHITE.getRawColor(), null, purifyDropSound);
     }
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * tinkerGearDropChance) {
-      dropItem(event.getLocation(), TinkerersGear.get(), killer, true,
-          FaceColor.RED.getRawColor(), ChatColor.RED);
+      dropItem(event.getLocation(), TinkerersGear.get(), killer, 0, true,
+          FaceColor.RED.getRawColor(), ChatColor.RED, tinkerDropSound);
     }
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * scrollDropChance) {
       UpgradeScroll us = plugin.getScrollManager().getRandomScroll();
       ItemStack stack = plugin.getScrollManager().buildItemStack(us);
-      dropItem(event.getLocation(), stack, killer, us.isBroadcast(),
+      RandomSound rs = us.isBroadcast() ? scrollDropSound : null;
+      dropItem(event.getLocation(), stack, killer, 0, us.isBroadcast(),
           us.isBroadcast() ? FaceColor.GREEN.getRawColor() : null,
-          us.isBroadcast() ? ChatColor.DARK_GREEN : null);
+          us.isBroadcast() ? ChatColor.DARK_GREEN : null, rs);
     }
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * plugin.getSettings()
         .getDouble("config.drops.custom-item", 0D)) {
-      CustomItem ci;
-      if (plugin.getSettings().getBoolean("config.beast.beast-mode-activate", false)) {
-        ci = plugin.getCustomItemManager().getRandomCustomItemByLevel((int) mobLevel);
-      } else {
-        ci = plugin.getCustomItemManager().getRandomCustomItem(true, event.getDistance());
-      }
-
+      CustomItem ci = plugin.getCustomItemManager().getRandomCustomItemByLevel((int) mobLevel);
+      assert ci != null;
       ItemStack stack = ci.toItemStack(1);
 
       boolean broadcast = ci.isBroadcast();
-      dropItem(event.getLocation(), stack, killer, broadcast,
+      RandomSound rs = broadcast ? uniqueDropSound : null;
+      dropItem(event.getLocation(), stack, killer, 0, broadcast,
           broadcast ? FaceColor.ORANGE.getRawColor() : null,
-          broadcast ? ChatColor.GOLD : null);
+          broadcast ? ChatColor.GOLD : null, rs);
     }
-    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * plugin.getSettings().getDouble("config.drops.socket-extender", 0D)) {
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * plugin.getSettings()
+        .getDouble("config.drops.socket-extender", 0D)) {
       ItemStack his = SocketExtender.EXTENDER.clone();
-      dropItem(event.getLocation(), his, killer, true,
-          FaceColor.TEAL.getRawColor(), ChatColor.AQUA);
+      dropItem(event.getLocation(), his, killer, 0, true,
+          FaceColor.TEAL.getRawColor(), ChatColor.AQUA, extenderDropSound);
     }
   }
 
@@ -223,9 +237,10 @@ public class DropUtil implements Listener {
           continue;
         }
         ItemStack his = gem.toItemStack(1);
-        dropItem(location, his, killer, gem.isBroadcast(),
+        RandomSound rs = gem.isBroadcast() ? gemDropSound : null;
+        dropItem(location, his, killer, 0, gem.isBroadcast(),
             gem.isBroadcast() ? FaceColor.LIGHT_GREEN.getRawColor() : null,
-            gem.isBroadcast() ? ChatColor.GREEN : null);
+            gem.isBroadcast() ? ChatColor.GREEN : null, rs);
       }
     }
     for (String tomeString : mobLootTable.getTomeMap().keySet()) {
@@ -235,9 +250,10 @@ public class DropUtil implements Listener {
           continue;
         }
         ItemStack his = tome.toItemStack(1);
-        dropItem(location, his, killer, tome.isBroadcast(),
+        RandomSound rs = tome.isBroadcast() ? tomeDropSound : null;
+        dropItem(location, his, killer, 0, tome.isBroadcast(),
             tome.isBroadcast() ? FaceColor.BLUE.getRawColor() : null,
-            tome.isBroadcast() ? ChatColor.BLUE : null);
+            tome.isBroadcast() ? ChatColor.BLUE : null, rs);
       }
     }
     for (String tableName : mobLootTable.getCustomItemMap().keySet()) {
@@ -258,9 +274,10 @@ public class DropUtil implements Listener {
             break;
           }
           ItemStack his = ci.toItemStack(1);
-          dropItem(location, his, killer, ci.isBroadcast(),
+          RandomSound rs = ci.isBroadcast() ? tieredDropSound : null;
+          dropItem(location, his, killer, 0, ci.isBroadcast(),
               ci.isBroadcast() ? FaceColor.ORANGE.getRawColor() : null,
-              ci.isBroadcast() ? ChatColor.GOLD : null);
+              ci.isBroadcast() ? ChatColor.GOLD : null, rs);
           break;
         }
       }
@@ -278,14 +295,9 @@ public class DropUtil implements Listener {
     }
   }
 
-  private static void dropItem(Location loc, ItemStack itemStack, Player looter, boolean broadcast,
-      Color dropRgb, ChatColor glowColor) {
-    dropItem(loc, itemStack, looter, 0, broadcast, dropRgb, glowColor);
-  }
-
   private static void dropItem(Location loc, ItemStack itemStack, Player looter, int ticksLived,
-      boolean broadcast, Color dropRgb, ChatColor glowColor) {
-    ItemUtils.dropItem(loc, itemStack, looter, ticksLived, dropRgb, glowColor, dropRgb != null);
+      boolean broadcast, Color dropRgb, ChatColor glowColor, RandomSound randomSound) {
+    ItemUtils.dropItem(loc, itemStack, looter, ticksLived, dropRgb, glowColor, randomSound, dropRgb != null);
     if (broadcast) {
       InventoryUtil.sendToDiscord(looter, itemStack, itemFoundFormat);
     }
@@ -318,11 +330,11 @@ public class DropUtil implements Listener {
       wornItems.add(stack);
     }
     ItemStack handItem = player.getEquipment().getItemInMainHand();
-    if (handItem != null && handItem.getType() != Material.AIR) {
+    if (handItem.getType() != Material.AIR) {
       wornItems.add(handItem);
     }
     ItemStack offItem = player.getEquipment().getItemInOffHand();
-    if (offItem != null && offItem.getType() != Material.AIR) {
+    if (offItem.getType() != Material.AIR) {
       wornItems.add(offItem);
     }
     return wornItems;

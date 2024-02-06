@@ -18,6 +18,7 @@
  */
 package info.faceland.loot.menu.pawn;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
@@ -100,7 +101,7 @@ public class SellIcon extends MenuItem {
     if (total != 0) {
       MintPlugin.getInstance().getEconomy().depositPlayer(event.getPlayer(), total);
       event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.BLOCK_CHAIN_PLACE, 1.0F, 1.3F);
-      MessageUtils.sendMessage(event.getPlayer(), "&e  +" + MintPlugin.getInstance().getEconomy().format(total));
+      MessageUtils.sendMessage(event.getPlayer(), FaceColor.YELLOW + "  +" + MintPlugin.getInstance().getEconomy().format(total));
     }
     if (tradeXp > 0.5) {
       LootPlugin.getInstance().getStrifePlugin().getSkillExperienceManager()

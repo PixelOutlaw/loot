@@ -193,8 +193,8 @@ public final class MaterialUtil {
   }
 
   public static float getMaxFailureDamagePercent(UpgradeScroll scroll, float itemLevel, float itemPlus) {
-    // scales penalty from 0 at lvl 15 to 3.0555 at level 70
-    float difficultyFromLevel = Math.max(0, Math.min(3, (itemLevel - 15) / 18));
+    // scales penalty from 0 at lvl 15 to 2 at level 70
+    float difficultyFromLevel = Math.max(0, Math.min(2, (itemLevel - 15) / 27.5f));
     float itemDifficulty = itemPlus + difficultyFromLevel;
     return (0.25f + itemDifficulty * 0.11f) * scroll.getItemDamageMultiplier();
   }

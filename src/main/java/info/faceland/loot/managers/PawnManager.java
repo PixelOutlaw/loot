@@ -14,17 +14,13 @@ import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import land.face.strife.util.ItemUtil;
 import lombok.Getter;
-import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class PawnManager {

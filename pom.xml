@@ -30,7 +30,7 @@
   <parent>
     <groupId>io.pixeloutlaw</groupId>
     <artifactId>generic-plugin-parent</artifactId>
-    <version>1.19.4.0</version>
+    <version>1.20.1.0</version>
   </parent>
 
   <artifactId>loot</artifactId>
@@ -73,7 +73,7 @@
     <dependency>
       <groupId>io.pixeloutlaw</groupId>
       <artifactId>facecore</artifactId>
-      <version>1.19.4.2</version>
+      <version>1.20.4.1</version>
       <scope>provided</scope>
     </dependency>
 

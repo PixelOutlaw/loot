@@ -200,7 +200,7 @@ public final class CraftingListener implements Listener {
         .withSlotScore(crData.openSlotChance(Math.max(0, effectiveLevelAdvantage)))
         .withEnchantable(craftingLevel >= 10 || LootPlugin.RNG.nextFloat() < 0.15)
         .withExtendSlots(LootPlugin.RNG.nextFloat() < MaterialUtil.getExtendChance(craftingLevel) ? 1 : 0)
-        .withAlwaysEssence(craftingLevel > 70)
+        .withAlwaysEssence(craftingLevel >= 70)
         .withCraftBonusStats((craftingLevel >= 45 && bonusLevelAdvantage >= 20) ? 0 : -1)
         .withSockets(MaterialUtil.getSockets(minRarity, craftingLevel))
         .withLevel(itemLevel)
