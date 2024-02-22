@@ -56,8 +56,8 @@ public final class TierBuilder {
     return this;
   }
 
-  public TierBuilder withPrimaryStat(ItemStat itemStat) {
-    tier.setPrimaryStat(itemStat);
+  public TierBuilder withPrimaryStats(List<ItemStat> itemStats) {
+    tier.setPrimaryStats(itemStats);
     return this;
   }
 

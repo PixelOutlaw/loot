@@ -41,7 +41,7 @@ public final class Tier implements Comparable<Tier> {
   private boolean skillRequirement = false;
   private String id;
   private String name;
-  private ItemStat primaryStat;
+  private List<ItemStat> primaryStats;
   private List<ItemStat> secondaryStats;
   private List<ItemStat> bonusStats;
   private double spawnWeight;

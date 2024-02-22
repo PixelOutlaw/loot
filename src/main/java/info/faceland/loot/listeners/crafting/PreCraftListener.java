@@ -284,7 +284,11 @@ public final class PreCraftListener implements Listener {
     newLore.add(FaceColor.WHITE + "Item Level: " + minItemLevel + "⇒" + maxItemLevel);
     newLore.add(FaceColor.WHITE + getRarityTag(minRarity) + "⇒" + "\uD86D\uDFE9" + tier.getName());
     newLore.add("");
-    newLore.add(FaceColor.LIGHT_GRAY + tier.getPrimaryStat().getStatString().replace("{}", "X"));
+    newLore.add(FaceColor.LIGHT_GRAY + "+X Primary Stat");
+    for (ItemStat s : tier.getPrimaryStats()) {
+      newLore.add(FaceColor.GRAY + " " + s.getStatString()
+          .replace("+{}% ", "").replace("+{} ", "") + "?");
+    }
     newLore.add(FaceColor.LIGHT_GRAY + "+X Secondary Stat");
     for (ItemStat s : tier.getSecondaryStats()) {
       newLore.add(FaceColor.GRAY + " " + s.getStatString()

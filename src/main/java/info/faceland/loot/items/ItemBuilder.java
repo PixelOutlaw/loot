@@ -155,6 +155,10 @@ public final class ItemBuilder {
     return tier.getSecondaryStats().get(LootPlugin.RNG.nextInt(tier.getSecondaryStats().size()));
   }
 
+  private ItemStat getRandomPrimaryStat() {
+    return tier.getPrimaryStats().get(LootPlugin.RNG.nextInt(tier.getSecondaryStats().size()));
+  }
+
   public BuiltItem build() {
     if (isBuilt()) {
       throw new IllegalStateException("already built");
@@ -196,7 +200,7 @@ public final class ItemBuilder {
 
     lore.add("");
 
-    lore.add(statManager.getFinalStat(tier.getPrimaryStat(), level, rarityPower).getStatString());
+    lore.add(statManager.getFinalStat(getRandomPrimaryStat(), level, rarityPower).getStatString());
     lore.add(statManager.getFinalStat(getRandomSecondaryStat(), level, rarityPower).getStatString());
 
     lore.add("");

@@ -627,7 +627,11 @@ public final class LootPlugin extends FacePlugin {
       TierBuilder builder = getNewTierBuilder(key);
       builder.withName(PaletteUtil.color(cs.getString("tier-name")));
       builder.withSkillRequirement(cs.getBoolean("skill-req", false));
-      builder.withPrimaryStat(getStatManager().getLoadedStats().get(cs.getString("primary-stat")));
+      List<ItemStat> primaryStats = new ArrayList<>();
+      for (String statName : cs.getStringList("primary-stats")) {
+        primaryStats.add(getStatManager().getStat(statName));
+      }
+      builder.withPrimaryStats(primaryStats);
 
       List<ItemStat> secondaryStats = new ArrayList<>();
       for (String statName : cs.getStringList("secondary-stats")) {
