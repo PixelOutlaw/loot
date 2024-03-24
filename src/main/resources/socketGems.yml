@@ -10,7 +10,6 @@ Steroids I:
   lore:
   - 'Fuck yeah, steroids'
   weight: 100
-  # Weight/lv is only used if Beast Mode is activated!
   weight-per-level: 0
   effects:
   - INCREASE_DAMAGE:SELF:10000:1:0

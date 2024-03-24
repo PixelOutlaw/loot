@@ -62,7 +62,9 @@ import java.util.regex.Pattern;
 import land.face.dinvy.entity.PlayerData;
 import land.face.dinvy.events.EquipmentUpdateEvent;
 import land.face.strife.StrifePlugin;
+import land.face.strife.data.champion.Champion;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.data.champion.SkillRank;
 import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.ItemUtil;
 import land.face.strife.util.PlayerDataUtil;
@@ -162,13 +164,12 @@ public final class MaterialUtil {
         .getString("language.extend.fail", "");
   }
 
-  public static double getSuccessChance(Player player, int targetPlus, ItemStack scrollStack,
-      UpgradeScroll scroll) {
+  public static double getSuccessChance(Champion champion, int targetPlus, ItemStack scrollStack, UpgradeScroll scroll) {
     double success = scroll.getBaseSuccess();
     success -= scroll.getFlatDecay() * targetPlus;
     success *= 1 - (scroll.getPercentDecay() * targetPlus);
     success = Math.pow(success, scroll.getExponent());
-    success += PlayerDataUtil.getSkillLevels(player, LifeSkillType.ENCHANTING, true).getLevelWithBonus() * 0.001;
+    success += SkillRank.isRank(champion, LifeSkillType.ENCHANTING, SkillRank.JOURNEYMAN) ? 0.03 : 0;
     if (success <= 1) {
       success += (1 - success) * getFailureMod(getFailureBonus(scrollStack));
     }
@@ -234,7 +235,8 @@ public final class MaterialUtil {
     }
     targetLevel = Math.min(targetLevel, 15);
 
-    double successChance = getSuccessChance(player, targetLevel, scrollStack, scroll);
+    Champion champion = LootPlugin.getInstance().getStrifePlugin().getChampionManager().getChampion(player);
+    double successChance = getSuccessChance(champion, targetLevel, scrollStack, scroll);
 
     scrollStack.setAmount(scrollStack.getAmount() - 1);
 
@@ -289,17 +291,24 @@ public final class MaterialUtil {
     }
 
     if (damage >= stack.getType().getMaxDurability()) {
-      player.playSound(player.getEyeLocation(), Sound.ENTITY_ITEM_BREAK, 1F, 1F);
-      sendMessage(player, upgradeItemDestroyMsg);
-      if (itemUpgradeLevel >= 10) {
-        InventoryUtil.sendToDiscord(player, stack.clone(), upgradeItemDestroyBroadcast);
+      if (SkillRank.isRank(champion, LifeSkillType.ENCHANTING, SkillRank.MASTER) && LootPlugin.RNG.nextFloat() < 0.1) {
+        damage = (short) (stack.getType().getMaxDurability() - 1);
+        player.playSound(player.getEyeLocation(), Sound.ENTITY_ITEM_BREAK, 1F, 1.5F);
+        sendMessage(player, upgradeItemDestroyMsg);
+        sendMessage(player, FaceColor.YELLOW + FaceColor.ITALIC.s() + "Except not rlly???");
+      } else {
+        player.playSound(player.getEyeLocation(), Sound.ENTITY_ITEM_BREAK, 1F, 1F);
+        sendMessage(player, upgradeItemDestroyMsg);
+        if (itemUpgradeLevel >= 10) {
+          InventoryUtil.sendToDiscord(player, stack.clone(), upgradeItemDestroyBroadcast);
+        }
+        stack.setAmount(0);
+        if (itemUpgradeLevel > 5) {
+          shards += itemUpgradeLevel / 4 + LootPlugin.RNG.nextInt(0, itemUpgradeLevel - 5);
+        }
+        distributeShards(player, shards);
+        return;
       }
-      stack.setAmount(0);
-      if (itemUpgradeLevel > 5) {
-        shards += itemUpgradeLevel / 4 + LootPlugin.RNG.nextInt(0, itemUpgradeLevel - 5);
-      }
-      distributeShards(player, shards);
-      return;
     }
 
     distributeShards(player, shards);
@@ -489,10 +498,8 @@ public final class MaterialUtil {
     }
 
     int itemLevel = getLevelRequirement(item);
-    SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.ENCHANTING, true);
-    double rawLevel = data.getLevel();
-
-    if (EnchantMenu.getEnhanceRequirement(itemLevel) > rawLevel) {
+    Champion champion = LootPlugin.getInstance().getStrifePlugin().getChampionManager().getChampion(player);
+    if (itemLevel > EnchantMenu.getEnhanceRequirement(SkillRank.getRank(champion, LifeSkillType.ENCHANTING))) {
       MessageUtils.sendMessage(player, "&eYour enchanting level is too low!");
       return;
     }
@@ -515,8 +522,8 @@ public final class MaterialUtil {
     TextUtils.setLore(item, lore);
 
     enhancer.setAmount(enhancer.getAmount() - 1);
-    StrifePlugin.getInstance().getSkillExperienceManager()
-        .addExperience(player, LifeSkillType.ENCHANTING, 450, false, false);
+    StrifePlugin.getInstance().getSkillExperienceManager().addExperience(player,
+        LifeSkillType.ENCHANTING, 450, false, false);
     player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1, 0.8f);
   }
 
@@ -768,8 +775,17 @@ public final class MaterialUtil {
 
     if (tome.isBar()) {
       double skillRatio = Math.min(1, enchantSkill.getLevelWithBonus() / 100);
-      double roll = skillRatio * LootPlugin.RNG.nextFloat() + (1 - skillRatio) * Math.pow(LootPlugin.RNG.nextFloat(), 2.5);
+      Champion champion = LootPlugin.getInstance().getStrifePlugin().getChampionManager().getChampion(player);
+      double roll = skillRatio * LootPlugin.RNG.nextFloat() + (1 - skillRatio);
+      if (SkillRank.isRank(champion, LifeSkillType.ENCHANTING, SkillRank.JOURNEYMAN)) {
+        roll *= Math.pow(LootPlugin.RNG.nextFloat(), 2.25);
+      } else {
+        roll *= Math.pow(LootPlugin.RNG.nextFloat(), 2.5);
+      }
       double size = 14 + 20 * roll;
+      if (SkillRank.isRank(champion, LifeSkillType.ENCHANTING, SkillRank.APPRENTICE)) {
+        size += 3.5;
+      }
       added.add(buildEnchantmentBar((int) size, (int) size).getLeft());
     }
 
@@ -1024,22 +1040,17 @@ public final class MaterialUtil {
             ChatColor.stripColor(TextUtils.getLore(h).get(0)), ' ').trim());
   }
 
-  public static float getExtendChance(int craftingLevel) {
-    float extendChance = 0f;
-    if (craftingLevel >= 20) {
-      extendChance += 0.25;
-    }
-    if (craftingLevel >= 55) {
-      extendChance += 0.25;
-    }
-    if (craftingLevel >= 85) {
-      extendChance += 0.5;
-    }
-    return extendChance;
+  public static float getExtendChance(SkillRank rank) {
+    return switch (rank) {
+      case NOVICE -> 0;
+      case APPRENTICE -> 0.25f;
+      case JOURNEYMAN, EXPERT -> 0.5f;
+      case MASTER -> 1.0f;
+    };
   }
 
-  public static int getSockets(float quality, int craftingLevel) {
-    int minSockets = getMinSockets(craftingLevel);
+  public static int getSockets(float quality, SkillRank skillRank) {
+    int minSockets = getMinSockets(skillRank);
     int maxSockets = getMaxSockets(quality);
     if (minSockets >= maxSockets) {
       return minSockets;
@@ -1051,8 +1062,15 @@ public final class MaterialUtil {
     return result;
   }
 
-  public static int getMinSockets(int craftingLevel) {
-    return craftingLevel >= 60 ? 2 : craftingLevel >= 25 ? 1 : 0;
+  public static int getMinSockets(SkillRank skillRank) {
+    int amount = 0;
+    if (SkillRank.isRank(skillRank, SkillRank.APPRENTICE)) {
+      amount++;
+    }
+    if (SkillRank.isRank(skillRank, SkillRank.EXPERT)) {
+      amount++;
+    }
+    return amount;
   }
 
   public static int getMaxSockets(float quality) {
@@ -1127,6 +1145,16 @@ public final class MaterialUtil {
 
     boolean updated = false;
     List<String> lore = TextUtils.getLore(stack);
+
+    List<String> antiMagicLoop = new ArrayList<>(lore);
+    for (int i = 0; i < antiMagicLoop.size(); i++) {
+      lore.set(i, antiMagicLoop.get(i)
+          .replace("Magical Damage", "Fire Damage")
+          .replace("Warding", "Armor")
+          .replace("Ward Penetration", "Armor Penetration")
+      );
+    }
+
     List<Integer> replaceSockets = new ArrayList<>();
     List<Integer> replaceExtend = new ArrayList<>();
     List<Integer> replaceEnchant = new ArrayList<>();
@@ -1152,9 +1180,11 @@ public final class MaterialUtil {
       for (int index : replaceEnchant) {
         lore.set(index, MaterialUtil.ENCHANTABLE_TAG);
       }
-      TextUtils.setLore(stack, lore, false);
+      // TextUtils.setLore(stack, lore, false);
       updated = true;
     }
+    // TODO delete this and uncomment above when most mage stuff has been converted
+    TextUtils.setLore(stack, lore, false);
 
     CustomItem ci = LootPlugin.getInstance().getCustomItemManager().getCustomItemFromStack(stack);
     if (ci != null) {

@@ -33,6 +33,7 @@ import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.regex.Pattern;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.data.champion.SkillRank;
 import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.PlayerDataUtil;
 import org.bukkit.Bukkit;
@@ -147,38 +148,37 @@ public final class CraftingListener implements Listener {
     if (event.isCancelled()) {
       return;
     }
-
     ItemStack resultStack = event.getCurrentItem();
     for (ItemStack is : event.getInventory().getMatrix()) {
       if (is == null) {
         continue;
       }
-      if (is.getType() == Material.PRISMARINE_SHARD || isDyeEvent(is.getType(),
-          resultStack.getType())) {
+      if (is.getType() == Material.PRISMARINE_SHARD || isDyeEvent(is.getType(), resultStack.getType())) {
         return;
       }
     }
-
     event.setCancelled(true);
 
     Player player = (Player) event.getWhoClicked();
 
-    Tier tier;
-    tier = MaterialUtil.getTierFromStack(resultStack);
+    Tier tier = MaterialUtil.getTierFromStack(resultStack);
     if (tier == null) {
-      Bukkit.getLogger().warning(
-          "[Loot] Attempted to craft item with unknown tier... " + resultStack.getType());
+      Bukkit.getLogger().warning("[Loot] Attempted to craft item with unknown tier... " + resultStack.getType());
       return;
     }
-
     SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
-    int craftingLevel = data.getLevel();
-    double effectiveCraftLevel = data.getLevelWithBonus();
-
+    SkillRank rank = SkillRank.getRank(plugin.getStrifePlugin().getChampionManager().getChampion(player), LifeSkillType.CRAFTING);
     CraftResultData crData = new CraftResultData(event.getInventory().getMatrix(), resultStack);
-
-    double levelAdvantage = craftingLevel + 10 - (int) crData.getItemLevel();
-    double bonusLevelAdvantage = data.getLevelWithBonus() + 10 - (int) crData.getItemLevel();
+    int maxCraftLevel = switch (rank) {
+      case NOVICE -> 25;
+      case APPRENTICE -> 45;
+      case JOURNEYMAN -> 65;
+      case EXPERT -> 85;
+      case MASTER -> 100;
+    };
+    float craftBonus = data.getLevelWithBonus() - data.getLevel();
+    float levelAdvantage = maxCraftLevel - (int) crData.getItemLevel();
+    float effectiveLevelAdvantage = levelAdvantage + craftBonus;
 
     if (levelAdvantage < 0) {
       sendMessage(player, plugin.getSettings().getString("language.craft.low-level-craft", ""));
@@ -187,22 +187,24 @@ public final class CraftingListener implements Listener {
     }
 
     int itemLevel = (int) Math.max(1, Math.min(100, crData.getItemLevel() - LootPlugin.RNG.nextInt(4)));
-    float effectiveLevelAdvantage = (float) Math.max(-8, effectiveCraftLevel - crData.getItemLevel());
-
-    float minRarityFromLevel = Math.min(3, (8 + effectiveLevelAdvantage) / 8);
-    float minRarityFromQuality = Math.max(0, Math.min(3, crData.getQuality() - 1));
-    float minRarity = (minRarityFromLevel + minRarityFromQuality) / 2;
-    minRarity = Math.min(MAX_QUALITY, Math.max(0f, minRarity));
+    float minRarity = 0;
+    if (SkillRank.isRank(rank, SkillRank.JOURNEYMAN) || effectiveLevelAdvantage >= 30) {
+      minRarity++;
+    }
+    if (crData.getQuality() >= 3) {
+      minRarity++;
+    }
+    float rarityBonus = 1 + (craftBonus / 50) + (crData.getQuality() / 16);
 
     BuiltItem builtItem = plugin.getNewItemBuilder()
         .withTier(tier)
-        .withRarity(plugin.getRarityManager().getRandomRarity(1, minRarity))
+        .withRarity(plugin.getRarityManager().getRandomRarity(rarityBonus, minRarity))
         .withSlotScore(crData.openSlotChance(Math.max(0, effectiveLevelAdvantage)))
-        .withEnchantable(craftingLevel >= 10 || LootPlugin.RNG.nextFloat() < 0.15)
-        .withExtendSlots(LootPlugin.RNG.nextFloat() < MaterialUtil.getExtendChance(craftingLevel) ? 1 : 0)
-        .withAlwaysEssence(craftingLevel >= 70)
-        .withCraftBonusStats((craftingLevel >= 45 && bonusLevelAdvantage >= 20) ? 0 : -1)
-        .withSockets(MaterialUtil.getSockets(minRarity, craftingLevel))
+        .withEnchantable(SkillRank.isRank(rank, SkillRank.APPRENTICE) || LootPlugin.RNG.nextFloat() < 0.15)
+        .withExtendSlots(LootPlugin.RNG.nextFloat() < MaterialUtil.getExtendChance(rank) ? 1 : 0)
+        .withAlwaysEssence(SkillRank.isRank(rank, SkillRank.MASTER))
+        .withCraftBonusStats(SkillRank.isRank(rank, SkillRank.EXPERT)? 0 : -1)
+        .withSockets(MaterialUtil.getSockets(minRarity, rank))
         .withLevel(itemLevel)
         .withCreator(player)
         .withItemGenerationReason(ItemGenerationReason.CRAFTING)
@@ -216,8 +218,8 @@ public final class CraftingListener implements Listener {
     double exp = CRAFT_EXP * crData.getNumMaterials() * 0.25;
     exp *= 1 + (itemLevel * CRAFT_LEVEL_MULT);
     exp *= 1 + (crData.getQuality() * CRAFT_QUALITY_MULT);
-    if (craftingLevel - 8 > crData.getItemLevel()) {
-      exp *= crData.getItemLevel() / craftingLevel;
+    if (maxCraftLevel > 25) {
+      exp *= crData.getItemLevel() / maxCraftLevel;
     }
 
     LootCraftEvent craftEvent = new LootCraftEvent(player, newResult);

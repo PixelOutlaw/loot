@@ -23,6 +23,7 @@ import static info.faceland.loot.utils.MaterialUtil.getLevelRequirement;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.CraftToolData;
 import info.faceland.loot.utils.CraftingUtil;
 import info.faceland.loot.utils.MaterialUtil;
@@ -30,11 +31,11 @@ import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.data.champion.SkillRank;
 import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.PlayerDataUtil;
 import ninja.amp.ampmenus.events.ItemClickEvent;
 import ninja.amp.ampmenus.items.MenuItem;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -66,16 +67,25 @@ public class SalvageConfirmIcon extends MenuItem {
     double levelAdvantage = Math.max(0, craftingLevel - itemLevel);
     float effectiveLevelAdvantage = Math.max(0f, effectiveCraftLevel - itemLevel);
 
+    SkillRank rank = SkillRank.getRank(LootPlugin.getInstance().getStrifePlugin()
+        .getChampionManager().getChampion(player), LifeSkillType.CRAFTING);
+    int maxSalvageLevel = switch (rank) {
+      case NOVICE -> 25;
+      case APPRENTICE -> 45;
+      case JOURNEYMAN -> 65;
+      case EXPERT -> 85;
+      case MASTER -> 100;
+    };
+
     List<String> lore = new ArrayList<>();
-    if (craftingLevel + 10 < itemLevel) {
+    if (itemLevel > maxSalvageLevel) {
       ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&e&lCraft Level Too Low!"));
-      lore.add(FaceColor.LIGHT_GRAY + "This item requires Lvl " + (itemLevel - 10));
+      lore.add(FaceColor.LIGHT_GRAY + "You can salvage items up to level " + maxSalvageLevel);
       TextUtils.setLore(stack, lore, false);
       return stack;
     }
 
-    CraftToolData craftToolData = menu.getPlugin().getSalvageManager()
-        .getToolData(menu.getTool(player));
+    CraftToolData craftToolData = menu.getPlugin().getSalvageManager().getToolData(menu.getTool(player));
     if (craftingLevel < craftToolData.getLevel()) {
       ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&e&lCraft Level Too Low!"));
       lore.add(FaceColor.LIGHT_GRAY + "This tool requires Lvl " + craftToolData.getLevel());

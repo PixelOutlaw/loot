@@ -156,7 +156,7 @@ public final class ItemBuilder {
   }
 
   private ItemStat getRandomPrimaryStat() {
-    return tier.getPrimaryStats().get(LootPlugin.RNG.nextInt(tier.getSecondaryStats().size()));
+    return tier.getPrimaryStats().get(LootPlugin.RNG.nextInt(tier.getPrimaryStats().size()));
   }
 
   public BuiltItem build() {

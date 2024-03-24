@@ -35,6 +35,7 @@ import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.data.champion.SkillRank;
 import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.PlayerDataUtil;
 import org.bukkit.ChatColor;
@@ -229,24 +230,30 @@ public final class PreCraftListener implements Listener {
     ItemStack result = recipe.getResult().clone();
 
     SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
+    SkillRank rank = SkillRank.getRank(plugin.getStrifePlugin().getChampionManager().getChampion(player), LifeSkillType.CRAFTING);
     int craftingLevel = data.getLevel();
     double effectiveCraftLevel = data.getLevelWithBonus();
     CraftResultData crData = new CraftResultData(craftingInventory.getMatrix(), result);
-    int requiredLevel = (int) crData.getItemLevel() - 10;
+    int maxCraftLevel = switch (rank) {
+      case NOVICE -> 25;
+      case APPRENTICE -> 45;
+      case JOURNEYMAN -> 65;
+      case EXPERT -> 85;
+      case MASTER -> 100;
+    };
 
-    if (craftingLevel < requiredLevel) {
+    if (maxCraftLevel < crData.getItemLevel() ) {
       craftingInventory.getResult().setType(Material.BARRIER);
       ItemStackExtensionsKt.setCustomModelData(craftingInventory.getResult(), 150);
       ItemStackExtensionsKt.setDisplayName(craftingInventory.getResult(),
           FaceColor.RED + FaceColor.BOLD.s() + FaceColor.UNDERLINE.s() + "Crafting Level Too Low!");
       TextUtils.setLore(craftingInventory.getResult(), List.of(
           FaceColor.WHITE + FaceColor.BOLD.s() + "Base Item Level: " + (int) crData.getItemLevel(),
-          FaceColor.RED + FaceColor.BOLD.s() + "Required Crafting Level: " + FaceColor.UNDERLINE + requiredLevel,
-          FaceColor.YELLOW + FaceColor.BOLD.s() + "Your Crafting Level: " + craftingLevel,
           FaceColor.GRAY + "An item's level is determined by the",
           FaceColor.GRAY + "average level of materials used to",
           FaceColor.GRAY + "craft it. Use weaker materials or",
-          FaceColor.GRAY + "raise your craft level to do this."
+          FaceColor.GRAY + "raise your craft level to do this.",
+          FaceColor.GRAY + "Check /skill for more info!"
       ), false);
       return;
     }
@@ -268,16 +275,21 @@ public final class PreCraftListener implements Listener {
     int minItemLevel = (int) Math.max(1, crData.getItemLevel() - 3);
     int maxItemLevel = (int) Math.max(1, Math.min(100, crData.getItemLevel()));
 
-    float effectiveLevelAdvantage = (float) Math.max(-8,
-        effectiveCraftLevel - crData.getItemLevel());
+    float craftBonus = data.getLevelWithBonus() - data.getLevel();
+    float levelAdvantage = maxCraftLevel - (int) crData.getItemLevel();
+    float effectiveLevelAdvantage = levelAdvantage + craftBonus;
 
-    float minRarityFromLevel = Math.min(3, (effectiveLevelAdvantage + 8) / 8);
-    float minRarityFromQuality = Math.max(0, Math.min(3, crData.getQuality() - 1));
-    float minRarity = Math.min(2.9f, (minRarityFromLevel + minRarityFromQuality) / 2);
-    minRarity = Math.min(MAX_QUALITY, Math.max(0f, minRarity));
-    int minSockets = MaterialUtil.getMinSockets(craftingLevel);
-    int maxSockets = MaterialUtil.getMaxSockets(minRarityFromQuality);
-    int extendChance = (int) (100 * MaterialUtil.getExtendChance(craftingLevel));
+    float minRarity = 0;
+    if (SkillRank.isRank(rank, SkillRank.JOURNEYMAN) || effectiveLevelAdvantage >= 30) {
+      minRarity++;
+    }
+    if (crData.getQuality() >= 3) {
+      minRarity++;
+    }
+
+    int minSockets = MaterialUtil.getMinSockets(rank);
+    int maxSockets = MaterialUtil.getMaxSockets(minRarity);
+    int extendChance = (int) (100 * MaterialUtil.getExtendChance(rank));
     float slotScore = crData.openSlotChance(Math.max(0, effectiveLevelAdvantage));
 
     List<String> newLore = new ArrayList<>();

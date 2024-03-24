@@ -14,6 +14,7 @@ import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.List;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.data.champion.SkillRank;
 import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.PlayerDataUtil;
 import org.bukkit.ChatColor;
@@ -64,9 +65,18 @@ public class SalvageManager {
     }
     int itemLevel = getLevelRequirement(selectedStack);
     SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
+
+    SkillRank rank = SkillRank.getRank(plugin.getStrifePlugin().getChampionManager().getChampion(player), LifeSkillType.CRAFTING);
+    int maxSalvageLevel = switch (rank) {
+      case NOVICE -> 25;
+      case APPRENTICE -> 45;
+      case JOURNEYMAN -> 65;
+      case EXPERT -> 85;
+      case MASTER -> 100;
+    };
     int craftingLevel = data.getLevel();
 
-    if (craftingLevel + 10 < itemLevel) {
+    if (itemLevel > maxSalvageLevel) {
       sendMessage(player, plugin.getSettings().getString("language.craft.low-level", ""));
       player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
       return;

@@ -61,10 +61,6 @@ enabled-worlds:
 - main
 - yololand
 
-# Settings if you have the Faceland plugin, Beast
-beast:
-  beast-mode-activate: false
-  range-before-penalty: 15
 
 socket-gems:
   use-potion-triggers:  true

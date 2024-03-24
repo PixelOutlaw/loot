@@ -40,7 +40,9 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import land.face.strife.data.champion.Champion;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.data.champion.SkillRank;
 import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.PlayerDataUtil;
 import ninja.amp.ampmenus.menus.ItemMenu;
@@ -54,9 +56,6 @@ import org.bukkit.inventory.ItemStack;
 public class EnchantMenu extends ItemMenu {
 
   private final LootPlugin plugin;
-
-  private static int baseEnhanceRequirement;
-  private static int enhanceReqPerTwenty;
 
   private ItemStack selectedEquipment;
   private ItemStack selectedUpgradeItem;
@@ -84,10 +83,6 @@ public class EnchantMenu extends ItemMenu {
         "&0&lUpgrade Items!")), Size.fit(27), plugin);
 
     this.plugin = plugin;
-
-    baseEnhanceRequirement = plugin.getSettings().getInt("config.enhancement.base-level-req", 6);
-    enhanceReqPerTwenty = plugin.getSettings()
-        .getInt("config.enhancement.level-req-per-ten-levels", 8);
 
     validEnchant = TextUtils.color(plugin.getSettings()
         .getString("language.menu.valid-enchant-name", "aaaa"));
@@ -290,9 +285,9 @@ public class EnchantMenu extends ItemMenu {
         updateConfirmDisplay(alreadyEnhanced, alreadyEnhancedLore, 62);
         return;
       }
-      int enchantingLevel = plugin.getStrifePlugin().getChampionManager().getChampion(player)
-          .getLifeSkillLevel(LifeSkillType.ENCHANTING);
-      if (enchantingLevel < getEnhanceRequirement(MaterialUtil.getLevelRequirement(selectedEquipment))) {
+      Champion champion = LootPlugin.getInstance().getStrifePlugin().getChampionManager().getChampion(player);
+      if (MaterialUtil.getLevelRequirement(selectedEquipment) > EnchantMenu.getEnhanceRequirement(
+          SkillRank.getRank(champion, LifeSkillType.ENCHANTING))) {
         updateConfirmDisplay(noEnhanceLevel, noEnhanceLevelLore, 62);
         return;
       }
@@ -339,8 +334,13 @@ public class EnchantMenu extends ItemMenu {
         itemPlus += 1;
       }
       itemPlus = Math.min(itemPlus, 15);
-      double successChance = Math
-          .min(100, 100 * MaterialUtil.getSuccessChance(player, itemPlus, selectedUpgradeItem, scroll));
+      Champion champion = plugin.getStrifePlugin().getChampionManager().getChampion(player);
+      double successChance = Math.min(100, 100 * MaterialUtil.getSuccessChance(
+          champion,
+          itemPlus,
+          selectedUpgradeItem,
+          scroll)
+      );
       double maxDura = selectedEquipment.getType().getMaxDurability();
       double damage;
       if (maxDura <= 1) {
@@ -450,9 +450,14 @@ public class EnchantMenu extends ItemMenu {
     return blankItem;
   }
 
-  public static int getEnhanceRequirement(int itemLevel) {
-    int eLevel = itemLevel / 20;
-    return baseEnhanceRequirement + eLevel * enhanceReqPerTwenty;
+  public static int getEnhanceRequirement(SkillRank rank) {
+    return switch (rank) {
+      case NOVICE -> 35;
+      case APPRENTICE -> 45;
+      case JOURNEYMAN -> 65;
+      case EXPERT -> 85;
+      case MASTER -> 100;
+    };
   }
 
   private void updateConfirmDisplay(String displayName, List<String> lore, int modelData) {

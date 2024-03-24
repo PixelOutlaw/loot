@@ -25,7 +25,8 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.shade.acf.PaperCommandManager;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.api.enchantments.EnchantmentTomeBuilder;
-import info.faceland.loot.api.managers.*;
+import info.faceland.loot.api.managers.GemCacheManager;
+import info.faceland.loot.api.managers.ItemGroupManager;
 import info.faceland.loot.api.managers.UniqueDropsManager;
 import info.faceland.loot.api.sockets.effects.SocketEffect;
 import info.faceland.loot.commands.LootCommand;
@@ -43,11 +44,43 @@ import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
 import info.faceland.loot.items.prefabs.TinkerersGear;
-import info.faceland.loot.listeners.*;
-import info.faceland.loot.listeners.sockets.*;
-import info.faceland.loot.listeners.crafting.*;
-import info.faceland.loot.listeners.anticheat.*;
-import info.faceland.loot.managers.*;
+import info.faceland.loot.listeners.ContainerOpenListener;
+import info.faceland.loot.listeners.EnchantDegradeListener;
+import info.faceland.loot.listeners.EnchantMenuListener;
+import info.faceland.loot.listeners.EntityDeathListener;
+import info.faceland.loot.listeners.GayBoatFix;
+import info.faceland.loot.listeners.GemSmashMenuListener;
+import info.faceland.loot.listeners.GemcutterListener;
+import info.faceland.loot.listeners.HeadHelmetsListener;
+import info.faceland.loot.listeners.InteractListener;
+import info.faceland.loot.listeners.ItemListListener;
+import info.faceland.loot.listeners.ItemSpawnListener;
+import info.faceland.loot.listeners.PawnMenuListener;
+import info.faceland.loot.listeners.SalvageMenuListener;
+import info.faceland.loot.listeners.SoulGemListener;
+import info.faceland.loot.listeners.StrifeListener;
+import info.faceland.loot.listeners.VagabondEquipListener;
+import info.faceland.loot.listeners.anticheat.AnticheatListener;
+import info.faceland.loot.listeners.crafting.CraftingListener;
+import info.faceland.loot.listeners.crafting.PreCraftListener;
+import info.faceland.loot.listeners.sockets.CombinerListener;
+import info.faceland.loot.listeners.sockets.SocketsListener;
+import info.faceland.loot.managers.AnticheatManager;
+import info.faceland.loot.managers.CraftMaterialManager;
+import info.faceland.loot.managers.CustomItemManager;
+import info.faceland.loot.managers.EnchantTomeManager;
+import info.faceland.loot.managers.LootGemCacheManager;
+import info.faceland.loot.managers.LootItemGroupManager;
+import info.faceland.loot.managers.LootNameManager;
+import info.faceland.loot.managers.LootUniqueDropsManager;
+import info.faceland.loot.managers.PawnManager;
+import info.faceland.loot.managers.RarityManager;
+import info.faceland.loot.managers.SalvageManager;
+import info.faceland.loot.managers.ScrollManager;
+import info.faceland.loot.managers.SocketGemManager;
+import info.faceland.loot.managers.StatManager;
+import info.faceland.loot.managers.TierManager;
+import info.faceland.loot.managers.TradeMenuManager;
 import info.faceland.loot.menu.gemcutter.GemcutterMenu;
 import info.faceland.loot.menu.salvage.SalvageMenu;
 import info.faceland.loot.sockets.SocketGem;
@@ -80,9 +113,9 @@ import org.black_ixx.playerpoints.PlayerPointsAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.EntityType;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -91,9 +124,16 @@ public final class LootPlugin extends FacePlugin {
 
   private static LootPlugin instance;
   public static SecureRandom RNG;
-
   private PluginLogger debugPrinter;
 
+  public static NamespacedKey ITEM_VERSION_KEY;
+  public static NamespacedKey ITEM_TYPE_KEY;
+  public static NamespacedKey ITEM_LEVEL_KEY;
+  public static NamespacedKey ITEM_TRADEABLE_KEY;
+
+  public static int itemVersion = 1;
+
+  @Getter
   private MasterConfiguration settings;
   private VersionedSmartYamlConfiguration itemsYAML;
   private VersionedSmartYamlConfiguration materialsYAML;
@@ -103,6 +143,7 @@ public final class LootPlugin extends FacePlugin {
   private VersionedSmartYamlConfiguration scrollsYAML;
   private VersionedSmartYamlConfiguration languageYAML;
   private VersionedSmartYamlConfiguration randomAffixes;
+  @Getter
   private VersionedSmartYamlConfiguration configYAML;
   private VersionedSmartYamlConfiguration enchantmentTomesYAML;
   private VersionedSmartYamlConfiguration craftMaterialsYAML;
@@ -125,8 +166,10 @@ public final class LootPlugin extends FacePlugin {
   @Getter private ScrollManager scrollManager;
   @Getter private TradeMenuManager tradeMenuManager;
 
+  @Getter
   private StrifePlugin strifePlugin;
 
+  @Getter
   private PlayerPointsAPI playerPointsAPI;
 
   private BukkitTask checkDealsTask;
@@ -147,6 +190,12 @@ public final class LootPlugin extends FacePlugin {
   @Override
   public void enable() {
     instance = this;
+
+    ITEM_VERSION_KEY = new NamespacedKey(this, "loot.item_version");
+    ITEM_TYPE_KEY = new NamespacedKey(this, "loot.item_type");
+    ITEM_LEVEL_KEY = new NamespacedKey(this, "loot.item_level");
+    ITEM_TRADEABLE_KEY = new NamespacedKey(this, "loot.item_tradeable");
+
     RNG = new SecureRandom();
     debugPrinter = new PluginLogger(this);
 
@@ -726,19 +775,4 @@ public final class LootPlugin extends FacePlugin {
     return new LootEnchantmentTomeBuilder(name);
   }
 
-  public MasterConfiguration getSettings() {
-    return settings;
-  }
-
-  public VersionedSmartYamlConfiguration getConfigYAML() {
-    return configYAML;
-  }
-
-  public PlayerPointsAPI getPlayerPointsAPI() {
-    return playerPointsAPI;
-  }
-
-  public StrifePlugin getStrifePlugin() {
-    return strifePlugin;
-  }
 }

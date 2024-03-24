@@ -129,7 +129,7 @@ public final class VagabondEquipListener implements Listener {
     }
 
     for (EquipmentSlot slot : EquipmentSlot.values()) {
-      if (LootPlugin.RNG.nextFloat() > 0.3) {
+      if (LootPlugin.RNG.nextFloat() > 0.4) {
         continue;
       }
       ItemStack stack = event.getEntity().getEquipment().getItem(slot);
