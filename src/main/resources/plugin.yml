@@ -10,6 +10,7 @@ softdepend:
   - PlayerPoints
   - InteractiveChatDiscordSrvAddon
   - RecipeManager
+  - RPGHealthAndFoods
 
 commands:
   loot:

@@ -47,7 +47,7 @@ broadcast:
   found-item: "<white>%player%<green> found a %item%<green>!"
   ided-item: "<white>%player%<green> ID'd a %item%<green>!"
   transmute-gem: "<white>%player%<green> transmuted a %item%<green>!"
-quality:
+rarity:
   1: "Superior"
   2: "Artisan"
   3: "Exceptional"

@@ -64,18 +64,12 @@ public class SalvageConfirmIcon extends MenuItem {
     int itemLevel = getLevelRequirement(menu.getEquipment(player));
     int craftingLevel = data.getLevel();
     float effectiveCraftLevel = data.getLevelWithBonus();
-    double levelAdvantage = Math.max(0, craftingLevel - itemLevel);
+    // double levelAdvantage = Math.max(0, craftingLevel - itemLevel);
     float effectiveLevelAdvantage = Math.max(0f, effectiveCraftLevel - itemLevel);
 
     SkillRank rank = SkillRank.getRank(LootPlugin.getInstance().getStrifePlugin()
         .getChampionManager().getChampion(player), LifeSkillType.CRAFTING);
-    int maxSalvageLevel = switch (rank) {
-      case NOVICE -> 25;
-      case APPRENTICE -> 45;
-      case JOURNEYMAN -> 65;
-      case EXPERT -> 85;
-      case MASTER -> 100;
-    };
+    int maxSalvageLevel = CraftingUtil.getMaxActionLevel(rank);
 
     List<String> lore = new ArrayList<>();
     if (itemLevel > maxSalvageLevel) {
@@ -101,15 +95,15 @@ public class SalvageConfirmIcon extends MenuItem {
       return stack;
     }
 
-    String qualityTag = switch (MaterialUtil.getQuality(menu.getEquipment(player))) {
-      case 0, 2, 1 -> MaterialUtil.TAG_COMMON;
-      case 3 -> MaterialUtil.TAG_UNCOMMON;
-      case 4 -> MaterialUtil.TAG_RARE;
-      case 5 -> MaterialUtil.TAG_EPIC;
-      default -> throw new IllegalStateException("Unexpected Quality for salvage??");
+    String minRarityTag = switch (MaterialUtil.getRarity(menu.getEquipment(player))) {
+      case 0, 1 -> MaterialUtil.TAG_COMMON;
+      case 2 -> MaterialUtil.TAG_UNCOMMON;
+      case 3 -> MaterialUtil.TAG_RARE;
+      case 4 -> MaterialUtil.TAG_EPIC;
+      default -> throw new IllegalStateException("Unexpected Rarity for salvage??");
     };
 
-    float essenceChance = (effectiveLevelAdvantage / 100) + craftToolData.getQuality() * 0.2f;
+    float essenceChance = (effectiveLevelAdvantage / 100) + craftToolData.getRarity() * 0.2f;
 
     ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&a&lClick To Salvage!"));
 
@@ -121,14 +115,14 @@ public class SalvageConfirmIcon extends MenuItem {
       lore.add(FaceColor.WHITE + "Crafting Skill: " + craftingLevel);
     }
     lore.add(FaceColor.WHITE + "Material Level: ~" + itemLevel);
-    lore.add(FaceColor.WHITE + "Minimum Quality: " + FaceColor.TRUE_WHITE + qualityTag);
-    lore.add(FaceColor.WHITE + "Maximum Quality: " + FaceColor.TRUE_WHITE + TAG_EPIC);
+    lore.add(FaceColor.WHITE + "Minimum Rarity: " + FaceColor.TRUE_WHITE + minRarityTag);
+    lore.add(FaceColor.WHITE + "Maximum Rarity: " + FaceColor.TRUE_WHITE + TAG_EPIC);
     lore.add("");
     lore.add(FaceColor.LIGHT_GRAY + "Destroy this item to get raw");
     lore.add(FaceColor.LIGHT_GRAY + "materials and maybe an essence!");
     lore.add("");
     List<String> possibleStats = CraftingUtil.getPossibleStats(TextUtils.getLore(menu.getEquipment(player)));
-    if (possibleStats.size() == 0) {
+    if (possibleStats.isEmpty()) {
       lore.add(FaceColor.CYAN + "Essence Chance: 0%");
       lore.add(FaceColor.PINK + "(No Valid Essence Stats)");
     } else {
@@ -143,7 +137,7 @@ public class SalvageConfirmIcon extends MenuItem {
     lore.add(FaceColor.LIGHT_GRAY + FaceColor.ITALIC.s() + " tools yields rarer materials");
     lore.add(FaceColor.LIGHT_GRAY + FaceColor.ITALIC.s() + " and a higher essence chance");
     lore.add(FaceColor.LIGHT_GRAY + FaceColor.ITALIC.s() + "Rarer equipment affects minimum");
-    lore.add(FaceColor.LIGHT_GRAY + FaceColor.ITALIC.s() + " quality of materials");
+    lore.add(FaceColor.LIGHT_GRAY + FaceColor.ITALIC.s() + " rarity of materials");
     TextUtils.setLore(stack, lore, false);
     return stack;
   }

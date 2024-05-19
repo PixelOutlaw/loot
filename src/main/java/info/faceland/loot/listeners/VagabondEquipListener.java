@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.WeakHashMap;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.StrifeMob;
@@ -117,8 +116,7 @@ public final class VagabondEquipListener implements Listener {
     if (!vagabonds.containsKey(event.getEntity())) {
       return;
     }
-    StrifeMob mob = StrifePlugin.getInstance().getStrifeMobManager()
-        .getStatMob(event.getEntity());
+    StrifeMob mob = StrifePlugin.getInstance().getStrifeMobManager().getStatMob(event.getEntity());
     Player killer = mob.getTopDamager();
     if (killer == null) {
       killer = event.getEntity().getKiller();
@@ -129,18 +127,18 @@ public final class VagabondEquipListener implements Listener {
     }
 
     for (EquipmentSlot slot : EquipmentSlot.values()) {
-      if (LootPlugin.RNG.nextFloat() > 0.4) {
-        continue;
-      }
       ItemStack stack = event.getEntity().getEquipment().getItem(slot);
       if (stack == null || stack.getType() == Material.AIR) {
+        continue;
+      }
+      if (0.5f < LootPlugin.RNG.nextFloat()) {
         continue;
       }
       ItemMeta m = stack.getItemMeta();
       m.setUnbreakable(false);
       stack.setItemMeta(m);
 
-      int rarity = MaterialUtil.getItemRarity(stack);
+      int rarity = MaterialUtil.getRarity(stack);
       boolean announce = MaterialUtil.getUpgradeLevel(stack) > 6 || rarity > 3;
       Color dropRgb = rarity == 4 ? FaceColor.RED.getRawColor() : FaceColor.PURPLE.getRawColor();
       ChatColor glow = rarity == 4 ? ChatColor.RED : ChatColor.DARK_PURPLE;

@@ -49,15 +49,15 @@ public final class ShardOfFailure {
     String name = FaceColor.BROWN + FAILURE_NAME;
     ItemStackExtensionsKt.setDisplayName(stack, name);
     TextUtils.setLore(stack, PaletteUtil.color(Arrays.asList(
-        "|white|\uD86D\uDFE6Ս",
+        "|none|" + MaterialUtil.TAG_COMMON + "Ս",
         "",
         "|lgray|Use this item on any",
         "|green|Upgrade Scroll |lgray|to raise",
         "|lgray|its success chance!",
         "",
-        "|dgray||i|This failure is special",
-        "|dgray||i|because it was made by",
-        "|dgray||i|{name} :)"
+        "|gray||i|This failure is special",
+        "|gray||i|because it was made by",
+        "|gray||i|{name} :)"
     )));
     ItemStackExtensionsKt.setCustomModelData(stack, 500);
     item = stack;

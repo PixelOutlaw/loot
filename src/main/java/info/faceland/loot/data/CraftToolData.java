@@ -6,6 +6,6 @@ import lombok.Data;
 public class CraftToolData {
 
   private int level;
-  private int quality;
+  private int rarity;
 
 }

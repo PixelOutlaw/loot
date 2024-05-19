@@ -13,15 +13,15 @@ import org.bukkit.inventory.ItemStack;
 public class CraftResultData {
 
   private final int numMaterials;
-  private final double totalQuality;
-  private final double totalItemLevel;
-  private final double itemLevel;
-  private final float quality;
+  private final float totalRarity;
+  private final float totalItemLevel;
+  private final float itemLevel;
+  private final float rarity;
 
   public CraftResultData(ItemStack[] craftMatrix, ItemStack resultStack) {
     int numMaterials = 0;
-    double totalQuality = 0;
-    double totalItemLevel = 0;
+    float totalRarity = 0;
+    float totalItemLevel = 0;
     for (ItemStack is : craftMatrix) {
       if (is == null || is.getType() == Material.AIR || is.getType() == resultStack.getType()) {
         continue;
@@ -33,20 +33,20 @@ public class CraftResultData {
             .trim());
         totalItemLevel += iLevel;
       } else {
-        totalItemLevel += 0.5;
+        totalItemLevel += 0.5F;
       }
       numMaterials++;
-      totalQuality += MaterialUtil.getQuality(loopItem);
+      totalRarity += MaterialUtil.getRarity(loopItem);
     }
 
     this.numMaterials = numMaterials;
-    this.totalQuality = totalQuality;
+    this.totalRarity = totalRarity;
     this.totalItemLevel = totalItemLevel;
     this.itemLevel = totalItemLevel / numMaterials;
-    this.quality = (float) (totalQuality / numMaterials);
+    this.rarity = totalRarity / numMaterials;
   }
 
   public float openSlotChance(float levelAdvantage) {
-    return (quality * 0.05f) + Math.min(0.8f, levelAdvantage / 100);
+    return (rarity * 0.065f) + Math.min(0.8f, levelAdvantage / 100);
   }
 }

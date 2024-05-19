@@ -28,6 +28,7 @@ import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.CraftResultData;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.tier.Tier;
+import info.faceland.loot.utils.CraftingUtil;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
@@ -70,7 +71,7 @@ public final class PreCraftListener implements Listener {
   public PreCraftListener(LootPlugin plugin) {
     this.plugin = plugin;
 
-    MAX_QUALITY = (float) plugin.getSettings().getDouble("config.crafting.craft-max-quality", 5);
+    MAX_QUALITY = (float) plugin.getSettings().getDouble("config.crafting.craft-max-rarity", 5);
     ESSENCE_SLOT_TEXT = plugin.getSettings()
         .getString("config.crafting.essence-text", "(Essence Slot)");
 
@@ -234,26 +235,22 @@ public final class PreCraftListener implements Listener {
     int craftingLevel = data.getLevel();
     double effectiveCraftLevel = data.getLevelWithBonus();
     CraftResultData crData = new CraftResultData(craftingInventory.getMatrix(), result);
-    int maxCraftLevel = switch (rank) {
-      case NOVICE -> 25;
-      case APPRENTICE -> 45;
-      case JOURNEYMAN -> 65;
-      case EXPERT -> 85;
-      case MASTER -> 100;
-    };
+    int maxCraftLevel = CraftingUtil.getMaxActionLevel(rank);
 
-    if (maxCraftLevel < crData.getItemLevel() ) {
+    if (maxCraftLevel < (int) crData.getItemLevel()) {
       craftingInventory.getResult().setType(Material.BARRIER);
       ItemStackExtensionsKt.setCustomModelData(craftingInventory.getResult(), 150);
       ItemStackExtensionsKt.setDisplayName(craftingInventory.getResult(),
           FaceColor.RED + FaceColor.BOLD.s() + FaceColor.UNDERLINE.s() + "Crafting Level Too Low!");
       TextUtils.setLore(craftingInventory.getResult(), List.of(
           FaceColor.WHITE + FaceColor.BOLD.s() + "Base Item Level: " + (int) crData.getItemLevel(),
+          "",
           FaceColor.GRAY + "An item's level is determined by the",
           FaceColor.GRAY + "average level of materials used to",
           FaceColor.GRAY + "craft it. Use weaker materials or",
           FaceColor.GRAY + "raise your craft level to do this.",
-          FaceColor.GRAY + "Check /skill for more info!"
+          "",
+          FaceColor.YELLOW + "Check /skillS for more info!"
       ), false);
       return;
     }
@@ -279,13 +276,7 @@ public final class PreCraftListener implements Listener {
     float levelAdvantage = maxCraftLevel - (int) crData.getItemLevel();
     float effectiveLevelAdvantage = levelAdvantage + craftBonus;
 
-    float minRarity = 0;
-    if (SkillRank.isRank(rank, SkillRank.JOURNEYMAN) || effectiveLevelAdvantage >= 30) {
-      minRarity++;
-    }
-    if (crData.getQuality() >= 3) {
-      minRarity++;
-    }
+    float minRarity = CraftingUtil.getMinimumRarity(crData.getRarity(), rank, effectiveLevelAdvantage);
 
     int minSockets = MaterialUtil.getMinSockets(rank);
     int maxSockets = MaterialUtil.getMaxSockets(minRarity);
@@ -365,15 +356,15 @@ public final class PreCraftListener implements Listener {
 
   private String getRarityTag(float amount) {
     if (amount < 1) {
-      return "\uD86D\uDFE6";
+      return MaterialUtil.TAG_COMMON;
     }
     if (amount < 2) {
-      return "\uD86D\uDFE7";
+      return MaterialUtil.TAG_UNCOMMON;
     }
     if (amount < 3) {
-      return "\uD86D\uDFE8";
+      return MaterialUtil.TAG_RARE;
     }
-    return "\uD86D\uDFE9";
+    return MaterialUtil.TAG_EPIC;
   }
 
   @EventHandler(priority = EventPriority.LOWEST)

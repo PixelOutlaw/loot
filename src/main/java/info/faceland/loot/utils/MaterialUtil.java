@@ -61,6 +61,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import land.face.dinvy.entity.PlayerData;
 import land.face.dinvy.events.EquipmentUpdateEvent;
+import land.face.foods.FoodsPlugin;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.champion.Champion;
 import land.face.strife.data.champion.LifeSkillType;
@@ -86,11 +87,6 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 public final class MaterialUtil {
 
-  private static final double BONUS_ESS_MULT = 0.3;
-  private static final double TOOL_QUALITY_ESS_MULT = 0.08;
-  private static final double MIN_BONUS_ESS_MULT = 0.25;
-  private static final double BASE_ESSENCE_MULT = 0.3;
-
   public static final Pattern ONLY_LETTERS = Pattern.compile("[^A-za-z]");
   private static final Pattern DIGITS = Pattern.compile("[^0-9.-]");
 
@@ -104,11 +100,9 @@ public final class MaterialUtil {
   private static String upgradeSuccessBroadcast;
   private static String enchantFailureMsg;
   private static String enchantTagNeededMsg;
-  private static String enchantPointlessMsg;
   private static String enchantSuccessMsg;
   private static String extendSuccessMsg;
   private static String extendFailMsg;
-  private static boolean enchantmentsStack;
 
   public static final String FAILURE_BONUS = ChatColor.RED + "Failure Bonus";
   public static final String ENCHANTABLE_TAG_BASE = "|none|傜";
@@ -152,12 +146,8 @@ public final class MaterialUtil {
         .getString("language.enchant.failure", "");
     enchantTagNeededMsg = LootPlugin.getInstance().getSettings()
         .getString("language.enchant.needs-enchantable", "");
-    enchantPointlessMsg = LootPlugin.getInstance().getSettings()
-        .getString("language.enchant.pointless", "");
     enchantSuccessMsg = LootPlugin.getInstance().getSettings()
         .getString("language.enchant.success", "");
-    enchantmentsStack = LootPlugin.getInstance().getSettings()
-        .getBoolean("config.enchantments-stack", true);
     extendSuccessMsg = LootPlugin.getInstance().getSettings()
         .getString("language.extend.success", "");
     extendFailMsg = LootPlugin.getInstance().getSettings()
@@ -356,6 +346,12 @@ public final class MaterialUtil {
     }
     stack.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_UNBREAKABLE);
     List<String> lore = TextUtils.getLore(stack);
+    for (String s : lore) {
+      if (stripColor(s).contains("Passive Effect - Double Upgrade")) {
+        statAmount++;
+        break;
+      }
+    }
     for (int i = 0; i < lore.size(); i++) {
       String s = lore.get(i);
       String ss = stripColor(s);
@@ -878,23 +874,23 @@ public final class MaterialUtil {
     head.setAmount(head.getAmount() - 1);
   }
 
-  public static ItemStack buildMaterial(Material m, String name, int level, int quality) {
+  public static ItemStack buildMaterial(Material m, String name, int level, int rarity) {
     ItemStack his = new ItemStack(m);
     FaceColor color;
     String prefix;
     String tag;
-    switch (quality) {
-      case 2 -> {
+    switch (rarity) {
+      case 1 -> {
         prefix = "";
         color = FaceColor.BLUE;
         tag = TAG_UNCOMMON;
       }
-      case 3 -> {
-        prefix = "Quality ";
+      case 2 -> {
+        prefix = "Rarity ";
         color = FaceColor.PURPLE;
         tag = TAG_RARE;
       }
-      case 4 -> {
+      case 3 -> {
         prefix = "Superb ";
         color = FaceColor.RED;
         tag = TAG_EPIC;
@@ -916,41 +912,12 @@ public final class MaterialUtil {
     return his;
   }
 
-  public static int getQuality(ItemStack stack) {
-    if (!stack.hasItemMeta()) {
-      return 1;
-    }
-    for (String line : TextUtils.getLore(stack)) {
-      if (line.contains(TAG_COMMON)) {
-        return 1;
-      }
-      if (line.contains(TAG_UNCOMMON)) {
-        return 2;
-      }
-      if (line.contains(TAG_RARE)) {
-        return 3;
-      }
-      if (line.contains(TAG_EPIC)) {
-        return 4;
-      }
-      if (line.contains(TAG_UNIQUE)) {
-        return 4;
-      }
-    }
-    return 0;
-  }
-
   public static ItemStack buildEssence(Tier tier, double itemLevel, List<String> possibleStats) {
-
     int essLevel = Math.max(1, (int) (Math.floor(itemLevel) / 10) * 10);
-
-    String statString = ChatColor
-        .stripColor(possibleStats.get(LootPlugin.RNG.nextInt(possibleStats.size())));
+    String statString = ChatColor.stripColor(possibleStats.get(LootPlugin.RNG.nextInt(possibleStats.size())));
     int statVal = getDigit(statString);
-
     String newStatString = statString.replace(String.valueOf(statVal),
         String.valueOf((int) Math.max(1, statVal * (0.8 + LootPlugin.RNG.nextFloat() * 0.2))));
-
     return createEssence(tier.getName(), essLevel, ChatColor.stripColor(newStatString));
   }
 
@@ -966,8 +933,7 @@ public final class MaterialUtil {
     esslore.add("");
     esslore.add(FaceColor.LIGHT_GRAY + "Craft this together with");
     esslore.add(FaceColor.LIGHT_GRAY + "an unfinished item to fill");
-    esslore.add(FaceColor.LIGHT_GRAY + "an " + FaceColor.CYAN +
-        "Essence Slot" + FaceColor.LIGHT_GRAY + "!");
+    esslore.add(FaceColor.LIGHT_GRAY + "an " + FaceColor.CYAN + "Essence Slot" + FaceColor.LIGHT_GRAY + "!");
     TextUtils.setLore(shard, esslore, false);
     ItemStackExtensionsKt.setCustomModelData(shard, 501);
 
@@ -1049,9 +1015,9 @@ public final class MaterialUtil {
     };
   }
 
-  public static int getSockets(float quality, SkillRank skillRank) {
+  public static int getSockets(float rarity, SkillRank skillRank) {
     int minSockets = getMinSockets(skillRank);
-    int maxSockets = getMaxSockets(quality);
+    int maxSockets = getMaxSockets(rarity);
     if (minSockets >= maxSockets) {
       return minSockets;
     }
@@ -1073,8 +1039,8 @@ public final class MaterialUtil {
     return amount;
   }
 
-  public static int getMaxSockets(float quality) {
-    return quality > 2.1 ? 2 : 1;
+  public static int getMaxSockets(float rarity) {
+    return rarity > 1.1 ? 2 : 1;
   }
 
   public static int getLevelRequirement(ItemStack stack) {
@@ -1085,8 +1051,7 @@ public final class MaterialUtil {
       return -1;
     }
     String lvlReqString = ChatColor.stripColor(TextUtils.getLore(stack).get(0));
-    if (lvlReqString.startsWith("Level Requirement:") ||
-        lvlReqString.startsWith("Skill Requirement:")) {
+    if (lvlReqString.startsWith("Level Requirement:") || lvlReqString.startsWith("Skill Requirement:")) {
       return getDigit(TextUtils.getLore(stack).get(0));
     }
     return -1;
@@ -1140,6 +1105,10 @@ public final class MaterialUtil {
       ItemStack newStack = ArcaneEnhancer.get();
       stack.setType(newStack.getType());
       stack.setItemMeta(newStack.getItemMeta());
+      return true;
+    }
+
+    if (FoodsPlugin.getInstance().getFoodsManager().updateItem(stack)) {
       return true;
     }
 
@@ -1331,36 +1300,44 @@ public final class MaterialUtil {
     return data;
   }
 
-  public static int getItemRarity(ItemStack stack) {
+  public static int getRarity(ItemStack stack) {
     if (stack.getItemMeta() == null) {
       return 0;
     }
     if (TextUtils.getLore(stack).size() < 2) {
       return 0;
     }
-    int rarity = checkRarity(TextUtils.getLore(stack).get(0));
+    List<String> lore = TextUtils.getLore(stack);
+    int rarity = getRarity(lore.get(0));
     if (rarity != -1) {
       return rarity;
     }
-    rarity = checkRarity(TextUtils.getLore(stack).get(1));
-    return rarity != -1 ? rarity : 1;
+    rarity = getRarity(lore.get(1));
+    if (rarity != -1) {
+      return rarity;
+    }
+    if (TextUtils.getLore(stack).size() < 3) {
+      return 0;
+    }
+    rarity = getRarity(lore.get(2));
+    return rarity != -1 ? rarity : 0;
   }
 
-  private static int checkRarity(String s) {
+  private static int getRarity(String s) {
     if (s.contains(TAG_COMMON)) {
-      return 1;
+      return 0;
     }
     if (s.contains(TAG_UNCOMMON)) {
-      return 2;
+      return 1;
     }
     if (s.contains(TAG_RARE)) {
-      return 3;
+      return 2;
     }
     if (s.contains(TAG_EPIC)) {
-      return 4;
+      return 3;
     }
     if (s.contains(TAG_UNIQUE)) {
-      return 4;
+      return 3;
     }
     return -1;
   }

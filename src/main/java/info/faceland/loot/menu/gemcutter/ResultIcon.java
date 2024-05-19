@@ -19,8 +19,11 @@
 package info.faceland.loot.menu.gemcutter;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import info.faceland.loot.LootPlugin;
+import info.faceland.loot.utils.CraftingUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.data.champion.SkillRank;
 import land.face.strife.util.PlayerDataUtil;
 import ninja.amp.ampmenus.events.ItemClickEvent;
 import ninja.amp.ampmenus.items.MenuItem;
@@ -45,12 +48,15 @@ public class ResultIcon extends MenuItem {
       ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&7No gem selected"));
       return stack;
     }
-    int levelReq = Integer.parseInt(ChatColor.stripColor(
-        TextUtils.getLore(menu.getSelectedStack(player)).get(0)).replace("Item Level: ", "")) - 10;
-    if (levelReq > PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.CRAFTING)) {
+    SkillRank rank = SkillRank.getRank(LootPlugin.getInstance()
+        .getStrifePlugin().getChampionManager().getChampion(player), LifeSkillType.CRAFTING);
+    int maxLvl = CraftingUtil.getMaxActionLevel(rank);
+    int itemLevel = Integer.parseInt(ChatColor.stripColor(
+        TextUtils.getLore(menu.getSelectedStack(player)).get(0)).replace("Item Level: ", ""));
+    if (itemLevel > maxLvl) {
       ItemStack stack = getIcon().clone();
       ItemStackExtensionsKt.setDisplayName(stack,
-          TextUtils.color("&cRequires: &fCrafting " + levelReq));
+          TextUtils.color("&cRequires: &fCrafting " + itemLevel));
       return stack;
     }
     ItemStack stack = new ItemStack(Material.NETHER_STAR);

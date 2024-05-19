@@ -27,6 +27,7 @@ import info.faceland.loot.data.BuiltItem;
 import info.faceland.loot.data.CraftResultData;
 import info.faceland.loot.events.LootCraftEvent;
 import info.faceland.loot.tier.Tier;
+import info.faceland.loot.utils.CraftingUtil;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
@@ -61,7 +62,6 @@ public final class CraftingListener implements Listener {
   private final double CRAFT_EXP;
   private final double CRAFT_LEVEL_MULT;
   private final double CRAFT_QUALITY_MULT;
-  private final float MAX_QUALITY;
 
   private final ItemMeta dupeStatMeta;
   private final ItemMeta powerfulEssenceMeta;
@@ -77,10 +77,8 @@ public final class CraftingListener implements Listener {
     CRAFT_EXP = plugin.getSettings().getDouble("config.crafting.base-craft-exp", 1);
     CRAFT_LEVEL_MULT = plugin.getSettings()
         .getDouble("config.crafting.craft-item-level-mult", 0.01);
-    CRAFT_QUALITY_MULT = plugin.getSettings().getDouble("config.crafting.craft-quality-mult", 0.1);
-    MAX_QUALITY = (float) plugin.getSettings().getDouble("config.crafting.craft-max-quality", 5);
-    ESSENCE_SLOT_TEXT = plugin.getSettings()
-        .getString("config.crafting.essence-text", "(Essence Slot)");
+    CRAFT_QUALITY_MULT = plugin.getSettings().getDouble("config.crafting.craft-rarity-mult", 0.1);
+    ESSENCE_SLOT_TEXT = plugin.getSettings().getString("config.crafting.essence-text", "(Essence Slot)");
 
     BAD_INFUSE_NAME = StringExtensionsKt.chatColorize(plugin.getSettings()
         .getString("language.essence.invalid-title", "&cCannot Use Essence!"));
@@ -169,13 +167,7 @@ public final class CraftingListener implements Listener {
     SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
     SkillRank rank = SkillRank.getRank(plugin.getStrifePlugin().getChampionManager().getChampion(player), LifeSkillType.CRAFTING);
     CraftResultData crData = new CraftResultData(event.getInventory().getMatrix(), resultStack);
-    int maxCraftLevel = switch (rank) {
-      case NOVICE -> 25;
-      case APPRENTICE -> 45;
-      case JOURNEYMAN -> 65;
-      case EXPERT -> 85;
-      case MASTER -> 100;
-    };
+    int maxCraftLevel = CraftingUtil.getMaxActionLevel(rank);
     float craftBonus = data.getLevelWithBonus() - data.getLevel();
     float levelAdvantage = maxCraftLevel - (int) crData.getItemLevel();
     float effectiveLevelAdvantage = levelAdvantage + craftBonus;
@@ -187,14 +179,8 @@ public final class CraftingListener implements Listener {
     }
 
     int itemLevel = (int) Math.max(1, Math.min(100, crData.getItemLevel() - LootPlugin.RNG.nextInt(4)));
-    float minRarity = 0;
-    if (SkillRank.isRank(rank, SkillRank.JOURNEYMAN) || effectiveLevelAdvantage >= 30) {
-      minRarity++;
-    }
-    if (crData.getQuality() >= 3) {
-      minRarity++;
-    }
-    float rarityBonus = 1 + (craftBonus / 50) + (crData.getQuality() / 16);
+    float minRarity = CraftingUtil.getMinimumRarity(crData.getRarity(), rank, effectiveLevelAdvantage);
+    float rarityBonus = 1 + (craftBonus / 50) + (crData.getRarity() / 10);
 
     BuiltItem builtItem = plugin.getNewItemBuilder()
         .withTier(tier)
@@ -217,7 +203,7 @@ public final class CraftingListener implements Listener {
 
     double exp = CRAFT_EXP * crData.getNumMaterials() * 0.25;
     exp *= 1 + (itemLevel * CRAFT_LEVEL_MULT);
-    exp *= 1 + (crData.getQuality() * CRAFT_QUALITY_MULT);
+    exp *= 1 + (crData.getRarity() * CRAFT_QUALITY_MULT);
     if (maxCraftLevel > 25) {
       exp *= crData.getItemLevel() / maxCraftLevel;
     }

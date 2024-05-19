@@ -25,36 +25,10 @@ import org.bukkit.inventory.ItemStack;
 
 public class SalvageManager {
 
-  private LootPlugin plugin;
-
-  private double baseEquipmentPrice;
-  private double baseGemPrice;
-  private double baseTomePrice;
-  private double baseScrollPrice;
-  private double equipPricePerLevel;
-  private double gemWeightHalf;
-  private double tomeWeightHalf;
-  private double scrollWeightHalf;
-
+  private final LootPlugin plugin;
 
   public SalvageManager(LootPlugin plugin) {
     this.plugin = plugin;
-    baseEquipmentPrice = plugin.getSettings()
-        .getDouble("config.selling.base-equipment-price", 5);
-    baseGemPrice = plugin.getSettings()
-        .getDouble("config.selling.base-gem-price", 5);
-    baseTomePrice = plugin.getSettings()
-        .getDouble("config.selling.base-tome-price", 5);
-    baseScrollPrice = plugin.getSettings()
-        .getDouble("config.selling.base-scroll-price", 5);
-    equipPricePerLevel = plugin.getSettings()
-        .getDouble("config.selling.equipment-price-per-level", 0.1);
-    gemWeightHalf = plugin.getSettings()
-        .getDouble("config.selling.weight-per-half-gem-price", 5);
-    tomeWeightHalf = plugin.getSettings()
-        .getDouble("config.selling.weight-per-half-tome-price", 5);
-    scrollWeightHalf = plugin.getSettings()
-        .getDouble("config.selling.weight-per-half-scroll-price", 5);
   }
 
   public void destroy(Player player, ItemStack selectedStack, ItemStack toolStack) {
@@ -67,13 +41,7 @@ public class SalvageManager {
     SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
 
     SkillRank rank = SkillRank.getRank(plugin.getStrifePlugin().getChampionManager().getChampion(player), LifeSkillType.CRAFTING);
-    int maxSalvageLevel = switch (rank) {
-      case NOVICE -> 25;
-      case APPRENTICE -> 45;
-      case JOURNEYMAN -> 65;
-      case EXPERT -> 85;
-      case MASTER -> 100;
-    };
+    int maxSalvageLevel = CraftingUtil.getMaxActionLevel(rank);
     int craftingLevel = data.getLevel();
 
     if (itemLevel > maxSalvageLevel) {
@@ -90,7 +58,7 @@ public class SalvageManager {
     }
 
     float effectiveCraftLevel = data.getLevelWithBonus();
-    double levelAdvantage = Math.max(0, craftingLevel - itemLevel);
+    // double levelAdvantage = Math.max(0, craftingLevel - itemLevel);
     float effectiveLevelAdvantage = Math.max(0f, effectiveCraftLevel - itemLevel);
 
     List<String> lore = TextUtils.getLore(selectedStack);
@@ -104,21 +72,20 @@ public class SalvageManager {
       return;
     }
 
-    int equipmentQuality = MaterialUtil.getQuality(selectedStack);
-    int quality = Math.max(1, equipmentQuality - 1);
+    int rarity = MaterialUtil.getRarity(selectedStack);
 
-    float qualityUpChance = CraftingUtil.getQualityUpChance(effectiveLevelAdvantage, craftToolData);
-    while (LootPlugin.RNG.nextFloat() < qualityUpChance && quality < 4) {
-      quality++;
+    float rarityUpChance = CraftingUtil.getRarityUpChance(effectiveLevelAdvantage, craftToolData);
+    while (LootPlugin.RNG.nextFloat() < rarityUpChance && rarity < 3) {
+      rarity++;
     }
 
     ItemStack craftMaterial = MaterialUtil.buildMaterial(material, plugin.getCraftMaterialManager()
-        .getCraftMaterials().get(material), itemLevel, quality);
+        .getCraftMaterials().get(material), itemLevel, rarity);
 
     player.playSound(player.getEyeLocation(), Sound.ENTITY_ITEM_BREAK, 1F, 0.8F);
 
     ItemStack essence = null;
-    float essenceChance = (effectiveLevelAdvantage / 100) + craftToolData.getQuality() * 0.2f;
+    float essenceChance = (effectiveLevelAdvantage / 100) + craftToolData.getRarity() * 0.2f;
     if (LootPlugin.RNG.nextFloat() < essenceChance) {
       if (!possibleStats.isEmpty()) {
         player.playSound(player.getEyeLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.4F, 2F);
@@ -153,7 +120,7 @@ public class SalvageManager {
     }
     CraftToolData data = new CraftToolData();
     data.setLevel(getToolLevel(stack));
-    data.setQuality(MaterialUtil.getQuality(stack));
+    data.setRarity(MaterialUtil.getRarity(stack));
 
     return data;
   }
@@ -171,7 +138,5 @@ public class SalvageManager {
     }
     return MaterialUtil.getDigit(TextUtils.getLore(stack).get(0));
   }
-
-
-
+  
 }

@@ -109,7 +109,7 @@ Precision
 Propagation
 Protection
 Puncturing
-Quality
+Rarity
 Quickness
 Radiance
 Razors

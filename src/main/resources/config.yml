@@ -39,14 +39,14 @@ random-upgrade-quantityBonus: 0.1
 multi-upgrade-quantityBonus: 0.1
 
 # Chance that items will have a bonus to their
-# quality, increasing its base stat
-random-quality-quantityBonus: 0.1
+# rarity, increasing its base stat
+random-rarity-quantityBonus: 0.1
 
-# Chance that items will have additional random quality
+# Chance that items will have additional random rarity
 # ups applied to the drop. This stacks, so 0.1 would
 # be 10% quantityBonus of Superior, 1% quantityBonus of Perfect, 0.1%
 # quantityBonus of Ultimate, etc.
-multi-quality-quantityBonus: 0.1
+multi-rarity-quantityBonus: 0.1
 
 # How long loot drops assigned to a specific player
 # should disallow anyone else to pick it up. The
@@ -54,7 +54,7 @@ multi-quality-quantityBonus: 0.1
 # list of attackers, with weight based on dmg dealt
 loot-protect-time: 10
 
-material-quality-up: 0.05
+material-rarity-up: 0.05
 
 # Worlds where loot items wlll drop
 enabled-worlds:
@@ -68,9 +68,9 @@ socket-gems:
 crafting:
   base-craft-exp: 1
   craft-item-level-mult: 3
-  craft-quality-mult: 0.2
+  craft-rarity-mult: 0.2
   craft-master-mult: 3.0
-  craft-max-quality: 5
+  craft-max-rarity: 5
   craft-max-craft-slots: 5
   craft-max-sockets: 3
   infusion-base-success-chance: 0.3

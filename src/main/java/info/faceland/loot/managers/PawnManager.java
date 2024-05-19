@@ -70,7 +70,7 @@ public class PawnManager {
 
   public PriceData getPrice(ItemStack stack) {
     int amount = stack.getAmount();
-    int price;
+    float price;
     String itemName = ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack));
     if (namedPrices.containsKey(itemName)) {
       return new PriceData(amount * namedPrices.get(itemName), namedPrices.get(itemName) > 500 &&
@@ -104,7 +104,7 @@ public class PawnManager {
     }
     if (MaterialUtil.isEssence(stack)) {
       price = 2;
-      price += (double) MaterialUtil.getEssenceLevel(stack) * 0.15;
+      price += MaterialUtil.getEssenceLevel(stack) * 0.15f;
       return new PriceData(amount * price, false);
     }
     if (MaterialUtil.getTierFromStack(stack) != null) {
@@ -118,14 +118,13 @@ public class PawnManager {
       double itemLevel = MaterialUtil.getLevelRequirement(stack);
       int itemPlus = MaterialUtil.getUpgradeLevel(ItemStackExtensionsKt.getDisplayName(stack));
       price = (int) (baseEquipmentPrice + itemLevel * equipPricePerLevel);
-      price *= Math.pow(1.1, itemPlus);
+      price *= (float) Math.pow(1.1, itemPlus);
       return new PriceData(amount * price, itemPlus > 4 || cool);
     }
     if (stack.getType() == Material.KELP) {
-      int rarity = MaterialUtil.getItemRarity(stack);
+      int rarity = MaterialUtil.getRarity(stack);
       float rarityMult = 0.5f * rarity;
-      String stripped = net.md_5.bungee.api.ChatColor.stripColor(
-          ItemStackExtensionsKt.getDisplayName(stack));
+      String stripped = net.md_5.bungee.api.ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack));
       Matcher matcher = pattern.matcher(stripped);
       while (matcher.find()) {
         double size = Double.parseDouble(matcher.group());
@@ -133,14 +132,14 @@ public class PawnManager {
       }
       return new PriceData(1, false);
     }
-    double quality = MaterialUtil.getQuality(stack);
+    double rarity = 1 + MaterialUtil.getRarity(stack);
     double itemPrice = materialPrices.getOrDefault(stack.getType(), -1D);
     double itemLevel = MaterialUtil.getItemLevel(stack);
     if (itemLevel >= 1) {
       itemPrice = Math.max(itemPrice, 1);
       itemPrice *= 1 + (itemLevel / 25);
     }
-    switch ((int) quality) {
+    switch ((int) rarity) {
       case 1 -> itemPrice = Math.max(0, itemPrice);
       case 2 -> itemPrice += 0.35;
       case 3 -> {

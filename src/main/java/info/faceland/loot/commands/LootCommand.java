@@ -590,13 +590,13 @@ public class LootCommand extends BaseCommand {
   @Subcommand("materials")
   @CommandCompletion("@players @range:1-100 @range:1-100")
   @CommandPermission("loot.give")
-  public void materials(CommandSender sender, Player target, int itemLevel, int quality) {
+  public void materials(CommandSender sender, Player target, int itemLevel, int rarity) {
 
-    quality = Math.min(5, Math.max(quality, 1));
+    rarity = Math.min(5, Math.max(rarity, 1));
 
     for (Material m : plugin.getCraftMaterialManager().getCraftMaterials().keySet()) {
       ItemStack itemStack = MaterialUtil.buildMaterial(m,
-          plugin.getCraftMaterialManager().getCraftMaterials().get(m), itemLevel, quality);
+          plugin.getCraftMaterialManager().getCraftMaterials().get(m), itemLevel, rarity);
       target.getInventory().addItem(itemStack);
     }
   }
