@@ -19,7 +19,6 @@
 package info.faceland.loot.items;
 
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.api.items.CustomItem;
 import java.util.Map;
 import java.util.Map.Entry;
 import lombok.Getter;

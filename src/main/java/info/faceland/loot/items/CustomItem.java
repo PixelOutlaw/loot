@@ -22,12 +22,13 @@ import com.destroystokyo.paper.Namespaced;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.api.items.CustomItem;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -39,7 +40,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
-public final class LootCustomItem implements CustomItem {
+@Getter @Setter
+public class CustomItem {
 
   private final String name;
   private String displayName;
@@ -55,37 +57,20 @@ public final class LootCustomItem implements CustomItem {
   private Set<ItemFlag> flags;
   private Set<String> canBreak;
 
-  public LootCustomItem(String name, Material material) {
+  public CustomItem(String name, Material material) {
     this.name = name;
     this.material = material;
     this.lore = new ArrayList<>();
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public String getDisplayName() {
-    return displayName;
   }
 
   void setDisplayName(String displayName) {
     this.displayName = displayName;
   }
 
-  public List<String> getLore() {
-    return lore;
-  }
-
   void setLore(List<String> lore) {
     this.lore = lore;
   }
 
-  public Material getMaterial() {
-    return material;
-  }
-
-  @Override
   public ItemStack toItemStack(int amount) {
     ItemStack itemStack = new ItemStack(material);
     if (itemStack.getType() == Material.AIR) {
@@ -109,7 +94,7 @@ public final class LootCustomItem implements CustomItem {
     if (customDataNumber != -1) {
       ItemStackExtensionsKt.setCustomModelData(itemStack, customDataNumber);
       ItemMeta iMeta = itemStack.getItemMeta();
-      iMeta.addItemFlags(ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_DYE);
+      iMeta.addItemFlags(ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_DYE, ItemFlag.HIDE_ITEM_SPECIFICS);
       if (customDataNumber != -1 && iMeta instanceof LeatherArmorMeta) {
         ((LeatherArmorMeta) iMeta).setColor(Color.fromRGB(customDataNumber));
       }
@@ -136,89 +121,6 @@ public final class LootCustomItem implements CustomItem {
   }
 
   @Override
-  public double getWeight() {
-    return weight;
-  }
-
-  void setWeight(double weight) {
-    this.weight = weight;
-  }
-
-  @Override
-  public double getDistanceWeight() {
-    return distanceWeight;
-  }
-
-  @Override
-  public int getLevelBase() {
-    return levelBase;
-  }
-
-  @Override
-  public int getLevelRange() {
-    return levelRange;
-  }
-
-  void setDistanceWeight(double distanceWeight) {
-    this.distanceWeight = distanceWeight;
-  }
-
-  void setLevelBase(int levelBase) {
-    this.levelBase = levelBase;
-  }
-
-  void setLevelRange(int levelRange) {
-    this.levelRange = levelRange;
-  }
-
-  @Override
-  public int getCustomDataNumber() {
-    return customDataNumber;
-  }
-
-  public void setCustomDataNumber(int customDataNumber) {
-    this.customDataNumber = customDataNumber;
-  }
-
-  @Override
-  public boolean isBroadcast() {
-    return broadcast;
-  }
-
-  @Override
-  public boolean isExport() {
-    return export;
-  }
-
-  public Set<ItemFlag> getFlags() {
-    return flags;
-  }
-
-  public void setFlags(Set<ItemFlag> flags) {
-    this.flags = flags;
-  }
-
-  public Set<String> getCanBreak() {
-    return canBreak;
-  }
-
-  public void setCanBreak(Set<String> canBreak) {
-    this.canBreak = canBreak;
-  }
-
-  void setBroadcast(boolean broadcast) {
-    this.broadcast = broadcast;
-  }
-
-  void setExport(boolean export) {
-    this.export = export;
-  }
-
-  void setMaterial(Material material) {
-    this.material = material;
-  }
-
-  @Override
   public int hashCode() {
     return name != null ? name.hashCode() : 0;
   }
@@ -232,7 +134,7 @@ public final class LootCustomItem implements CustomItem {
       return false;
     }
 
-    LootCustomItem that = (LootCustomItem) o;
+    CustomItem that = (CustomItem) o;
 
     return !(name != null ? !name.equals(that.name) : that.name != null);
   }

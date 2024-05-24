@@ -34,13 +34,13 @@ import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.tuple.Pair;
 import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.data.ExistingSocketData;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.events.LootEnchantEvent;
 import info.faceland.loot.groups.ItemGroup;
+import info.faceland.loot.items.CustomItem;
 import info.faceland.loot.items.ItemBuilder;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;

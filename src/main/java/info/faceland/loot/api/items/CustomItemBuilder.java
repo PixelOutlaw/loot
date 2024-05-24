@@ -22,6 +22,7 @@
  */
 package info.faceland.loot.api.items;
 
+import info.faceland.loot.items.CustomItem;
 import java.util.List;
 import java.util.Set;
 import org.bukkit.inventory.ItemFlag;

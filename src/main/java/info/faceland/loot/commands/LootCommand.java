@@ -35,13 +35,13 @@ import com.tealcube.minecraft.bukkit.shade.acf.bukkit.contexts.OnlinePlayer;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import com.tealcube.minecraft.bukkit.shade.google.gson.Gson;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.data.export.ExportEntry;
 import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.groups.ItemGroup;
+import info.faceland.loot.items.CustomItem;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
@@ -162,6 +162,12 @@ public class LootCommand extends BaseCommand {
   public void gemdestroy(Player sender, int slot) {
     boolean success = MaterialUtil.destroyGem(sender.getEquipment().getItemInMainHand(), slot) != null;
     sendMessage(sender, success ? "success" : "fail");
+  }
+
+  @Subcommand("mortar")
+  @CommandPermission("loot.admin")
+  public void gemdestroy(CommandSender sender, OnlinePlayer player) {
+    plugin.getMortarMenu().open(player.getPlayer());
   }
 
   @Subcommand("trade")

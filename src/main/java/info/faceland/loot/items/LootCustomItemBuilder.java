@@ -18,7 +18,6 @@
  */
 package info.faceland.loot.items;
 
-import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.CustomItemBuilder;
 import java.util.List;
 import java.util.Set;
@@ -28,10 +27,10 @@ import org.bukkit.inventory.ItemFlag;
 public final class LootCustomItemBuilder implements CustomItemBuilder {
 
   private boolean built = false;
-  private LootCustomItem customItem;
+  private final CustomItem customItem;
 
   public LootCustomItemBuilder(String name, Material material) {
-    this.customItem = new LootCustomItem(name, material);
+    this.customItem = new CustomItem(name, material);
   }
 
   @Override

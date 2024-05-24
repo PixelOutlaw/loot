@@ -19,8 +19,8 @@
 package info.faceland.loot.managers;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.UnicodeUtil;
-import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.CustomItemBuilder;
+import info.faceland.loot.items.CustomItem;
 import info.faceland.loot.items.CustomItemDropData;
 import info.faceland.loot.items.LootCustomItemBuilder;
 import info.faceland.loot.utils.MaterialUtil;

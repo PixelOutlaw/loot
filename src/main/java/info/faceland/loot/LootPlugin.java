@@ -39,6 +39,7 @@ import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.enchantments.EnchantmentTome;
 import info.faceland.loot.enchantments.LootEnchantmentTomeBuilder;
 import info.faceland.loot.groups.ItemGroup;
+import info.faceland.loot.items.CustomItem;
 import info.faceland.loot.items.ItemBuilder;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
@@ -55,6 +56,7 @@ import info.faceland.loot.listeners.HeadHelmetsListener;
 import info.faceland.loot.listeners.InteractListener;
 import info.faceland.loot.listeners.ItemListListener;
 import info.faceland.loot.listeners.ItemSpawnListener;
+import info.faceland.loot.listeners.MortarListener;
 import info.faceland.loot.listeners.PawnMenuListener;
 import info.faceland.loot.listeners.SalvageMenuListener;
 import info.faceland.loot.listeners.SoulGemListener;
@@ -82,6 +84,7 @@ import info.faceland.loot.managers.StatManager;
 import info.faceland.loot.managers.TierManager;
 import info.faceland.loot.managers.TradeMenuManager;
 import info.faceland.loot.menu.gemcutter.GemcutterMenu;
+import info.faceland.loot.menu.mortar.MortarMenu;
 import info.faceland.loot.menu.salvage.SalvageMenu;
 import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.sockets.SocketGemBuilder;
@@ -107,6 +110,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import land.face.market.data.PlayerMarketState.FilterFlagA;
 import land.face.strife.StrifePlugin;
+import land.face.strife.data.champion.LifeSkillType;
 import lombok.Getter;
 import org.black_ixx.playerpoints.PlayerPoints;
 import org.black_ixx.playerpoints.PlayerPointsAPI;
@@ -148,6 +152,7 @@ public final class LootPlugin extends FacePlugin {
   private VersionedSmartYamlConfiguration enchantmentTomesYAML;
   private VersionedSmartYamlConfiguration craftMaterialsYAML;
   private VersionedSmartYamlConfiguration uniqueDropsYAML;
+  private VersionedSmartYamlConfiguration mortarYAML;
 
   @Getter private ItemGroupManager itemGroupManager;
   @Getter private TierManager tierManager;
@@ -176,6 +181,8 @@ public final class LootPlugin extends FacePlugin {
 
   @Getter
   private GemcutterMenu gemcutterMenu;
+  @Getter
+  private MortarMenu mortarMenu;
   @Getter
   private SalvageMenu salvageMenu;
 
@@ -211,6 +218,7 @@ public final class LootPlugin extends FacePlugin {
     enchantmentTomesYAML = defaultLoadConfig("enchantmentTomes.yml");
     craftMaterialsYAML = defaultLoadConfig("craftMaterials.yml");
     uniqueDropsYAML = defaultLoadConfig("strifeUniqueDrops.yml");
+    mortarYAML = defaultLoadConfig("pulverize.yml");
 
     settings = MasterConfiguration.loadFromFiles(languageYAML, configYAML);
 
@@ -235,6 +243,7 @@ public final class LootPlugin extends FacePlugin {
     scrollManager = new ScrollManager();
 
     gemcutterMenu = new GemcutterMenu(this);
+    mortarMenu = new MortarMenu(this);
     salvageMenu = new SalvageMenu(this);
     tradeMenuManager = new TradeMenuManager(this);
 
@@ -254,6 +263,7 @@ public final class LootPlugin extends FacePlugin {
     loadUniqueDrops();
     loadScrolls();
     tradeMenuManager.loadVillagerTrades(defaultLoadConfig("trades.yml").getConfigurationSection("trades"));
+    loadMortarResults();
 
     MaterialUtil.refreshConfig();
     DropUtil.refresh();
@@ -302,6 +312,7 @@ public final class LootPlugin extends FacePlugin {
     Bukkit.getPluginManager().registerEvents(new PawnMenuListener(this), this);
     Bukkit.getPluginManager().registerEvents(new SalvageMenuListener(this), this);
     Bukkit.getPluginManager().registerEvents(new ItemSpawnListener(), this);
+    Bukkit.getPluginManager().registerEvents(new MortarListener(this), this);
     if (potionTriggersEnabled) {
       Bukkit.getPluginManager().registerEvents(new SocketsListener(gemCacheManager), this);
     }
@@ -456,6 +467,46 @@ public final class LootPlugin extends FacePlugin {
         }
       }
       uniqueDropsManager.addData(key, mobLootTable);
+    }
+  }
+
+  private void loadMortarResults() {
+    for (String key : mortarYAML.getKeys(false)) {
+      if (!mortarYAML.isConfigurationSection(key)) {
+        continue;
+      }
+      ConfigurationSection cs = mortarYAML.getConfigurationSection(key);
+      CustomItem ci = customItemManager.getCustomItem(cs.getString("unique", "fard"));
+      Material material;
+      int modelData;
+      if (ci == null) {
+        try {
+          material = Material.valueOf(cs.getString("material", "APPLE"));
+          modelData = cs.getInt("model-data", -1);
+        } catch (Exception e) {
+          Bukkit.getLogger().info("[Loot] Mortar bad material " + key);
+          continue;
+        }
+      } else {
+        material = ci.getMaterial();
+        modelData = ci.getCustomDataNumber();
+      }
+      CustomItem rci = customItemManager.getCustomItem(cs.getString("result", "fard"));
+      if (rci == null) {
+        Bukkit.getLogger().info("[Loot] Mortar result " + cs.getString("result") + " not found!");
+        continue;
+      }
+      String skill = cs.getString("skill", "sneed");
+      float xp = (float) cs.getDouble("xp", 0);
+
+      LifeSkillType skillType = null;
+      try {
+        skillType = LifeSkillType.valueOf(skill);
+      } catch (Exception e) {
+        Bukkit.getLogger().info("[Loot] Mortar recipe " + key + " has an invalid skill xp!");
+      }
+
+      mortarMenu.importResult(material, modelData, rci.toItemStack(1), skillType, xp);
     }
   }
 

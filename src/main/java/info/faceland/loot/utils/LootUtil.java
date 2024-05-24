@@ -1,13 +1,13 @@
 package info.faceland.loot.utils;
 
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.api.items.CustomItem;
 import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.BuiltItem;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.LootResponse;
 import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.enchantments.EnchantmentTome;
+import info.faceland.loot.items.CustomItem;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
