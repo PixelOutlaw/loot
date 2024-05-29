@@ -289,7 +289,7 @@ public final class MaterialUtil {
       } else {
         player.playSound(player.getEyeLocation(), Sound.ENTITY_ITEM_BREAK, 1F, 1F);
         sendMessage(player, upgradeItemDestroyMsg);
-        if (itemUpgradeLevel >= 10) {
+        if (itemUpgradeLevel >= 10 && MaterialUtil.getRarity(stack) >= 2) {
           InventoryUtil.sendToDiscord(player, stack.clone(), upgradeItemDestroyBroadcast);
         }
         stack.setAmount(0);

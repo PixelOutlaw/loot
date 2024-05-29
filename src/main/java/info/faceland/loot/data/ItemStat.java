@@ -42,6 +42,6 @@ public class ItemStat {
     statValue += rarity * perRarityIncrease;
     float multiplier = 1 + (level * perLevelMultiplier) + (rarity * perRarityMultiplier);
     statValue *= multiplier;
-    return statValue;
+    return Math.max(1, statValue);
   }
 }

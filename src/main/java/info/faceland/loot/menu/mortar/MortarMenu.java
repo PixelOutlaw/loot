@@ -65,8 +65,8 @@ public class MortarMenu extends ItemMenu {
       selectedStacks.put(player, null);
       return;
     }
-    String key = item.getType().toString() + ItemUtils.getModelData(item);
-    if (!results.containsKey(key)) {
+    PulverizeResult pr = fetchResult(item);
+    if (pr == null) {
       selectedStacks.put(player, null);
       update(player);
       return;
@@ -104,12 +104,12 @@ public class MortarMenu extends ItemMenu {
   }
 
   public PulverizeResult fetchResult(ItemStack stack) {
-    int data = ItemUtils.getModelData(stack);
-    if (data == -1) {
-      return results.getOrDefault(stack.getType().toString(), null);
-    }
     String key = stack.getType().toString() + ItemUtils.getModelData(stack);
-    return results.getOrDefault(key, null);
+    PulverizeResult result = results.getOrDefault(key, null);
+    if (result != null) {
+      return result;
+    }
+    return results.getOrDefault(stack.getType().toString(), null);
   }
 
   public void importResult(Material material, int modelData, ItemStack result, LifeSkillType skill, float xp) {

@@ -66,6 +66,8 @@ public class StatManager {
       itemStat.getMinValues().put(minMaxId, minVal);
       itemStat.getMaxValues().put(minMaxId, maxVal);
     }
+    minVal = Math.max(1, minVal);
+    maxVal = Math.max(1, maxVal);
     int statValue = (int) itemStat.getValue(level, rarity, statRoll);
     if (statRoll < 0.5 ||
         (itemStat.getMinHue() == itemStat.getMaxHue() && itemStat.getMinBrightness() == itemStat.getMaxBrightness())) {
