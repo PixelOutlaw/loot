@@ -217,7 +217,7 @@ public final class MaterialUtil {
 
     int itemUpgradeLevel = MaterialUtil.getUpgradeLevel(strippedName);
     int targetLevel = itemUpgradeLevel;
-    int shards = getFailureBonus(scrollStack);
+    int scrollShards = getFailureBonus(scrollStack);
     if (stack.getType().getMaxDurability() < 5) {
       targetLevel += 3;
     } else {
@@ -242,7 +242,7 @@ public final class MaterialUtil {
       Audience audience = Audience.audience(player);
       audience.playSound(UPGRADE_ITEM);
 
-      if (targetLevel >= 10) {
+      if (targetLevel >= 10 && !strippedName.contains("Starter")) {
         InventoryUtil.sendToDiscord(player, stack, upgradeSuccessBroadcast);
       }
       return;
@@ -258,10 +258,8 @@ public final class MaterialUtil {
     if (stack.getType().getMaxDurability() <= 1) {
       if (damagePercentage < 1) {
         sendMessage(player, upgradeItemNoDamageMsg);
-        if (itemUpgradeLevel > 5) {
-          shards += itemUpgradeLevel / 4 + LootPlugin.RNG.nextInt(0, itemUpgradeLevel - 5);
-        }
-        distributeShards(player, shards);
+        int newShards = rollShards(itemLevel, itemUpgradeLevel, MaterialUtil.getRarity(stack)) / 2;
+        distributeShards(player, scrollShards + newShards);
         return;
       }
       damage = Short.MAX_VALUE;
@@ -289,21 +287,26 @@ public final class MaterialUtil {
       } else {
         player.playSound(player.getEyeLocation(), Sound.ENTITY_ITEM_BREAK, 1F, 1F);
         sendMessage(player, upgradeItemDestroyMsg);
-        if (itemUpgradeLevel >= 10 && MaterialUtil.getRarity(stack) >= 2) {
+        if (itemUpgradeLevel >= 10 && !strippedName.contains("Starter")) {
           InventoryUtil.sendToDiscord(player, stack.clone(), upgradeItemDestroyBroadcast);
         }
         stack.setAmount(0);
-        if (itemUpgradeLevel > 5) {
-          shards += itemUpgradeLevel / 4 + LootPlugin.RNG.nextInt(0, itemUpgradeLevel - 5);
-        }
-        distributeShards(player, shards);
+        int newShards = rollShards(itemLevel, itemUpgradeLevel, MaterialUtil.getRarity(stack));
+        distributeShards(player, scrollShards + newShards);
         return;
       }
     }
-
-    distributeShards(player, shards);
+    int newShards = rollShards(itemLevel, itemUpgradeLevel, MaterialUtil.getRarity(stack));
+    distributeShards(player, scrollShards + newShards);
     stack.setDurability(damage);
     sendMessage(player, upgradeItemDamageMsg);
+  }
+
+  private static int rollShards(float itemLevel, float upgradeLevel, float itemRarity) {
+    float newShards = upgradeLevel / 3.5f - 0.4f;
+    newShards *= 1 + itemRarity / 4f;
+    newShards *= 1 + itemLevel / 70f;
+    return (int) Math.max(0, newShards);
   }
 
   private static void distributeShards(Player player, int amount) {
