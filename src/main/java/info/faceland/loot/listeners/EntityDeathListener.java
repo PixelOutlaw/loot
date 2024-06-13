@@ -32,7 +32,7 @@ import land.face.strife.stats.StrifeStat;
 import land.face.strife.util.SpecialStatusUtil;
 import land.face.strife.util.StatUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -58,7 +58,7 @@ public final class EntityDeathListener implements Listener {
     if (event instanceof PlayerDeathEvent) {
       return;
     }
-    if (land.face.containers.utils.DropUtil.isContainer(event.getEntity())) {
+    if (event.getEntity() instanceof Mob && !((Mob) event.getEntity()).isAware()) {
       return;
     }
     if (SpecialStatusUtil.isGuildMob(event.getEntity())) {

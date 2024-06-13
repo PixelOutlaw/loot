@@ -45,7 +45,6 @@ import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
 import info.faceland.loot.items.prefabs.TinkerersGear;
-import info.faceland.loot.listeners.ContainerOpenListener;
 import info.faceland.loot.listeners.EnchantDegradeListener;
 import info.faceland.loot.listeners.EnchantMenuListener;
 import info.faceland.loot.listeners.EntityDeathListener;
@@ -324,7 +323,6 @@ public final class LootPlugin extends FacePlugin {
       vagabondEquipListener.loadData(configYAML.getConfigurationSection("vagabonds"));
       Bukkit.getPluginManager().registerEvents(vagabondEquipListener, this);
     }
-    Bukkit.getPluginManager().registerEvents(new ContainerOpenListener(), this);
     debug("v" + getDescription().getVersion() + " enabled");
   }
 

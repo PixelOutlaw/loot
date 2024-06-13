@@ -195,7 +195,7 @@ public class DropUtil implements Listener {
     }
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * purityDropChance) {
       dropItem(event.getLocation(), PurifyingScroll.get(), killer, 0, false,
-          FaceColor.WHITE.getRawColor(), null, purifyDropSound);
+          FaceColor.WHITE.getRawColor(), ChatColor.WHITE, purifyDropSound);
     }
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * tinkerGearDropChance) {
       dropItem(event.getLocation(), TinkerersGear.get(), killer, 0, true,
