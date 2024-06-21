@@ -4,6 +4,7 @@ import info.faceland.loot.api.events.LootCancellableEvent;
 import info.faceland.loot.data.ItemRarity;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,5 +27,6 @@ public class LootDropEvent extends LootCancellableEvent {
   private int monsterLevel = 1;
   private LivingEntity entity;
   private String uniqueEntity;
+  private Set<String> factions;
 
 }

@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class LootUniqueDropsManager implements UniqueDropsManager {
 
-  private Map<String, MobLootTable> lootMap;
+  private final Map<String, MobLootTable> lootMap;
 
   public LootUniqueDropsManager() {
     this.lootMap = new HashMap<>();

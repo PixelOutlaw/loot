@@ -200,8 +200,8 @@ public final class ItemBuilder {
 
     lore.add("");
 
-    lore.add(statManager.getFinalStat(getRandomPrimaryStat(), level, rarityPower).getStatString());
-    lore.add(statManager.getFinalStat(getRandomSecondaryStat(), level, rarityPower).getStatString());
+    lore.add(statManager.getFinalStat(getRandomPrimaryStat(), level, rarityPower, 1, 0).getStatString());
+    lore.add(statManager.getFinalStat(getRandomSecondaryStat(), level, rarityPower, 1, 0).getStatString());
 
     lore.add("");
 
@@ -235,7 +235,7 @@ public final class ItemBuilder {
         continue;
       }
       ItemStat stat = bonusStatList.get(LootPlugin.RNG.nextInt(bonusStatList.size()));
-      StatResponse rStat = statManager.getFinalStat(stat, level, rarityPower);
+      StatResponse rStat = statManager.getFinalStat(stat, level, rarityPower, 1, 0);
       if (invertedIndex == i) {
         rStat.setInverted(true);
       } else if (crafted) {

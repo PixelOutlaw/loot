@@ -101,13 +101,24 @@ public class DropUtil implements Listener {
     itemLevel = Math.min(100, Math.max(1, Math.round(itemLevel)));
 
     List<ItemRarity> bonusDrops = new ArrayList<>(event.getBonusTierDrops());
+
     if (StringUtils.isNotBlank(event.getUniqueEntity())) {
-      if (plugin.getUniqueDropsManager().getData(event.getUniqueEntity()) != null) {
-        MobLootTable loot = plugin.getUniqueDropsManager().getData(event.getUniqueEntity());
+      MobLootTable loot = plugin.getUniqueDropsManager().getData(event.getUniqueEntity());
+      if (loot != null) {
         amountBonus *= loot.getAmountMultiplier();
         rarityBonus *= loot.getRarityMultiplier();
         doUniqueDrops(loot, event.getLocation(), killer);
         bonusDrops.addAll(loot.getBonusTierItems());
+      }
+      for (String fac : event.getFactions()) {
+        MobLootTable factionLoot = plugin.getUniqueDropsManager().getData(fac);
+        if (factionLoot == null) {
+          continue;
+        }
+        //amountBonus *= factionLoot.getAmountMultiplier();
+        //rarityBonus *= factionLoot.getRarityMultiplier();
+        doUniqueDrops(factionLoot, event.getLocation(), killer);
+        bonusDrops.addAll(factionLoot.getBonusTierItems());
       }
     }
 

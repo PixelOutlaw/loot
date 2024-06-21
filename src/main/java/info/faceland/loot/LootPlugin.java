@@ -116,7 +116,6 @@ import org.black_ixx.playerpoints.PlayerPointsAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.HandlerList;
@@ -128,11 +127,6 @@ public final class LootPlugin extends FacePlugin {
   private static LootPlugin instance;
   public static SecureRandom RNG;
   private PluginLogger debugPrinter;
-
-  public static NamespacedKey ITEM_VERSION_KEY;
-  public static NamespacedKey ITEM_TYPE_KEY;
-  public static NamespacedKey ITEM_LEVEL_KEY;
-  public static NamespacedKey ITEM_TRADEABLE_KEY;
 
   public static int itemVersion = 1;
 
@@ -196,11 +190,6 @@ public final class LootPlugin extends FacePlugin {
   @Override
   public void enable() {
     instance = this;
-
-    ITEM_VERSION_KEY = new NamespacedKey(this, "loot.item_version");
-    ITEM_TYPE_KEY = new NamespacedKey(this, "loot.item_type");
-    ITEM_LEVEL_KEY = new NamespacedKey(this, "loot.item_level");
-    ITEM_TRADEABLE_KEY = new NamespacedKey(this, "loot.item_tradeable");
 
     RNG = new SecureRandom();
     debugPrinter = new PluginLogger(this);
@@ -281,18 +270,12 @@ public final class LootPlugin extends FacePlugin {
     commandManager.registerCommand(new LootCommand(this));
     commandManager.registerCommand(new UpdateItemCommand(this));
 
-    commandManager.getCommandCompletions()
-        .registerCompletion("gems", c -> socketGemManager.getGemIds());
-    commandManager.getCommandCompletions()
-        .registerCompletion("tomes", c -> enchantTomeManager.getTomeIds());
-    commandManager.getCommandCompletions()
-        .registerCompletion("tiers", c -> tierManager.getTierIds());
-    commandManager.getCommandCompletions()
-        .registerCompletion("rarities", c -> rarityManager.getRarityIds());
-    commandManager.getCommandCompletions()
-        .registerCompletion("scrolls", c -> scrollManager.getScrollIds());
-    commandManager.getCommandCompletions()
-        .registerCompletion("uniques", c -> customItemManager.listCustomItems());
+    commandManager.getCommandCompletions().registerCompletion("gems", c -> socketGemManager.getGemIds());
+    commandManager.getCommandCompletions().registerCompletion("tomes", c -> enchantTomeManager.getTomeIds());
+    commandManager.getCommandCompletions().registerCompletion("tiers", c -> tierManager.getTierIds());
+    commandManager.getCommandCompletions().registerCompletion("rarities", c -> rarityManager.getRarityIds());
+    commandManager.getCommandCompletions().registerCompletion("scrolls", c -> scrollManager.getScrollIds());
+    commandManager.getCommandCompletions().registerCompletion("uniques", c -> customItemManager.listCustomItems());
 
     Bukkit.getPluginManager().registerEvents(new EntityDeathListener(this), this);
     Bukkit.getPluginManager().registerEvents(new GayBoatFix(), this);

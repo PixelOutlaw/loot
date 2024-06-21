@@ -23,7 +23,9 @@ import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ViolationData;
 import info.faceland.loot.events.LootDropEvent;
 import info.faceland.loot.utils.DropUtil;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -136,6 +138,7 @@ public final class EntityDeathListener implements Listener {
     lootEvent.setEntity(event.getEntity());
     if (mob.getUniqueEntityId() != null) {
       lootEvent.setUniqueEntity(mob.getUniqueEntityId());
+      lootEvent.setFactions(new HashSet<>(mob.getFactions()));
     }
     Bukkit.getPluginManager().callEvent(lootEvent);
     if (!lootEvent.isCancelled()) {

@@ -769,7 +769,7 @@ public final class MaterialUtil {
 
     if (!StringUtils.isBlank(tome.getStat())) {
       ItemStat stat = LootPlugin.getInstance().getStatManager().getStat(tome.getStat());
-      added.add(LootPlugin.getInstance().getStatManager().getFinalStat(stat, enchantPower, rarity).getStatString());
+      added.add(LootPlugin.getInstance().getStatManager().getFinalStat(stat, enchantPower, rarity, 1, 0).getStatString());
     }
 
     if (tome.isBar()) {

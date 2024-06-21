@@ -25,10 +25,14 @@ import info.faceland.loot.groups.ItemGroup;
 import info.faceland.loot.items.ItemBuilder;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.LoreAbility;
+import land.face.strife.stats.StrifeStat;
+import land.face.strife.stats.StrifeTrait;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -40,8 +44,8 @@ public final class SocketGem implements Comparable<SocketGem> {
 
   private final String name;
   private String strifeLoreAbility = null;
+  private boolean broadcast;
   private double weight;
-  private double distanceWeight;
   private double weightPerLevel;
   private double bonusWeight;
   private int customModelData;
@@ -51,11 +55,14 @@ public final class SocketGem implements Comparable<SocketGem> {
   private List<SocketEffect> socketEffects;
   private List<ItemGroup> itemGroups;
   private String typeDesc;
-  private boolean broadcast;
   private boolean triggerable;
   private String triggerText;
   private GemType gemType;
   private LoreAbility loreAbility;
+
+  private List<StrifeTrait> traits = new ArrayList<>();
+  private List<LoreAbility> loreAbilities = new ArrayList<>();
+  private Map<StrifeStat, Float> stats = new HashMap<>();
 
   private ItemStack builtItem;
 

@@ -40,20 +40,26 @@ public class StatManager {
     return itemStats;
   }
 
-  public StatResponse getFinalStat(ItemStat itemStat, float level, float rarity) {
-    return getFinalStat(itemStat, level, rarity, RollStyle.RANDOM);
+  public StatResponse getFinalStat(ItemStat itemStat, float level, float rarity, float multiplier, float flatBonus) {
+    return getFinalStat(itemStat, level, rarity, RollStyle.RANDOM, multiplier, flatBonus);
   }
 
-  public StatResponse getFinalStat(ItemStat itemStat, float level, float rarity, RollStyle style) {
-    StatResponse response = new StatResponse();
-    TextComponent component = new TextComponent();
-    component.setItalic(false);
-
+  public StatResponse getFinalStat(ItemStat itemStat, float level, float rarity, RollStyle style,
+      float multiplier, float flatBonus) {
     float statRoll = switch (style) {
       case MAX -> 1;
       case MIN -> 0;
       case RANDOM -> (float) Math.pow(LootPlugin.RNG.nextFloat(), 2.85);
     };
+    return getFinalStat(itemStat, level, rarity, statRoll, multiplier, flatBonus);
+  }
+
+  public StatResponse getFinalStat(ItemStat itemStat, float level, float rarity, float statRoll,
+      float multiplier, float flatBonus) {
+    StatResponse response = new StatResponse();
+    TextComponent component = new TextComponent();
+    component.setItalic(false);
+
     String minMaxId = level + "|" + rarity;
     float minVal;
     float maxVal;
@@ -82,6 +88,8 @@ public class StatManager {
       component.setColor(InventoryUtil.getRollColor(itemStat, finalRoll));
       response.setStatRoll(actualRoll);
     }
+    statValue = (int) (((float) statValue * multiplier) + flatBonus);
+
     String value = Integer.toString(statValue);
     String statString = itemStat.getStatString().replace("{}", value);
     component.setText(statString);
@@ -101,7 +109,7 @@ public class StatManager {
             continue;
           }
           ConfigurationSection cs = file.getConfigurationSection(key);
-          ItemStat stat = new ItemStat();
+          ItemStat stat = new ItemStat(key);
           stat.setMinBaseValue((float) cs.getDouble("min-base-value"));
           stat.setMaxBaseValue((float) cs.getDouble("max-base-value"));
           stat.setPerLevelIncrease((float) cs.getDouble("per-level-increase"));

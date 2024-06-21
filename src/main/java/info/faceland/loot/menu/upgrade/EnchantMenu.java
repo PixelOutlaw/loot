@@ -231,8 +231,8 @@ public class EnchantMenu extends ItemMenu {
         float enchantPower = Math.max(1, Math.min(enchantSkill.getLevelWithBonus(), itemLevel));
         float rarity = (float) MaterialUtil.getBaseEnchantBonus(enchantSkill.getLevelWithBonus());
 
-        StatResponse srMin = plugin.getStatManager().getFinalStat(stat, enchantPower, rarity, RollStyle.MIN);
-        StatResponse srMax = plugin.getStatManager().getFinalStat(stat, enchantPower, rarity, RollStyle.MAX);
+        StatResponse srMin = plugin.getStatManager().getFinalStat(stat, enchantPower, rarity, RollStyle.MIN, 1, 0);
+        StatResponse srMax = plugin.getStatManager().getFinalStat(stat, enchantPower, rarity, RollStyle.MAX, 1, 0);
         String minStat = ChatColor.stripColor(srMin.getStatString());
         String maxStat = ChatColor.stripColor(srMax.getStatString());
 

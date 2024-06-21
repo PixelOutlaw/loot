@@ -443,8 +443,7 @@ public class LootCommand extends BaseCommand {
 
     @Subcommand("gem")
     @CommandCompletion("@players @gems @range:1-100")
-    public void giveGem(CommandSender sender, OnlinePlayer player, String id,
-        @Default("1") int amount) {
+    public void giveGem(CommandSender sender, OnlinePlayer player, String id, @Default("1") int amount) {
       if (id.equalsIgnoreCase("random")) {
         for (int i = 0; i < amount; i++) {
           giveItem(player.getPlayer(),

@@ -7,8 +7,11 @@ import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter @Setter
+@Getter
+@Setter
 public class ItemStat {
+
+  private String id;
 
   private float minBaseValue;
   private float maxBaseValue;
@@ -17,19 +20,26 @@ public class ItemStat {
   private float perRarityIncrease;
   private float perRarityMultiplier;
   private String statString;
-  private String specialStatPrefix;
+
+  private final List<String> namePrefixes = new ArrayList<>();
+  private int minimumItemLevel;
+  private boolean hide;
+  private String category;
+
+  // Coloring
   private float minHue;
   private float maxHue;
   private float minSaturation;
   private float maxSaturation;
   private float minBrightness;
   private float maxBrightness;
-  private final List<String> namePrefixes = new ArrayList<>();
-  private int minimumItemLevel;
-  private String category;
 
   private Map<String, Float> minValues = new HashMap<>();
   private Map<String, Float> maxValues = new HashMap<>();
+
+  public ItemStat(String id) {
+    this.id = id;
+  }
 
   public float getValue(float level, float rarity, float roll) {
     float statValue;
