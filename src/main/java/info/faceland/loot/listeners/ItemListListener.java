@@ -19,23 +19,25 @@
 package info.faceland.loot.listeners;
 
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.data.UpgradeScroll;
-import info.faceland.loot.enchantments.EnchantmentTome;
+import info.faceland.loot.data.pdc.StoredStat;
+import info.faceland.loot.items.CraftMaterial;
+import info.faceland.loot.items.UpgradeScroll;
+import info.faceland.loot.items.EnchantmentTome;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
-import info.faceland.loot.sockets.SocketGem;
-import info.faceland.loot.tier.Tier;
+import info.faceland.loot.items.SocketGem;
+import info.faceland.loot.items.Tier;
+import info.faceland.loot.utils.EssenceUtil;
 import info.faceland.loot.utils.MaterialUtil;
-import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
+import info.faceland.loot.utils.ModifyEquipmentUtil;
+import info.faceland.loot.utils.PersistHelper;
 import land.face.market.data.PlayerMarketState.Category;
 import land.face.market.data.PlayerMarketState.FilterFlagA;
 import land.face.market.data.PlayerMarketState.FilterFlagB;
 import land.face.market.events.ListItemEvent;
 import land.face.market.managers.MarketManager;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -90,7 +92,7 @@ public final class ItemListListener implements Listener {
       event.getListing().setFlagB(FilterFlagB.ALL);
       return;
     }
-    EnchantmentTome tome = MaterialUtil.getEnchantmentItem(stack);
+    EnchantmentTome tome = EnchantmentTome.get(stack);
     if (tome != null) {
       event.getListing().setCategory(Category.CATEGORY_2);
       event.getListing().setFlagA(FilterFlagA.FLAG_3);
@@ -98,7 +100,7 @@ public final class ItemListListener implements Listener {
       event.getListing().setFlagB(FilterFlagB.ALL);
       return;
     }
-    Tier tier = MaterialUtil.getTierFromStack(stack);
+    Tier tier = PersistHelper.getEquipmentData(stack).getTier();
     if (tier != null) {
       event.getListing().setCategory(Category.CATEGORY_1);
       event.getListing().setFlagA(tier.getFilterFlag());
@@ -111,11 +113,10 @@ public final class ItemListListener implements Listener {
       }
       return;
     }
-    if (plugin.getCraftMaterialManager().getCraftMaterials().containsKey(stack.getType()) &&
-        stack.hasItemMeta()) {
+    if (CraftMaterial.VALID_MATS.contains(stack.getType()) && stack.hasItemMeta()) {
       event.getListing().setCategory(Category.CATEGORY_4);
       event.getListing().setFlagA(FilterFlagA.FLAG_1);
-      int index = 1 + (MaterialUtil.getItemLevel(stack) - 1) / 10;
+      int index = 1 + (ModifyEquipmentUtil.getItemLevel(stack) - 1) / 10;
       for (FilterFlagB b : MarketManager.FILTER_BS) {
         if (b.ordinal() == index) {
           event.getListing().setFlagB(b);
@@ -124,14 +125,17 @@ public final class ItemListListener implements Listener {
       }
       return;
     }
-    if (MaterialUtil.isEssence(stack)) {
+    if ("essence".equals(PersistHelper.getItemType(stack))) {
       event.getListing().setCategory(Category.CATEGORY_4);
       event.getListing().setFlagA(FilterFlagA.FLAG_1);
-      int index = 1 + (MaterialUtil.getEssenceLevel(stack) - 1) / 10;
-      for (FilterFlagB b : MarketManager.FILTER_BS) {
-        if (b.ordinal() == index) {
-          event.getListing().setFlagB(b);
-          break;
+      StoredStat stat = PersistHelper.getEssenceStat(stack);
+      if (stat != null) {
+        int index = 1 + (stat.getLevel() - 1) / 10;
+        for (FilterFlagB b : MarketManager.FILTER_BS) {
+          if (b.ordinal() == index) {
+            event.getListing().setFlagB(b);
+            break;
+          }
         }
       }
       return;

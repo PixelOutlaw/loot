@@ -20,5 +20,7 @@ public class MobLootTable {
   @Getter
   private final Map<String, Double> tomeMap = new HashMap<>();
   @Getter
+  private final Map<String, Double> materialMap = new HashMap<>();
+  @Getter
   private final Map<String, Map<String, Double>> customItemMap = new HashMap<>();
 }

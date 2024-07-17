@@ -18,50 +18,81 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
+import static info.faceland.loot.LootPlugin.ITEM_VERSION;
+import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
+import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY_SMALL;
+import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
+import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
+import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
+
+import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
-import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.utils.MaterialUtil;
+import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
-import java.util.Arrays;
+import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 public final class TinkerersGear {
 
+  public static final String TYPE_KEY = "tinker";
+
   private static ItemStack item;
-  private static String TINKER_NAME = "Tinkerer's Gear";
 
   public static void rebuild() {
-    ItemStack stack = new ItemStack(Material.BRICK);
-    ItemStackExtensionsKt.setDisplayName(stack, FaceColor.RED + TINKER_NAME);
-    TextUtils.setLore(stack, PaletteUtil.color(Arrays.asList(
-        "|white|\uD86D\uDFE9Ս",
+    item = new ItemStack(Material.NETHER_STAR);
+    ItemMeta meta = item.getItemMeta();
+    String name = "Tinkerer's Gear";
+    meta.setDisplayName(FaceColor.RED + name);
+    meta.setCustomModelData(15);
+    List<String> lore = List.of(
+        PaletteUtil.color("|ns|\uF808丌\uF808\uF801"),
+        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
+        centerSmallText(PaletteUtil.color("|lgray|This |red|powerful |lgray|item will")),
+        centerSmallText(PaletteUtil.color("|lgray|convert a random |lgreen|stat")),
+        centerSmallText(PaletteUtil.color("|lgray|on an item to an empty")),
+        centerSmallText(PaletteUtil.color("|lgray|stat slot!")),
         "",
-        "|lgray|This perplexing gear can be",
-        "|lgray|used on an equipment item to",
-        "|lgray|turn one random |lgreen|green|lgray|/|yellow|yellow",
-        "|lgray|stat into an |cyan|Essence Slot|lgray|!",
-        "",
-        "|dgray||i|A strange item that seems to",
-        "|dgray||i|be more science than magic..."
-    )));
-    stack.setDurability((short) 12);
-    ItemStackExtensionsKt.setCustomModelData(stack, 3000);
-    stack.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-    stack.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
-    item = stack;
+        centerSmallText(PaletteUtil.color("|lgray|If you don't know what")),
+        centerSmallText(PaletteUtil.color("|lgray|the implications of that")),
+        centerSmallText(PaletteUtil.color("|lgray|are... |yellow||i|Don't use this yet!"))
+    );
+    meta.setLore(lore);
+
+    PersistentDataContainer pdc = meta.getPersistentDataContainer();
+    pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
+    pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, TYPE_KEY);
+
+    item.setItemMeta(meta);
   }
 
+  @Deprecated
   public static boolean isSimilar(ItemStack stack) {
-    return stack != null && stack.getType() == item.getType() && MaterialUtil.getCustomData(stack) == 3000 && TINKER_NAME
+    return stack != null && stack.getType() == item.getType() && MaterialUtil.getCustomData(stack) == 3000 && "Tinkerer's Gear"
         .equals(ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)));
   }
 
   public static ItemStack get() {
     return item.clone();
+  }
+
+  public static ItemMeta meta() {
+    return item.getItemMeta();
+  }
+
+  public static void update(ItemStack stack) {
+    stack.setType(item.getType());
+    stack.setItemMeta(meta());
+  }
+
+  public static boolean matches(ItemStack stack) {
+    return PersistHelper.getItemType(stack).equals(TYPE_KEY);
   }
 }

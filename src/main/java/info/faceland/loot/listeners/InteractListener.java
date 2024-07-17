@@ -19,22 +19,18 @@
 package info.faceland.loot.listeners;
 
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
-import static info.faceland.loot.utils.InventoryUtil.getFirstColor;
 import static info.faceland.loot.utils.MaterialUtil.FAILURE_BONUS;
-import static org.bukkit.ChatColor.stripColor;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.api.data.GemCacheData;
-import info.faceland.loot.data.UpgradeScroll;
+import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.List;
-import java.util.Objects;
 import land.face.strife.StrifePlugin;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -47,12 +43,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.EnchantingInventory;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -92,26 +84,6 @@ public final class InteractListener implements Listener {
       StrifePlugin.getInstance().getStrifeMobManager().getStatMob(event.getPlayer());
       enchantMenu.open((Player) event.getPlayer());
     }
-  }
-
-  @EventHandler(priority = EventPriority.HIGHEST)
-  public void onInventoryCloseEvent(InventoryCloseEvent event) {
-    if (!plugin.getSettings().getBoolean("config.socket-gems.use-potion-triggers")) {
-      return;
-    }
-    Inventory inv = event.getInventory();
-    if (!(inv instanceof CraftingInventory)) {
-      return;
-    }
-    InventoryHolder holder = inv.getHolder();
-    if (!(holder instanceof Player player)) {
-      return;
-    }
-    if (player.isDead() || player.getHealth() <= 0D) {
-      return;
-    }
-    GemCacheData gemCacheData = plugin.getGemCacheManager().getGemCacheData(player.getUniqueId());
-    gemCacheData.updateArmorCache();
   }
 
   @EventHandler(priority = EventPriority.HIGHEST)
@@ -220,56 +192,6 @@ public final class InteractListener implements Listener {
       player.updateInventory();
       player.playSound(player.getEyeLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 1L, 2F);
     }
-  }
-
-  private void doItemRenameEffects(ItemStack targetItem, ItemStack cursor, String targetItemName,
-      Player player, InventoryClickEvent event) {
-    if (TextUtils.getLore(cursor).get(3).equals(ChatColor.WHITE + "none")) {
-      sendMessage(player, plugin.getSettings().getString("language.rename.notset", ""));
-      return;
-    }
-    if (isBannedMaterial(targetItem)) {
-      sendMessage(player, plugin.getSettings().getString("language.rename.invalid", ""));
-      return;
-    }
-    if (targetItem.hasItemMeta() && targetItem.getItemMeta().hasLore()) {
-      for (String s : TextUtils.getLore(targetItem)) {
-        if ("[ Crafting Component ]".equals(stripColor(s))) {
-          sendMessage(player, plugin.getSettings().getString("language.rename.invalid", ""));
-          return;
-        }
-      }
-    }
-    int level = stripColor(targetItemName).startsWith("+") ?
-        MaterialUtil.getDigit(targetItemName) : 0;
-    if (level > 0) {
-      ItemStackExtensionsKt.setDisplayName(
-          targetItem, getFirstColor(targetItemName) + "+" + level + " "
-              + stripColor(TextUtils.getLore(cursor).get(3)));
-    } else {
-      ItemStackExtensionsKt.setDisplayName(
-          targetItem, getFirstColor(targetItemName)
-              + stripColor(TextUtils.getLore(cursor).get(3)));
-    }
-
-    sendMessage(player, plugin.getSettings().getString("language.rename.success", ""));
-    player.playSound(player.getEyeLocation(), Sound.ENTITY_BAT_TAKEOFF, 1F, 0.8F);
-    updateItem(event, targetItem);
-  }
-
-  private void updateItem(InventoryClickEvent e, ItemStack currentItem) {
-    e.setCurrentItem(currentItem);
-    Objects.requireNonNull(e.getCursor()).setAmount(e.getCursor().getAmount() - 1);
-    e.setCancelled(true);
-    e.setResult(Event.Result.DENY);
-    ((Player) e.getWhoClicked()).updateInventory();
-  }
-
-  private boolean isBannedMaterial(ItemStack item) {
-    return switch (item.getType()) {
-      case BOOK, EMERALD, PAPER, NETHER_STAR, DIAMOND, GHAST_TEAR, ENCHANTED_BOOK, NAME_TAG, ARROW, QUARTZ -> true;
-      default -> false;
-    };
   }
 
 }

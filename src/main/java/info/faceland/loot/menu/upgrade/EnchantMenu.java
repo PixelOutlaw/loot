@@ -16,23 +16,31 @@
  */
 package info.faceland.loot.menu.upgrade;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
-import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
-import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.tuple.Pair;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.StatResponse;
-import info.faceland.loot.data.UpgradeScroll;
-import info.faceland.loot.enchantments.EnchantmentTome;
+import info.faceland.loot.data.pdc.EquipmentData;
+import info.faceland.loot.items.EnchantmentTome;
+import info.faceland.loot.items.SocketGem;
+import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
+import info.faceland.loot.items.prefabs.AspectOfPerfection;
+import info.faceland.loot.items.prefabs.DistortionCell;
+import info.faceland.loot.items.prefabs.DivineHammer;
+import info.faceland.loot.items.prefabs.ManaCrystal;
+import info.faceland.loot.items.prefabs.OrbOfManyFaces;
+import info.faceland.loot.items.prefabs.PerfectSphere;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.managers.StatManager.RollStyle;
-import info.faceland.loot.sockets.SocketGem;
+import info.faceland.loot.utils.EnchantUtil;
 import info.faceland.loot.utils.MaterialUtil;
-import info.faceland.loot.utils.NumberUtil;
+import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -49,7 +57,6 @@ import ninja.amp.ampmenus.menus.ItemMenu;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -74,7 +81,7 @@ public class EnchantMenu extends ItemMenu {
       validRefillLore, noSocketSlotsLore, invalidSocketTypeLore, validSocketLore, hasCraftStatLore,
       noTinkerStatsLore, validTinkerLore;
 
-  private ItemStack blankItem;
+  private final ItemStack blankItem;
 
   private static final DecimalFormat DF = new DecimalFormat("###.#");
 
@@ -182,9 +189,6 @@ public class EnchantMenu extends ItemMenu {
   }
 
   public void setSelectedEquipment(Player player, ItemStack selectedEquipment) {
-    if (MaterialUtil.isEssence(selectedEquipment)) {
-      return;
-    }
     this.selectedEquipment = selectedEquipment;
     equipmentIcon.getIcon().setAmount(selectedEquipment.getAmount());
     equipmentIcon.getIcon().setType(selectedEquipment.getType());
@@ -213,192 +217,263 @@ public class EnchantMenu extends ItemMenu {
       updateConfirmDisplay(StringExtensionsKt.chatColorize("&eNo Upgrade Item..."), noUpgradeItemLore, 61);
       return;
     }
-    if (MaterialUtil.isEnchantmentItem(selectedUpgradeItem)) {
-      if (!MaterialUtil.hasEnchantmentTag(selectedEquipment)) {
-        updateConfirmDisplay(invalidEnchant, noEnchantTagLore, 62);
-        return;
+    switch (PersistHelper.getItemType(selectedUpgradeItem)) {
+      case SocketGem.TYPE_KEY -> updateSocketDisplay(lore);
+      case EnchantmentTome.TYPE_KEY -> updateEnchantDisplay(player, lore);
+      case SocketExtender.TYPE_KEY -> updateExtenderDisplay();
+      case TinkerersGear.TYPE_KEY -> updateTinkerDisplay();
+      case OrbOfManyFaces.TYPE_KEY, DivineHammer.TYPE_KEY, PerfectSphere.TYPE_KEY -> updateRerollDisplay();
+      case AspectOfPerfection.TYPE_KEY -> updatePolishDisplay();
+      case UpgradeScroll.TYPE_KEY -> updateScrollDisplay(UpgradeScroll.get(selectedUpgradeItem), player, lore);
+      case ArcaneEnhancer.TYPE_KEY -> updateArcaneDisplay(player);
+      case PurifyingScroll.TYPE_KEY -> updatePurityDisplay();
+      case ManaCrystal.TYPE_KEY -> updateRefillDisplay(lore);
+      case DistortionCell.TYPE_KEY -> updateDistortDisplay();
+      default -> {
+        // NOTHING
       }
-      EnchantmentTome tome = MaterialUtil.getEnchantmentItem(selectedUpgradeItem);
-      if (!MaterialUtil.matchesGroups(selectedEquipment, tome.getItemGroups())) {
-        updateConfirmDisplay(invalidEnchant, badTomeTypeLore, 62);
-        return;
-      }
-      if (StringUtils.isNotBlank(tome.getStat())) {
-        int itemLevel = MaterialUtil.getLevelRequirement(selectedEquipment);
-        SkillLevelData enchantSkill = PlayerDataUtil.getSkillLevels(player, LifeSkillType.ENCHANTING, true);
-        ItemStat stat = LootPlugin.getInstance().getStatManager().getStat(tome.getStat());
+    }
+    updateConfirmDisplay(validUpgrade, lore, 60);
+  }
 
-        float enchantPower = Math.max(1, Math.min(enchantSkill.getLevelWithBonus(), itemLevel));
-        float rarity = (float) MaterialUtil.getBaseEnchantBonus(enchantSkill.getLevelWithBonus());
-
-        StatResponse srMin = plugin.getStatManager().getFinalStat(stat, enchantPower, rarity, RollStyle.MIN, 1, 0);
-        StatResponse srMax = plugin.getStatManager().getFinalStat(stat, enchantPower, rarity, RollStyle.MAX, 1, 0);
-        String minStat = ChatColor.stripColor(srMin.getStatString());
-        String maxStat = ChatColor.stripColor(srMax.getStatString());
-
-        for (String s : validEnchantLore) {
-          lore.add(s.replace("{min}", minStat).replace("{max}", maxStat));
-        }
-        lore.add("");
-        lore.add("&bEnchantment Power: &f" + (int) enchantPower);
-        lore.add("&7 Determines max/min enchant");
-        lore.add("&7 values! This number is the");
-        lore.add("&7 lowest between your enchant");
-        lore.add("&7 skill and the item's level.");
-        lore.add("");
-        lore.add("&dEnchantment Bonus: &f+" + DF.format(rarity * 100) + "%");
-        lore.add("&7 Extra power based on your");
-        lore.add("&7 enchanting skill, applied");
-        lore.add("&7 after all other numbers!");
-      }
-      updateConfirmDisplay(validEnchant, ListExtensionsKt.chatColorize(lore), 60);
+  private void updateEnchantDisplay(Player player, List<String> lore) {
+    EnchantmentTome tome = EnchantmentTome.get(selectedUpgradeItem);
+    if (!EnchantUtil.canBeEnchanted(player, tome, selectedEquipment)) {
+      updateConfirmDisplay(invalidEnchant, noEnchantTagLore, 62);
       return;
     }
-    if (SocketExtender.isSimilar(selectedUpgradeItem)) {
-      if (MaterialUtil.indexOfExtend(TextUtils.getLore(selectedEquipment)) == -1) {
-        updateConfirmDisplay(invalidExtend, invalidExtendLore, 62);
-        return;
-      }
-      updateConfirmDisplay(validExtend, validExtendLore, 60);
+    if (!MaterialUtil.isInGroup(selectedEquipment, tome.getItemGroup())) {
+      updateConfirmDisplay(invalidEnchant, badTomeTypeLore, 62);
       return;
     }
-    SocketGem socketGem = plugin.getSocketGemManager().getSocketGem(selectedUpgradeItem);
+    if (StringUtils.isNotBlank(tome.getStat())) {
+      int itemLevel = MaterialUtil.getLevelRequirement(selectedEquipment);
+      SkillLevelData enchantSkill = PlayerDataUtil.getSkillLevels(player, LifeSkillType.ENCHANTING, true);
+      ItemStat stat = LootPlugin.getInstance().getStatManager().getStat(tome.getStat());
+
+      float enchantPower = Math.max(1, Math.min(enchantSkill.getLevelWithBonus(), itemLevel));
+      float rarity = (float) EnchantUtil.getBaseEnchantBonus(enchantSkill.getLevelWithBonus());
+
+      StatResponse srMin = plugin.getStatManager().getFinalStat(stat, enchantPower, rarity, RollStyle.MIN, 1, 0);
+      StatResponse srMax = plugin.getStatManager().getFinalStat(stat, enchantPower, rarity, RollStyle.MAX, 1, 0);
+      String minStat = ChatColor.stripColor(srMin.getStatString());
+      String maxStat = ChatColor.stripColor(srMax.getStatString());
+
+      for (String s : validEnchantLore) {
+        lore.add(s.replace("{min}", minStat).replace("{max}", maxStat));
+      }
+      lore.add("");
+      lore.add(FaceColor.CYAN + "Enchantment Power: " + FaceColor.TRUE_WHITE + (int) enchantPower);
+      lore.add(FaceColor.LIGHT_GRAY + " Determines max/min enchant");
+      lore.add(FaceColor.LIGHT_GRAY + " values! This number is the");
+      lore.add(FaceColor.LIGHT_GRAY + " lowest between your enchant");
+      lore.add(FaceColor.LIGHT_GRAY + " skill and the item's level.");
+      lore.add("");
+      lore.add(FaceColor.PURPLE + "Enchantment Bonus: " + FaceColor.TRUE_WHITE + "+" + DF.format(rarity * 100) + "%");
+      lore.add(FaceColor.LIGHT_GRAY + " Extra power based on your");
+      lore.add(FaceColor.LIGHT_GRAY + " enchanting skill, applied");
+      lore.add(FaceColor.LIGHT_GRAY + " after all other numbers!");
+    }
+    updateConfirmDisplay(validEnchant, ListExtensionsKt.chatColorize(lore), 60);
+  }
+
+  private void updateExtenderDisplay() {
+    if (MaterialUtil.indexOfExtend(TextUtils.getLore(selectedEquipment)) == -1) {
+      updateConfirmDisplay(invalidExtend, invalidExtendLore, 62);
+      return;
+    }
+    updateConfirmDisplay(validExtend, validExtendLore, 60);
+  }
+
+  private void updateArcaneDisplay(Player player) {
+    if (!PersistHelper.isEnchanted(selectedUpgradeItem)) {
+      updateConfirmDisplay(itemNotEnchanted, itemNotEnchantedLore, 62);
+      return;
+    }
+    if (PersistHelper.isEnhanced(selectedUpgradeItem)) {
+      updateConfirmDisplay(alreadyEnhanced, alreadyEnhancedLore, 62);
+      return;
+    }
+    Champion champion = LootPlugin.getInstance().getStrifePlugin().getChampionManager().getChampion(player);
+    if (MaterialUtil.getLevelRequirement(selectedEquipment) > EnchantMenu.getEnhanceRequirement(
+        SkillRank.getRank(champion, LifeSkillType.ENCHANTING))) {
+      updateConfirmDisplay(noEnhanceLevel, noEnhanceLevelLore, 62);
+      return;
+    }
+    updateConfirmDisplay(validEnhance, validEnhanceLore, 60);
+  }
+
+  private void updatePurityDisplay() {
+    if (!PersistHelper.isEnchanted(selectedEquipment)) {
+      updateConfirmDisplay(itemNotEnchanted, itemNotEnchantedLore, 62);
+      return;
+    }
+    updateConfirmDisplay(validPurity, validPurityLore, 60);
+  }
+
+  private void updateTinkerDisplay() {
+    Map<Integer, String> stats = MaterialUtil.getTinkerableStats(TextUtils.getLore(selectedEquipment));
+    if (stats == null) {
+      updateConfirmDisplay(invalidTinker, hasCraftStatLore, 62);
+      return;
+    }
+    if (stats.isEmpty()) {
+      updateConfirmDisplay(invalidTinker, noTinkerStatsLore, 62);
+      return;
+    }
+    updateConfirmDisplay(validTinker, validTinkerLore, 60);
+  }
+
+  private void updateRerollDisplay() {
+    updateConfirmDisplay(
+        PaletteUtil.color("|green|Reroll Item's Stats"),
+        PaletteUtil.color(List.of(
+            "",
+            "|lgray|This will make stats in the random",
+            "|lgray|section into a new value between",
+            "|lgray|their minimum and maximum!",
+            "",
+            "|lime|Good luck!"
+        )),
+        60
+    );
+  }
+
+  private void updateDistortDisplay() {
+    updateConfirmDisplay(
+        PaletteUtil.color("|crimson|Distort Item"),
+        PaletteUtil.color(List.of(
+            "",
+            "|lgray|This will make stats in the random",
+            "|lgray|section stronger, but flip one",
+            "|lgray|to a negative value!"
+        )),
+        60
+    );
+  }
+
+  private void updatePolishDisplay() {
+    updateConfirmDisplay(
+        PaletteUtil.color("|rainbow|Perfect An Item's Stats!"),
+        PaletteUtil.color(List.of(
+            "",
+            "|lgray|This will improve stats in the",
+            "|lgray|random section! It improves the",
+            "|lgray|stat rolls, and brings them closer",
+            "|lgray|to a |rainbow|perfect roll|lgray|!",
+            "",
+            "|lime|Note: The improvement is a random",
+            "|lime|percentage between the current",
+            "|lime|value and the maximum value, so",
+            "|lime|this is more effective on items",
+            "|lime|with lower rolls!"
+        )),
+        60
+    );
+  }
+
+
+  private void updateScrollDisplay(UpgradeScroll scroll, Player player, List<String> lore) {
+    if (!MaterialUtil.isUpgradePossible(selectedEquipment)) {
+      updateConfirmDisplay(invalidUpgrade, invalidUpgradeLore, 62);
+      return;
+    }
+
+    EquipmentData data = PersistHelper.getEquipmentData(selectedEquipment);
+
+    if (data == null) {
+      updateConfirmDisplay(invalidUpgrade, invalidUpgradeLore, 62);
+      return;
+    }
+
+    int itemPlus = data.getUpgradeLevel() * data.getTier().getUpgradeScale();
+
+    if (!MaterialUtil.meetsUpgradeRange(scroll, itemPlus)) {
+      updateConfirmDisplay(invalidUpgrade, badScrollRangeLore, 62);
+      return;
+    }
+
+    int newPlus = itemPlus + data.getTier().getUpgradeScale();
+
+    Champion champion = plugin.getStrifePlugin().getChampionManager().getChampion(player);
+    double successChance = Math.min(100, 100 * MaterialUtil.getSuccessChance(
+        champion,
+        newPlus,
+        selectedUpgradeItem,
+        scroll)
+    );
+    double maxDura = selectedEquipment.getType().getMaxDurability();
+    double damage;
+    if (maxDura <= 1) {
+      maxDura = 100;
+      damage = 0;
+    } else {
+      damage = selectedEquipment.getDurability();
+    }
+    int itemLevel = MaterialUtil.getLevelRequirement(selectedEquipment);
+    double maxPercent = MaterialUtil.getMaxFailureDamagePercent(scroll, itemLevel, newPlus);
+    double maxDamage = maxDura * maxPercent;
+    double killChance = 0;
+    double damageChance = 0;
+    if (successChance < 99.9) {
+      double failChance = 100 - successChance;
+      killChance = failChance * Math.max(0, ((damage + maxDamage) - maxDura) / maxDamage);
+      damageChance = failChance - killChance;
+    }
+
+    for (String s : validUpgradeLore) {
+      lore.add(s.replace("{succ}", DF.format(successChance))
+          .replace("{dam}", DF.format(damageChance))
+          .replace("{ded}", DF.format(killChance)));
+    }
+
+    if (selectedEquipment.getDurability() > 0 && killChance > 0) {
+      lore.addAll(breakWarning);
+    }
+  }
+
+  private void updateRefillDisplay(List<String> lore) {
+    if (!PersistHelper.isEnchanted(selectedEquipment)) {
+      confirmIcon.setDisplayName(itemNotEnchanted);
+      lore.addAll(itemNotEnchantedLore);
+      ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
+      TextUtils.setLore(confirmIcon.getIcon(), lore);
+      return;
+    }
+    if (PersistHelper.isEnhanced(selectedEquipment)) {
+      confirmIcon.setDisplayName(cannotRefill);
+      lore.addAll(arcaneEnchanted);
+      ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
+      TextUtils.setLore(confirmIcon.getIcon(), lore);
+      return;
+    }
+    if (PersistHelper.getMissingEnchantPower(selectedEquipment) < 1) {
+      confirmIcon.setDisplayName(cannotRefill);
+      lore.addAll(fullEnchantment);
+      ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
+      TextUtils.setLore(confirmIcon.getIcon(), lore);
+      return;
+    }
+    confirmIcon.setDisplayName(validRefill);
+    ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 60);
+    lore.addAll(validRefillLore);
+  }
+
+  private void updateSocketDisplay(List<String> lore) {
+    SocketGem socketGem = SocketGem.get(selectedUpgradeItem);
     if (socketGem != null) {
       if (plugin.getSocketGemManager().getOpenSocketIndex(selectedEquipment) == -1) {
         updateConfirmDisplay(invalidSocket, noSocketSlotsLore, 62);
         return;
       }
-      if (!MaterialUtil.matchesGroups(selectedEquipment, socketGem.getItemGroups())) {
+      if (!MaterialUtil.isInGroup(selectedEquipment, socketGem.getItemGroup())) {
         updateConfirmDisplay(invalidSocket, invalidSocketTypeLore, 62);
         return;
       }
       updateConfirmDisplay(validSocket, validSocketLore, 60);
       return;
     }
-    if (ArcaneEnhancer.isSimilar(selectedUpgradeItem)) {
-      Pair<String, Integer> enchantBar = MaterialUtil.getEnchantBar(selectedEquipment);
-      if (MaterialUtil.getEnchantBar(selectedEquipment) == null) {
-        updateConfirmDisplay(itemNotEnchanted, itemNotEnchantedLore, 62);
-        return;
-      }
-      if (MaterialUtil.isArcaneEnchanted(enchantBar.getLeft())) {
-        updateConfirmDisplay(alreadyEnhanced, alreadyEnhancedLore, 62);
-        return;
-      }
-      Champion champion = LootPlugin.getInstance().getStrifePlugin().getChampionManager().getChampion(player);
-      if (MaterialUtil.getLevelRequirement(selectedEquipment) > EnchantMenu.getEnhanceRequirement(
-          SkillRank.getRank(champion, LifeSkillType.ENCHANTING))) {
-        updateConfirmDisplay(noEnhanceLevel, noEnhanceLevelLore, 62);
-        return;
-      }
-      updateConfirmDisplay(validEnhance, validEnhanceLore, 60);
-      return;
-    }
-    if (PurifyingScroll.isSimilar(selectedUpgradeItem)) {
-      Pair<String, Integer> enchantBar = MaterialUtil.getEnchantBar(selectedEquipment);
-      if (enchantBar == null) {
-        updateConfirmDisplay(itemNotEnchanted, itemNotEnchantedLore, 62);
-        return;
-      }
-      updateConfirmDisplay(validPurity, validPurityLore, 60);
-      return;
-    }
-    if (TinkerersGear.isSimilar(selectedUpgradeItem)) {
-      Map<Integer, String> stats = MaterialUtil.getTinkerableStats(TextUtils.getLore(selectedEquipment));
-      if (stats == null) {
-        updateConfirmDisplay(invalidTinker, hasCraftStatLore, 62);
-        return;
-      }
-      if (stats.isEmpty()) {
-        updateConfirmDisplay(invalidTinker, noTinkerStatsLore, 62);
-        return;
-      }
-      updateConfirmDisplay(validTinker, validTinkerLore, 60);
-      return;
-    }
-    UpgradeScroll scroll = plugin.getScrollManager().getScroll(selectedUpgradeItem);
-    if (scroll != null) {
-      if (!MaterialUtil.isUpgradePossible(selectedEquipment)) {
-        updateConfirmDisplay(invalidUpgrade, invalidUpgradeLore, 62);
-        return;
-      }
-      String equipName = ItemStackExtensionsKt.getDisplayName(selectedEquipment);
-      int itemPlus = MaterialUtil.getUpgradeLevel(equipName);
-      if (!MaterialUtil.meetsUpgradeRange(scroll, itemPlus)) {
-        updateConfirmDisplay(invalidUpgrade, badScrollRangeLore, 62);
-        return;
-      }
-      if (selectedEquipment.getType().getMaxDurability() < 5) {
-        itemPlus += 3;
-      } else {
-        itemPlus += 1;
-      }
-      itemPlus = Math.min(itemPlus, 15);
-      Champion champion = plugin.getStrifePlugin().getChampionManager().getChampion(player);
-      double successChance = Math.min(100, 100 * MaterialUtil.getSuccessChance(
-          champion,
-          itemPlus,
-          selectedUpgradeItem,
-          scroll)
-      );
-      double maxDura = selectedEquipment.getType().getMaxDurability();
-      double damage;
-      if (maxDura <= 1) {
-        maxDura = 100;
-        damage = 0;
-      } else {
-        damage = selectedEquipment.getDurability();
-      }
-      int itemLevel = MaterialUtil.getLevelRequirement(selectedEquipment);
-      double maxPercent = MaterialUtil.getMaxFailureDamagePercent(scroll, itemLevel, itemPlus);
-      double maxDamage = maxDura * maxPercent;
-      double killChance = 0;
-      double damageChance = 0;
-      if (successChance < 99.9) {
-        double failChance = 100 - successChance;
-        killChance = failChance * Math.max(0, ((damage + maxDamage) - maxDura) / maxDamage);
-        damageChance = failChance - killChance;
-      }
-
-      for (String s : validUpgradeLore) {
-        lore.add(s.replace("{succ}", DF.format(successChance))
-            .replace("{dam}", DF.format(damageChance))
-            .replace("{ded}", DF.format(killChance)));
-      }
-
-      if (selectedEquipment.getDurability() > 0 && killChance > 0) {
-        lore.addAll(breakWarning);
-      }
-    }
-
-    if ("Magic Crystal".equals(ChatColor.stripColor(
-        ItemStackExtensionsKt.getDisplayName(selectedUpgradeItem)))) {
-      if (!MaterialUtil.isEnchanted(selectedEquipment)) {
-        confirmIcon.setDisplayName(itemNotEnchanted);
-        lore.addAll(itemNotEnchantedLore);
-        ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
-        TextUtils.setLore(confirmIcon.getIcon(), lore);
-        return;
-      }
-      if (MaterialUtil.isArcaneEnchanted(selectedEquipment)) {
-        confirmIcon.setDisplayName(cannotRefill);
-        lore.addAll(arcaneEnchanted);
-        ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
-        TextUtils.setLore(confirmIcon.getIcon(), lore);
-        return;
-      }
-      if (MaterialUtil.getMissingEnchantmentPower(selectedEquipment) < 1) {
-        confirmIcon.setDisplayName(cannotRefill);
-        lore.addAll(fullEnchantment);
-        ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
-        TextUtils.setLore(confirmIcon.getIcon(), lore);
-        return;
-      }
-      confirmIcon.setDisplayName(validRefill);
-      ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 60);
-      lore.addAll(validRefillLore);
-    }
-    updateConfirmDisplay(validUpgrade, lore, 60);
+    updateConfirmDisplay(invalidSocket, invalidSocketTypeLore, 60);
   }
 
   boolean doUpgrade(Player player) {
@@ -412,35 +487,90 @@ public class EnchantMenu extends ItemMenu {
       player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
       return false;
     }
-    if (MaterialUtil.isEnchantmentItem(selectedUpgradeItem)) {
-      MaterialUtil.enchantItem(player, selectedUpgradeItem, selectedEquipment);
-      setSelectedUpgradeItem(player, new ItemStack(Material.AIR));
-    } else if (plugin.getScrollManager().getScroll(selectedUpgradeItem) != null) {
-      MaterialUtil.upgradeItem(player, selectedUpgradeItem, selectedEquipment);
-      setSelectedUpgradeItem(player, new ItemStack(Material.AIR));
-    } else if (plugin.getSocketGemManager().getSocketGem(selectedUpgradeItem) != null) {
-      plugin.getSocketGemManager().applySocketGem(player, selectedUpgradeItem, selectedEquipment);
-      setSelectedUpgradeItem(player, selectedUpgradeItem);
-    } else if (SocketExtender.isSimilar(selectedUpgradeItem)) {
-      MaterialUtil.extendItem(player, selectedEquipment, selectedUpgradeItem);
-      setSelectedUpgradeItem(player, selectedUpgradeItem);
-    } else if (ArcaneEnhancer.isSimilar(selectedUpgradeItem)) {
-      MaterialUtil.enhanceEnchantment(player, selectedEquipment, selectedUpgradeItem);
-      setSelectedUpgradeItem(player, selectedUpgradeItem);
-    } else if (PurifyingScroll.isSimilar(selectedUpgradeItem)) {
-      MaterialUtil.purifyItem(player, selectedEquipment, selectedUpgradeItem);
-      setSelectedUpgradeItem(player, selectedUpgradeItem);
-    } else if ("Magic Crystal".equals(ChatColor
-        .stripColor(ItemStackExtensionsKt.getDisplayName(selectedUpgradeItem)))) {
-      MaterialUtil.refillEnchantment(player, selectedEquipment, selectedUpgradeItem);
-      setSelectedUpgradeItem(player, selectedUpgradeItem);
-    } else if (TinkerersGear.isSimilar(selectedUpgradeItem)) {
-      MaterialUtil.doTinkerEffects(plugin, selectedUpgradeItem, selectedEquipment, player);
-      setSelectedUpgradeItem(player, selectedUpgradeItem);
-    } else {
-      player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
-      setSelectedUpgradeItem(player, selectedUpgradeItem);
-      return false;
+
+    switch (PersistHelper.getItemType(selectedUpgradeItem)) {
+      case SocketGem.TYPE_KEY -> {
+        plugin.getSocketGemManager().applySocketGem(player, selectedUpgradeItem, selectedEquipment);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case EnchantmentTome.TYPE_KEY -> {
+        EnchantUtil.enchantItem(player, selectedUpgradeItem, selectedEquipment);
+        setSelectedUpgradeItem(player, new ItemStack(Material.AIR));
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case SocketExtender.TYPE_KEY -> {
+        MaterialUtil.extendItem(player, selectedEquipment, selectedUpgradeItem);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case TinkerersGear.TYPE_KEY -> {
+        MaterialUtil.doTinkerEffects(plugin, selectedUpgradeItem, selectedEquipment, player);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case OrbOfManyFaces.TYPE_KEY -> {
+        MaterialUtil.doFaceOrbEffects(plugin, selectedUpgradeItem, selectedEquipment, player);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case PerfectSphere.TYPE_KEY -> {
+        MaterialUtil.doPerfectSphereEffects(plugin, selectedUpgradeItem, selectedEquipment, player);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case DivineHammer.TYPE_KEY -> {
+        MaterialUtil.doDivineHammerEffects(plugin, selectedUpgradeItem, selectedEquipment, player);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case UpgradeScroll.TYPE_KEY -> {
+        MaterialUtil.upgradeItem(player, selectedUpgradeItem, selectedEquipment);
+        setSelectedUpgradeItem(player, new ItemStack(Material.AIR));
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case ArcaneEnhancer.TYPE_KEY -> {
+        EnchantUtil.enhanceEnchantment(player, selectedEquipment, selectedUpgradeItem);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case PurifyingScroll.TYPE_KEY -> {
+        EnchantUtil.purifyItem(player, selectedEquipment, selectedUpgradeItem);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case ManaCrystal.TYPE_KEY -> {
+        EnchantUtil.refillEnchantment(player, selectedEquipment, selectedUpgradeItem);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case AspectOfPerfection.TYPE_KEY -> {
+        MaterialUtil.doPolishEffects(plugin, selectedEquipment, selectedUpgradeItem, player);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case DistortionCell.TYPE_KEY -> {
+        MaterialUtil.doDistortEffects(plugin, selectedEquipment, selectedUpgradeItem, player);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+
+      default -> {
+        // do nothing
+      }
     }
     setSelectedEquipment(player, selectedEquipment);
     return true;

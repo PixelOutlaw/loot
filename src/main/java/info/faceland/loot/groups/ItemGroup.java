@@ -18,94 +18,73 @@
  */
 package info.faceland.loot.groups;
 
+import info.faceland.loot.data.pdc.EquipmentData;
+import info.faceland.loot.items.Tier;
+import info.faceland.loot.utils.PersistHelper;
+import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
 
-import java.util.HashSet;
-import java.util.Set;
-
+@Getter
+@Setter
 public final class ItemGroup {
 
+  public static final Map<String, ItemGroup> GROUPS = new HashMap<>();
+
+  private final String id;
   private final String name;
-  @Getter @Setter
-  private String tag;
-  private final boolean inverse;
-  private final Set<Material> legalMaterials;
-  private int minimumCustomData;
-  private int maximumCustomData;
+  private final List<String> validTiers;
 
-  public ItemGroup(String name, boolean inv) {
-    this(name, new HashSet<>(), inv);
-  }
-
-  public ItemGroup(String name, Set<Material> materials, boolean inv) {
+  public ItemGroup(String id, String name, List<String> validTiers) {
+    this.id = id;
     this.name = name;
-    this.legalMaterials = materials;
-    this.inverse = inv;
+    this.validTiers = validTiers;
   }
 
-  public int hashCode() {
-    int result = name != null ? name.hashCode() : 0;
-    result = 31 * result + (inverse ? 1 : 0);
-    return result;
+  public static ItemGroup get(String id) {
+    return GROUPS.getOrDefault(id, null);
   }
 
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
+  public boolean matches(EquipmentData data) {
+    if (data == null || data.getTier() == null) {
+      System.out.println("null groop");
       return false;
     }
-
-    ItemGroup that = (ItemGroup) o;
-
-    return inverse == that.inverse && !(name != null ? !name.equals(that.name) : that.name != null);
+    return matches(data.getTier());
   }
 
-  public String getName() {
-    return name;
+  public boolean matches(ItemStack stack) {
+    return matches(PersistHelper.getEquipmentData(stack));
   }
 
-  public Set<Material> getMaterials() {
-    return new HashSet<>(legalMaterials);
+  public boolean matches(Tier t) {
+    for (var tier : validTiers) {
+      System.out.println(tier + " " + t.getId());
+      if (tier.equals(t.getId())) {
+        return true;
+      }
+    }
+    return false;
   }
 
-  public void setMinimumCustomData(int val) {
-    minimumCustomData = val;
+  public static void loadFromFile(SmartYamlConfiguration file) {
+    GROUPS.clear();
+    for (String key : file.getKeys(false)) {
+      if (!file.isConfigurationSection(key)) {
+        continue;
+      }
+      ConfigurationSection cs = file.getConfigurationSection(key);
+      ItemGroup group = new ItemGroup(
+          key,
+          cs.getString("name", "changeme"),
+          cs.getStringList("valid-tiers")
+      );
+      GROUPS.put(key, group);
+    }
   }
-
-  public void setMaximumCustomData(int val) {
-    maximumCustomData = val;
-  }
-
-  public void addMaterial(Material material) {
-    legalMaterials.add(material);
-  }
-
-  public void removeMaterial(Material material) {
-    legalMaterials.remove(material);
-  }
-
-  public boolean hasMaterial(Material material) {
-    return legalMaterials.contains(material);
-  }
-
-  public int getMinimumCustomData() {
-    return minimumCustomData;
-  }
-
-  public int getMaximumCustomData() {
-    return maximumCustomData;
-  }
-
-  public boolean isInverse() {
-    return inverse;
-  }
-
-  public ItemGroup getInverse() {
-    return new ItemGroup(name, legalMaterials, !inverse);
-  }
-
 }

@@ -25,8 +25,10 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.CraftToolData;
+import info.faceland.loot.items.Tier;
 import info.faceland.loot.utils.CraftingUtil;
 import info.faceland.loot.utils.MaterialUtil;
+import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
@@ -87,21 +89,15 @@ public class SalvageConfirmIcon extends MenuItem {
       return stack;
     }
 
-    Material material = menu.getPlugin().getCraftMaterialManager().getMaterial(menu.getEquipment(player));
+    Tier tier = PersistHelper.getEquipmentData(menu.getEquipment(player)).getTier();
+    // TODO: Roll random
+    Material material = tier.getCraftMaterials().get(0);
     if (material == null) {
       ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&e&lNo Known Materials"));
       lore.add(FaceColor.LIGHT_GRAY + "It appears as if this can't be salvaged...");
       TextUtils.setLore(stack, lore, false);
       return stack;
     }
-
-    String minRarityTag = switch (MaterialUtil.getRarity(menu.getEquipment(player))) {
-      case 0, 1 -> MaterialUtil.TAG_COMMON;
-      case 2 -> MaterialUtil.TAG_UNCOMMON;
-      case 3 -> MaterialUtil.TAG_RARE;
-      case 4 -> MaterialUtil.TAG_EPIC;
-      default -> throw new IllegalStateException("Unexpected Rarity for salvage??");
-    };
 
     float essenceChance = (effectiveLevelAdvantage / 100) + craftToolData.getRarity() * 0.2f;
 
@@ -115,8 +111,6 @@ public class SalvageConfirmIcon extends MenuItem {
       lore.add(FaceColor.WHITE + "Crafting Skill: " + craftingLevel);
     }
     lore.add(FaceColor.WHITE + "Material Level: ~" + itemLevel);
-    lore.add(FaceColor.WHITE + "Minimum Rarity: " + FaceColor.TRUE_WHITE + minRarityTag);
-    lore.add(FaceColor.WHITE + "Maximum Rarity: " + FaceColor.TRUE_WHITE + TAG_EPIC);
     lore.add("");
     lore.add(FaceColor.LIGHT_GRAY + "Destroy this item to get raw");
     lore.add(FaceColor.LIGHT_GRAY + "materials and maybe an essence!");

@@ -1,10 +1,12 @@
 package info.faceland.loot.data;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.ChatColor;
 
-@Data
+@Getter
+@Setter
 public class ItemRarity {
 
   private final String id;
@@ -15,6 +17,8 @@ public class ItemRarity {
   private FaceColor color;
   private ChatColor glowColor;
   private String name;
+  private String plainName;
+  private String tooltipPlate;
   private double weight;
   private int minimumBonusStats;
   private int maximumBonusStats;

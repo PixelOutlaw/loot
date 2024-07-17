@@ -9,16 +9,17 @@ import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.BuiltItem;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.MobLootTable;
-import info.faceland.loot.data.UpgradeScroll;
-import info.faceland.loot.enchantments.EnchantmentTome;
+import info.faceland.loot.items.CraftMaterial;
+import info.faceland.loot.items.NewCustomItem;
+import info.faceland.loot.items.UpgradeScroll;
+import info.faceland.loot.items.EnchantmentTome;
 import info.faceland.loot.events.LootDropEvent;
-import info.faceland.loot.items.CustomItem;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
-import info.faceland.loot.sockets.SocketGem;
-import info.faceland.loot.tier.Tier;
+import info.faceland.loot.items.SocketGem;
+import info.faceland.loot.items.Tier;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -145,29 +146,27 @@ public class DropUtil implements Listener {
       }
 
       boolean distort = LootPlugin.RNG.nextFloat() < 0.01;
+      int upgradeBonus = 1;
+      double upgradeChance = plugin.getSettings().getDouble("config.random-upgrade-chance", 0.1);
+      double multiUpgradeChance = plugin.getSettings()
+          .getDouble("config.multi-upgrade-chance", 0.1);
+      if (LootPlugin.RNG.nextFloat() <= upgradeChance) {
+        while (LootPlugin.RNG.nextFloat() <= multiUpgradeChance && upgradeBonus < 15) {
+          upgradeBonus++;
+        }
+      }
 
       BuiltItem builtItem = plugin.getNewItemBuilder()
           .withTier(tier)
           .withRarity(rarity)
           .withLevel((int) itemLevel)
+          .withPlus(upgradeBonus / tier.getUpgradeScale())
           .withDistortion(distort)
           .withItemGenerationReason(ItemGenerationReason.MONSTER)
           .withCreator(killer)
           .build();
 
       ItemStack tierItem = builtItem.getStack();
-
-      int upgradeBonus = 1;
-      double upgradeChance = plugin.getSettings().getDouble("config.random-upgrade-chance", 0.1);
-      double multiUpgradeChance = plugin.getSettings()
-          .getDouble("config.multi-upgrade-chance", 0.1);
-
-      if (LootPlugin.RNG.nextFloat() <= upgradeChance) {
-        while (LootPlugin.RNG.nextFloat() <= multiUpgradeChance && upgradeBonus < 15) {
-          upgradeBonus++;
-        }
-        upgradeItem(tierItem, upgradeBonus);
-      }
 
       boolean broadcast = rarity.isBroadcast() || upgradeBonus > 4;
       Color trailColor = broadcast || rarity.isAlwaysTrail() ? rarity.getColor().getRawColor() : null;
@@ -214,7 +213,7 @@ public class DropUtil implements Listener {
     }
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * scrollDropChance) {
       UpgradeScroll us = plugin.getScrollManager().getRandomScroll();
-      ItemStack stack = plugin.getScrollManager().buildItemStack(us);
+      ItemStack stack = us.item();
       RandomSound rs = us.isBroadcast() ? scrollDropSound : null;
       dropItem(event.getLocation(), stack, killer, 0, us.isBroadcast(),
           us.isBroadcast() ? FaceColor.GREEN.getRawColor() : null,
@@ -222,9 +221,9 @@ public class DropUtil implements Listener {
     }
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * plugin.getSettings()
         .getDouble("config.drops.custom-item", 0D)) {
-      CustomItem ci = plugin.getCustomItemManager().getRandomCustomItemByLevel((int) mobLevel);
+      NewCustomItem ci = plugin.getCustomItemManager().getRandomByLevel((int) mobLevel);
       assert ci != null;
-      ItemStack stack = ci.toItemStack(1);
+      ItemStack stack = ci.item();
 
       boolean broadcast = ci.isBroadcast();
       RandomSound rs = broadcast ? uniqueDropSound : null;
@@ -254,6 +253,16 @@ public class DropUtil implements Listener {
             gem.isBroadcast() ? ChatColor.GREEN : null, rs);
       }
     }
+    for (String str : mobLootTable.getMaterialMap().keySet()) {
+      if (mobLootTable.getMaterialMap().get(str) > LootPlugin.RNG.nextFloat()) {
+        CraftMaterial mar = CraftMaterial.get(str);
+        if (mar == null) {
+          continue;
+        }
+        ItemStack his = mar.item();
+        dropItem(location, his, killer, 0, false, null, null, null);
+      }
+    }
     for (String tomeString : mobLootTable.getTomeMap().keySet()) {
       if (mobLootTable.getTomeMap().get(tomeString) > LootPlugin.RNG.nextFloat()) {
         EnchantmentTome tome = plugin.getEnchantTomeManager().getEnchantTome(tomeString);
@@ -280,11 +289,11 @@ public class DropUtil implements Listener {
           if ("NO_DROP_WEIGHT".equalsIgnoreCase(customName)) {
             break;
           }
-          CustomItem ci = plugin.getCustomItemManager().getCustomItem(customName);
+          NewCustomItem ci = plugin.getCustomItemManager().getCustomItem(customName);
           if (ci == null) {
             break;
           }
-          ItemStack his = ci.toItemStack(1);
+          ItemStack his = ci.item();
           RandomSound rs = ci.isBroadcast() ? tieredDropSound : null;
           dropItem(location, his, killer, 0, ci.isBroadcast(),
               ci.isBroadcast() ? FaceColor.ORANGE.getRawColor() : null,
@@ -292,17 +301,6 @@ public class DropUtil implements Listener {
           break;
         }
       }
-    }
-  }
-
-  public static void upgradeItem(ItemStack his, int upgradeBonus) {
-    int currentLevel = MaterialUtil.getUpgradeLevel(his);
-    if (his.getType().getMaxDurability() <= 1) {
-      int upgrade = (int) (Math.ceil((double) upgradeBonus / 3));
-      int plusAmount = upgrade * 3;
-      MaterialUtil.bumpItemPlus(his, currentLevel, upgrade, plusAmount);
-    } else {
-      MaterialUtil.bumpItemPlus(his, currentLevel, upgradeBonus, upgradeBonus);
     }
   }
 
@@ -316,23 +314,23 @@ public class DropUtil implements Listener {
 
   public static Tier getTier(Player killer) {
     if (killer == null || customizedTierChance < LootPlugin.RNG.nextFloat()) {
-      return plugin.getTierManager().getRandomTier();
+      return Tier.getRandomTier();
     }
-    List<ItemStack> itemStacks = getWornMaterials(killer);
+    List<ItemStack> itemStacks = getWornItems(killer);
     List<Tier> wornTiers = new ArrayList<>();
     for (ItemStack i : itemStacks) {
-      Tier tier = plugin.getItemGroupManager().getTierFromStack(i);
+      Tier tier = PersistHelper.getEquipmentData(i).getTier();
       if (tier != null) {
         wornTiers.add(tier);
       }
     }
     if (wornTiers.isEmpty()) {
-      return plugin.getTierManager().getRandomTier();
+      return Tier.getRandomTier();
     }
     return wornTiers.get(LootPlugin.RNG.nextInt(0, wornTiers.size()));
   }
 
-  private static List<ItemStack> getWornMaterials(Player player) {
+  private static List<ItemStack> getWornItems(Player player) {
     List<ItemStack> wornItems = new ArrayList<>();
     for (ItemStack stack : player.getEquipment().getArmorContents()) {
       if (stack == null || stack.getType() == Material.AIR) {

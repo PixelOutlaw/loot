@@ -26,9 +26,10 @@ import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.BuiltItem;
 import info.faceland.loot.data.CraftResultData;
 import info.faceland.loot.events.LootCraftEvent;
-import info.faceland.loot.tier.Tier;
+import info.faceland.loot.items.Tier;
 import info.faceland.loot.utils.CraftingUtil;
 import info.faceland.loot.utils.MaterialUtil;
+import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -107,7 +108,7 @@ public final class CraftingListener implements Listener {
   @EventHandler(priority = EventPriority.LOWEST)
   public void onSpecialCraftEquipment(CraftItemEvent event) {
     ItemStack resultStack = event.getCurrentItem();
-    if (MaterialUtil.getTierFromStack(resultStack) == null) {
+    if (PersistHelper.getEquipmentData(resultStack).getTier() == null) {
       return;
     }
 
@@ -159,7 +160,7 @@ public final class CraftingListener implements Listener {
 
     Player player = (Player) event.getWhoClicked();
 
-    Tier tier = MaterialUtil.getTierFromStack(resultStack);
+    Tier tier = PersistHelper.getEquipmentData(resultStack).getTier();
     if (tier == null) {
       Bukkit.getLogger().warning("[Loot] Attempted to craft item with unknown tier... " + resultStack.getType());
       return;

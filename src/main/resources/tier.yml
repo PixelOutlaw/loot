@@ -1,26 +1,49 @@
 version: "0.0.4"
-sword:
-  level-req: true
-  tier-name: "Sword"
-  primary-stat: "SWORD-MELEE"
-  secondary-stat:
-  - "SWORD-SECONDARY-CRIT-RATE"
+
+fishingrod:
+  tier-name: 'Մ'
+  plain-name: "Rod"
+  material: FISHING_ROD
+  primary-stats:
+    - ROD-SPEED
+  skill-req: true
+  secondary-stats:
+    - ROD-SECONDARY
   bonus-stats:
-  - "SWORD-BONUS-MELEE"
-  - "SWORD-BONUS-AS"
-  - "SWORD-BONUS-CRIT-RATE"
-  - "SWORD-BONUS-ARMOR-PEN"
-  - "SWORD-BONUS-ACCURACY"
-  - "SWORD-BONUS-FIRE"
-  - "SWORD-BONUS-ICE"
-  - "SWORD-BONUS-LIGHTNING"
-  - "SWORD-BONUS-SHADOW"
-  - "SWORD-BONUS-BLEED-CHANCE"
-  - "WEAPON-BONUS-LIFE-STEAL"
-  - "WEAPON-BONUS-GOLD-FIND"
-  - "WEAPON-BONUS-ITEM-DISC"
-  spawn-weight: 5
-  identify-weight: 10
+    - ROD-BONUS-SPEED
+    - ROD-BONUS-TREASURE
+    - ROD-BONUS-PROJECTILE-SPEED
+    - LIFESKILL-BONUS-SKILLXP
+    - LIFESKILL-BONUS-REGEN
+    - LIFESKILL-BONUS-ENERGY-REGEN
+    - LIFESKILL-BONUS-LOOT
+    - LIFESKILL-BONUS-RARITY
+    - LIFESKILL-BONUS-MOVESPEED
+  suffixes:
+    generic:
+      - "Fishing Rod"
+      - "Minnow Catcher"
+      - "Carp Catcher"
+      - "Bait Dangler"
+      - "Snapper Snagger"
+      - "Fishing Rod"
+      - "Angler"
+      - "Lure Flinger"
+      - "Treble Hooker"
+    COMMON:
+      - "Boot Magnet"
+      - "Crap Catcher"
+    EPIC:
+      - "Master Baiter"
+      - "Trout Trouncer"
+  spawn-weight: 100
+  identify-weight: 0
+  base-custom-data: 100
+  custom-data-level-interval: 20
+  min-sockets: 0
+  max-sockets: 1
+  min-extends: 0
+  max-extends: 1
+  filter-flag: FLAG_11
   item-groups:
-  - Sword
-  - -Wood
+    - FishingRod

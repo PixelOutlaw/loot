@@ -18,37 +18,76 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
+import static info.faceland.loot.LootPlugin.ITEM_VERSION;
+import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
+import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY_SMALL;
+import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
+import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
+import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
+
+import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
-import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
-import info.faceland.loot.items.ItemBuilder;
+import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
-import java.util.Arrays;
+import java.util.List;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 public final class SocketExtender {
 
-  public static String name = "Socket Extender";
-  public static ItemStack EXTENDER = build();
+  public static final String TYPE_KEY = "extender";
 
-  public static ItemStack build() {
-    ItemStack stack = new ItemStack(Material.NETHER_STAR);
-    ItemStackExtensionsKt.setDisplayName(stack, FaceColor.RED + name);
-    TextUtils.setLore(stack, PaletteUtil.color(Arrays.asList(
-        "|white|\uD86D\uDFE9Ս",
-        "",
-        "|lgray|An upgrade item that can",
-        "|lgray|be used on equipment with",
-        "|lgray|a locked " + ItemBuilder.EXTEND + "|lgray| to add",
-        "|lgray|an extra " + ItemBuilder.SOCKET)
-    ));
-    ItemStackExtensionsKt.setCustomModelData(stack, 10);
-    stack.setDurability((short) 11);
-    return stack;
+  public static ItemStack EXTENDER = rebuild();
+
+  public static ItemStack item() {
+    return EXTENDER.clone();
   }
 
+  public static ItemMeta meta() {
+    return EXTENDER.getItemMeta();
+  }
+
+  public static void update(ItemStack stack) {
+    stack.setType(EXTENDER.getType());
+    stack.setItemMeta(meta());
+  }
+
+  public static boolean matches(ItemStack stack) {
+    return PersistHelper.getItemType(stack).equals(TYPE_KEY);
+  }
+
+  public static ItemStack rebuild() {
+    EXTENDER = new ItemStack(Material.NETHER_STAR);
+    ItemMeta meta = EXTENDER.getItemMeta();
+    String name = "Socket Extender";
+    meta.setDisplayName(FaceColor.TEAL + name);
+    List<String> lore = List.of(
+        PaletteUtil.color("|ns|\uF808三\uF808\uF801"),
+        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
+        centerSmallText(PaletteUtil.color("|lgray|This |red|powerful |lgray|item can be")),
+        centerSmallText(PaletteUtil.color("|lgray|used on equipment to turn")),
+        centerSmallText(PaletteUtil.color("|lgray|a |teal|locked socket |lgray|into a")),
+        centerSmallText(PaletteUtil.color("|lgray|normal |orange|socket|lgray|!")),
+        ""
+    );
+    meta.setLore(lore);
+    meta.setCustomModelData(10);
+
+    PersistentDataContainer pdc = meta.getPersistentDataContainer();
+    pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
+    pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, TYPE_KEY);
+
+    EXTENDER.setItemMeta(meta);
+    return EXTENDER;
+  }
+
+  @Deprecated
   public static boolean isSimilar(ItemStack stack) {
     if (stack == null) {
       return false;
@@ -59,7 +98,7 @@ public final class SocketExtender {
     if (stack.getType() != Material.NETHER_STAR) {
       return false;
     }
-    if (!name.equals(ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)))) {
+    if (!"Socket Extender".equals(ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)))) {
       return false;
     }
     return stack.getDurability() == (short) 11;

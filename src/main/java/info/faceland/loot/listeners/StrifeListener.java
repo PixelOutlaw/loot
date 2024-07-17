@@ -18,18 +18,8 @@
  */
 package info.faceland.loot.listeners;
 
-import static info.faceland.loot.listeners.sockets.SocketsListener.applyEffects;
-
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.api.data.GemCacheData;
-import info.faceland.loot.api.sockets.effects.SocketEffect;
-import info.faceland.loot.sockets.SocketGem.GemType;
-import java.util.HashSet;
-import java.util.Set;
-import land.face.strife.events.CriticalEvent;
-import land.face.strife.events.EvadeEvent;
 import land.face.strife.events.UniqueSpawnEvent;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
@@ -39,28 +29,6 @@ public final class StrifeListener implements Listener {
 
   public StrifeListener(LootPlugin plugin) {
     this.plugin = plugin;
-  }
-
-  @EventHandler
-  public void onCriticalHit(CriticalEvent event) {
-    if (event.getAttacker() instanceof Player) {
-      Set<SocketEffect> attackerEffects = new HashSet<>();
-      Player p = (Player) event.getAttacker();
-      GemCacheData attackerData = plugin.getGemCacheManager().getGemCacheData(p.getUniqueId());
-      attackerEffects.addAll(attackerData.getWeaponCache(GemType.ON_CRIT));
-      applyEffects(attackerEffects, p, event.getVictim().getEntity());
-    }
-  }
-
-  @EventHandler
-  public void onEvade(EvadeEvent event) {
-    if (event.getEvader() instanceof Player) {
-      Set<SocketEffect> defenderEffects = new HashSet<>();
-      Player p = (Player) event.getEvader();
-      GemCacheData defenderData = plugin.getGemCacheManager().getGemCacheData(p.getUniqueId());
-      defenderEffects.addAll(defenderData.getArmorCache(GemType.ON_EVADE));
-      applyEffects(defenderEffects, p, event.getAttacker().getEntity());
-    }
   }
 
   @EventHandler

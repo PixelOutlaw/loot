@@ -1,5 +1,6 @@
 package info.faceland.loot.managers;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.StatResponse;
@@ -8,6 +9,7 @@ import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import land.face.strife.stats.StrifeStat;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -60,43 +62,44 @@ public class StatManager {
     TextComponent component = new TextComponent();
     component.setItalic(false);
 
-    String minMaxId = level + "|" + rarity;
-    float minVal;
-    float maxVal;
-    if (itemStat.getMinValues().containsKey(minMaxId)) {
-      minVal = itemStat.getMinValues().get(minMaxId);
-      maxVal = itemStat.getMaxValues().get(minMaxId);
-    } else {
-      minVal = itemStat.getValue(level, rarity, 0);
-      maxVal = itemStat.getValue(level, rarity, 1);
-      itemStat.getMinValues().put(minMaxId, minVal);
-      itemStat.getMaxValues().put(minMaxId, maxVal);
-    }
-    minVal = Math.max(1, minVal);
-    maxVal = Math.max(1, maxVal);
+    int minVal = (int) itemStat.getValue(level, rarity, 0);
+    int maxVal = (int) itemStat.getValue(level, rarity, 1);
     int statValue = (int) itemStat.getValue(level, rarity, statRoll);
-    if (statRoll < 0.5 ||
-        (itemStat.getMinHue() == itemStat.getMaxHue() && itemStat.getMinBrightness() == itemStat.getMaxBrightness())) {
+    statValue = statValue == 0 ? 1 : statValue;
+
+    if (statValue < 0) {
+      component.setColor(FaceColor.RED.getColor());
+      response.setStatRoll(statRoll);
+    } else if (minVal == maxVal || statValue >= maxVal) {
+      component.setColor(InventoryUtil.getRollColor(itemStat, 1));
+      response.setStatRoll(1);
+    } else if (statRoll < 0.5 || !itemStat.isHasColorRange()) {
       component.setColor(InventoryUtil.getRollColor(itemStat, 0f));
       response.setStatRoll(statRoll);
     } else {
-      int maxRange = (int) (maxVal - minVal);
-      float valueOverMinimum = statValue - minVal;
-      float actualRoll = valueOverMinimum / maxRange;
-      float scaledRoll = (actualRoll - 0.5f) * 2f;
-      float finalRoll = Math.max(0f, Math.min(1f, scaledRoll));
-      component.setColor(InventoryUtil.getRollColor(itemStat, finalRoll));
-      response.setStatRoll(actualRoll);
+      float scaledRoll = (statRoll - 0.5f) * 2f;
+      //float finalRoll = Math.max(0f, Math.min(1f, scaledRoll));
+      component.setColor(InventoryUtil.getRollColor(itemStat, scaledRoll));
+      response.setStatRoll(statRoll);
     }
     statValue = (int) (((float) statValue * multiplier) + flatBonus);
 
     String value = Integer.toString(statValue);
-    String statString = itemStat.getStatString().replace("{}", value);
-    component.setText(statString);
+    if (itemStat.getStat() != null) {
+      if (statValue >= 0) {
+        component.setText("+" + value + (itemStat.isPercentage() ? "% " : " ") + itemStat.getStat().getName());
+      } else {
+        component.setText(value + (itemStat.isPercentage() ? "% " : " ") + itemStat.getStat().getName());
+      }
+    } else {
+      component.setColor(FaceColor.CRIMSON.getColor());
+      component.setText("UNKNOWN STAT");
+    }
     response.setStatString(component.toLegacyText());
     if (!itemStat.getNamePrefixes().isEmpty()) {
       response.setStatPrefix(itemStat.getNamePrefixes().get(LootPlugin.RNG.nextInt(itemStat.getNamePrefixes().size())));
     }
+    response.setValue(statValue);
     return response;
   }
 
@@ -127,6 +130,12 @@ public class StatManager {
           stat.getNamePrefixes().clear();
           stat.getNamePrefixes().addAll(cs.getStringList("prefixes"));
           stat.setCategory(cs.getString("category", null));
+          String statStr = cs.getString("stat", "");
+          if (!statStr.isEmpty()) {
+            stat.setStat(StrifeStat.valueOf(statStr));
+          }
+          stat.setPercentage(cs.getBoolean("percentage", false));
+          stat.calcColorRange();
           addStat(key, stat);
         } catch (Exception e) {
           Bukkit.getLogger().warning("[Loot] Failed to load stat named " + key + " from file " + file.getName());

@@ -1,16 +1,18 @@
 package info.faceland.loot.managers;
 
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
-import static info.faceland.loot.utils.MaterialUtil.buildEssence;
 import static info.faceland.loot.utils.MaterialUtil.getLevelRequirement;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.CraftToolData;
-import info.faceland.loot.tier.Tier;
+import info.faceland.loot.items.CraftMaterial;
+import info.faceland.loot.items.Tier;
 import info.faceland.loot.utils.CraftingUtil;
+import info.faceland.loot.utils.EssenceUtil;
 import info.faceland.loot.utils.MaterialUtil;
+import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.List;
 import land.face.strife.data.champion.LifeSkillType;
@@ -32,8 +34,7 @@ public class SalvageManager {
   }
 
   public void destroy(Player player, ItemStack selectedStack, ItemStack toolStack) {
-    if (selectedStack == null || toolStack == null ||
-        selectedStack.getAmount() < 1 || toolStack.getAmount() < 1) {
+    if (selectedStack == null || toolStack == null || selectedStack.getAmount() < 1 || toolStack.getAmount() < 1) {
       player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
       return;
     }
@@ -66,31 +67,29 @@ public class SalvageManager {
 
     ItemStack materialDetectionItem = selectedStack.clone();
     materialDetectionItem.setDurability((short) 0);
-    Material material = plugin.getCraftMaterialManager().getMaterial(materialDetectionItem);
+    Tier tier = PersistHelper.getEquipmentData(selectedStack).getTier();
+    // TODO: Roll random
+    Material material = tier.getCraftMaterials().get(LootPlugin.RNG.nextInt(tier.getCraftMaterials().size()));
     if (material == null) {
       sendMessage(player, plugin.getSettings().getString("language.craft.no-materials", ""));
       return;
     }
 
-    int rarity = MaterialUtil.getRarity(selectedStack);
+    int rarity = (int) MaterialUtil.getRarity(selectedStack).getPower();
 
     float rarityUpChance = CraftingUtil.getRarityUpChance(effectiveLevelAdvantage, craftToolData);
     while (LootPlugin.RNG.nextFloat() < rarityUpChance && rarity < 3) {
       rarity++;
     }
 
-    ItemStack craftMaterial = MaterialUtil.buildMaterial(material, plugin.getCraftMaterialManager()
-        .getCraftMaterials().get(material), itemLevel, rarity);
-
+    ItemStack craftMaterial = CraftMaterial.get(material, itemLevel, rarity).item();
     player.playSound(player.getEyeLocation(), Sound.ENTITY_ITEM_BREAK, 1F, 0.8F);
 
-    ItemStack essence = null;
     float essenceChance = (effectiveLevelAdvantage / 100) + craftToolData.getRarity() * 0.2f;
     if (LootPlugin.RNG.nextFloat() < essenceChance) {
-      if (!possibleStats.isEmpty()) {
+      if (EssenceUtil.canExtractStat(selectedStack, true)) {
         player.playSound(player.getEyeLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.4F, 2F);
-        Tier tier = MaterialUtil.getTierFromStack(selectedStack);
-        essence = buildEssence(tier, itemLevel, possibleStats);
+        EssenceUtil.extract(player, selectedStack, false, true, true);
       }
     }
 
@@ -98,9 +97,6 @@ public class SalvageManager {
     toolStack.setAmount(toolStack.getAmount() - 1);
 
     ItemUtils.giveOrDrop(player, craftMaterial);
-    if (essence != null) {
-      ItemUtils.giveOrDrop(player, essence);
-    }
 
     double exp = 5 + itemLevel * 1.1;
     plugin.getStrifePlugin().getSkillExperienceManager()
@@ -120,7 +116,7 @@ public class SalvageManager {
     }
     CraftToolData data = new CraftToolData();
     data.setLevel(getToolLevel(stack));
-    data.setRarity(MaterialUtil.getRarity(stack));
+    data.setRarity((int) MaterialUtil.getRarity(stack).getPower());
 
     return data;
   }

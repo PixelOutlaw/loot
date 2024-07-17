@@ -20,9 +20,10 @@ package info.faceland.loot.listeners;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.data.ExistingSocketData;
+import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.menu.gemsmasher.GemSmashMenu;
 import info.faceland.loot.utils.MaterialUtil;
+import info.faceland.loot.utils.PersistHelper;
 import ninja.amp.ampmenus.menus.MenuHolder;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -59,14 +60,14 @@ public final class GemSmashMenuListener implements Listener {
     }
     Player player = (Player) event.getWhoClicked();
     GemSmashMenu gemSmashMenu = (GemSmashMenu) holder.getMenu();
-    ExistingSocketData data = MaterialUtil.buildSocketData(stack);
-    if (data.hasIndexes()) {
+    EquipmentData data = PersistHelper.getEquipmentData(stack);
+    if (data != null && !data.getSockets().isEmpty()) {
       player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_DIAMOND, 1, 1f);
-      gemSmashMenu.setData(player, data, stack);
+      gemSmashMenu.setData(player, stack);
       gemSmashMenu.update(player);
     } else {
       PaletteUtil.sendMessage(player, "|yellow|This item has no removable gems!");
-      gemSmashMenu.setData(player, null, null);
+      gemSmashMenu.setData(player, null);
       gemSmashMenu.update(player);
     }
   }

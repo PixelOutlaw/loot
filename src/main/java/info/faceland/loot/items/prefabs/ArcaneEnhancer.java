@@ -18,49 +18,70 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
+import static info.faceland.loot.LootPlugin.ITEM_VERSION;
+import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
+import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY_SMALL;
+import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
+import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
+import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
+
+import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
-import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
-import info.faceland.loot.utils.MaterialUtil;
-import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
-import java.util.Arrays;
-import org.apache.commons.lang3.StringUtils;
-import org.bukkit.ChatColor;
+import info.faceland.loot.utils.PersistHelper;
+import java.util.List;
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 public final class ArcaneEnhancer {
 
+  public static final String TYPE_KEY = "enhancer";
+
   private static ItemStack item;
-  private static final String name = "Arcane Enhancer";
 
   public static void rebuild() {
-    ItemStack stack = new ItemStack(Material.MAGMA_CREAM);
-    ItemStackExtensionsKt.setDisplayName(stack, FaceColor.PURPLE + name);
-    TextUtils.setLore(stack, PaletteUtil.color(Arrays.asList(
-        "|white|\uD86D\uDFE8Ս",
+    item = new ItemStack(Material.MAGMA_CREAM);
+    ItemMeta meta = item.getItemMeta();
+    String name = "Arcane Enhancer";
+    meta.setDisplayName(FaceColor.PURPLE + name);
+    meta.setCustomModelData(79);
+    meta.setLore(List.of(
+        PaletteUtil.color("|ns|\uF808丏\uF808\uF801"),
+        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
+        centerSmallText(PaletteUtil.color("|lgray|Use this item to improve")),
+        centerSmallText(PaletteUtil.color("|lgray|enchanted equipment!")),
         "",
-        "|lgray|Use this at an enchantment table",
-        "|lgray|to |purple|increase |lgray|the power of an",
-        "|lgray|item's |blue|enchantment|lgray|!",
-        "",
-        "|gray||i|Enhanced items cannot have their",
-        "|gray||i|enchantment refilled and will",
-        "|gray||i|slowly revert to " + MaterialUtil.ENCHANTABLE_TAG
-    )));
-    stack.setDurability((short) 11);
-    ItemStackExtensionsKt.setCustomModelData(stack, 79);
-    stack.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-    stack.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
-    item = stack;
+        centerSmallText(PaletteUtil.color("|lgray|Once used, the equipment")),
+        centerSmallText(PaletteUtil.color("|lgray|can't have its enchant")),
+        centerSmallText(PaletteUtil.color("|lgray|refilled, and will slowly")),
+        centerSmallText(PaletteUtil.color("|lgray|revert to |blue|Enchantable"))
+    ));
+    PersistentDataContainer pdc = meta.getPersistentDataContainer();
+    pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
+    pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, TYPE_KEY);
+    item.setItemMeta(meta);
   }
 
   public static ItemStack get() {
     return item.clone();
   }
 
+  public static ItemMeta meta() {
+    return item.getItemMeta();
+  }
+
+  public static void update(ItemStack stack) {
+    stack.setType(Material.MAGMA_CREAM);
+    stack.setItemMeta(meta());
+  }
+
+  /* Use matches for new ones */
+  @Deprecated
   public static boolean isSimilar(ItemStack stack) {
     if (stack == null) {
       return false;
@@ -68,6 +89,10 @@ public final class ArcaneEnhancer {
     if (item.getType() != stack.getType()) {
       return false;
     }
-    return name.equals(ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack)));
+    return ItemUtils.getModelData(stack) == 79;
+  }
+
+  public static boolean matches(ItemStack stack) {
+    return PersistHelper.getItemType(stack).equals(TYPE_KEY);
   }
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import land.face.strife.stats.StrifeStat;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,6 +26,8 @@ public class ItemStat {
   private int minimumItemLevel;
   private boolean hide;
   private String category;
+  private StrifeStat stat;
+  private boolean percentage;
 
   // Coloring
   private float minHue;
@@ -34,24 +37,22 @@ public class ItemStat {
   private float minBrightness;
   private float maxBrightness;
 
-  private Map<String, Float> minValues = new HashMap<>();
-  private Map<String, Float> maxValues = new HashMap<>();
+  private boolean hasColorRange;
 
   public ItemStat(String id) {
     this.id = id;
   }
 
+  public void calcColorRange() {
+    hasColorRange = !(minHue == maxHue && minBrightness == maxBrightness && minSaturation == maxSaturation);
+  }
+
   public float getValue(float level, float rarity, float roll) {
-    float statValue;
-    if (minBaseValue >= maxBaseValue) {
-      statValue = minBaseValue;
-    } else {
-      statValue = minBaseValue + roll * (maxBaseValue - minBaseValue);
-    }
+    float statValue = minBaseValue + roll * (maxBaseValue - minBaseValue);
     statValue += level * perLevelIncrease;
     statValue += rarity * perRarityIncrease;
     float multiplier = 1 + (level * perLevelMultiplier) + (rarity * perRarityMultiplier);
     statValue *= multiplier;
-    return Math.max(1, statValue);
+    return statValue;
   }
 }

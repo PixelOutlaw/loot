@@ -19,6 +19,7 @@
 package info.faceland.loot.listeners;
 
 import info.faceland.loot.LootPlugin;
+import info.faceland.loot.utils.EnchantUtil;
 import info.faceland.loot.utils.MaterialUtil;
 import land.face.dinvy.DeluxeInvyPlugin;
 import land.face.dinvy.entity.PlayerData;
@@ -68,6 +69,6 @@ public final class EnchantDegradeListener implements Listener {
     if (item == null || item.getType() == Material.AIR) {
       return;
     }
-    MaterialUtil.depleteEnchantment(item, p, data);
+    EnchantUtil.depleteEnchantment(item, p, data);
   }
 }

@@ -27,9 +27,12 @@ import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.CraftResultData;
 import info.faceland.loot.data.ItemStat;
-import info.faceland.loot.tier.Tier;
+import info.faceland.loot.data.pdc.EquipmentData;
+import info.faceland.loot.data.pdc.StoredStat;
+import info.faceland.loot.items.Tier;
 import info.faceland.loot.utils.CraftingUtil;
 import info.faceland.loot.utils.MaterialUtil;
+import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -120,16 +123,13 @@ public final class PreCraftListener implements Listener {
   }
 
   private void updateInfuseInvy(CraftingInventory craftingInventory, Player player) {
-
     if (craftingInventory.getResult() == null) {
       craftingInventory.getResult().setType(Material.BARRIER);
       craftingInventory.getResult().setItemMeta(wrongTypeMeta);
       return;
     }
-
     ItemStack equipmentItem = null;
     ItemStack essenceStack = null;
-
     for (ItemStack is : craftingInventory.getMatrix()) {
       if (!(essenceStack == null || equipmentItem == null)) {
         break;
@@ -138,7 +138,7 @@ public final class PreCraftListener implements Listener {
         continue;
       }
       ItemStack loopItem = new ItemStack(is);
-      if (MaterialUtil.isEssence(loopItem)) {
+      if ("essence".equals(PersistHelper.getItemType(loopItem))) {
         essenceStack = loopItem;
         continue;
       }
@@ -150,15 +150,17 @@ public final class PreCraftListener implements Listener {
       craftingInventory.getResult().setItemMeta(wrongTypeMeta);
       return;
     }
-
-    String tag = MaterialUtil.getEssenceTag(essenceStack);
-    if (!"慏".equals(tag)) {
-      if (StringUtils.isBlank(tag) || !MaterialUtil.getEssenceTiers(tag)
-          .contains(MaterialUtil.getTierFromStack(equipmentItem))) {
-        craftingInventory.getResult().setType(Material.BARRIER);
-        craftingInventory.getResult().setItemMeta(wrongTypeMeta);
-        return;
-      }
+    EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
+    StoredStat stat = PersistHelper.getEssenceStat(essenceStack);
+    if (data == null || stat == null) {
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(wrongTypeMeta);
+      return;
+    }
+    if (data.getTier().getId().equals(stat.getOriginTier())) {
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(wrongTypeMeta);
+      return;
     }
 
     List<String> lore = TextUtils.getLore(equipmentItem);
@@ -173,7 +175,7 @@ public final class PreCraftListener implements Listener {
 
     int itemLevel = NumberUtils.toInt(CharMatcher.digit().or(CharMatcher.is('-')).negate()
         .collapseFrom(ChatColor.stripColor(strippedLore.get(0)), ' ').trim());
-    int essenceLevel = MaterialUtil.getEssenceLevel(essenceStack);
+    int essenceLevel = stat.getLevel();
     int craftingLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.CRAFTING);
     double levelAdvantage = craftingLevel + 10 - itemLevel;
     if (levelAdvantage < 0) {
@@ -188,19 +190,18 @@ public final class PreCraftListener implements Listener {
       return;
     }
 
-    List<String> existingCraftStatStrings = MaterialUtil.getValidEssenceStats(lore);
-    String essenceStat = FaceColor.CYAN +
-        ChatColor.stripColor(MaterialUtil.getEssenceStat(essenceStack));
-    String rawEssenceText = MaterialUtil.ONLY_LETTERS
-        .matcher(ChatColor.stripColor(essenceStat)).replaceAll("");
+    List<StoredStat> existingCraftStatStrings = data.getExtractableStats();
 
-    if (existingCraftStatStrings.contains(rawEssenceText)) {
-      craftingInventory.getResult().setType(Material.BARRIER);
-      craftingInventory.getResult().setItemMeta(dupeStatMeta);
-      return;
+    // TODO: use tier limits on stat combos
+    for(var s : existingCraftStatStrings) {
+      if (s.getStat() == stat.getStat()) {
+        craftingInventory.getResult().setType(Material.BARRIER);
+        craftingInventory.getResult().setItemMeta(dupeStatMeta);
+        return;
+      }
     }
 
-    lore.set(slotIndex, FaceColor.CYAN + ChatColor.stripColor(essenceStat));
+    lore.set(slotIndex, FaceColor.CYAN + "Adds " + stat.getStat().getStat().getName());
 
     ItemStack newResult = equipmentItem.clone();
     TextUtils.setLore(newResult, lore, false);
@@ -255,7 +256,7 @@ public final class PreCraftListener implements Listener {
       return;
     }
 
-    Tier tier = plugin.getItemGroupManager().getTierFromStack(result);
+    Tier tier = PersistHelper.getEquipmentData(result).getTier();
     if (tier == null) {
       craftingInventory.getResult().setType(Material.BARRIER);
       ItemStackExtensionsKt.setCustomModelData(craftingInventory.getResult(), 150);
@@ -284,8 +285,9 @@ public final class PreCraftListener implements Listener {
     float slotScore = crData.openSlotChance(Math.max(0, effectiveLevelAdvantage));
 
     List<String> newLore = new ArrayList<>();
+    newLore.add(FaceColor.WHITE + "Item Type: " + tier.getPlainName());
     newLore.add(FaceColor.WHITE + "Item Level: " + minItemLevel + "⇒" + maxItemLevel);
-    newLore.add(FaceColor.WHITE + getRarityTag(minRarity) + "⇒" + "\uD86D\uDFE9" + tier.getName());
+    newLore.add(FaceColor.WHITE + getRarityTag(minRarity) + "⇒" + "\uD86D\uDFE9");
     newLore.add("");
     newLore.add(FaceColor.LIGHT_GRAY + "+X Primary Stat");
     for (ItemStat s : tier.getPrimaryStats()) {

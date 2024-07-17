@@ -18,14 +18,10 @@
  */
 package info.faceland.loot.managers;
 
-import com.tealcube.minecraft.bukkit.facecore.utilities.UnicodeUtil;
-import info.faceland.loot.api.items.CustomItemBuilder;
-import info.faceland.loot.items.CustomItem;
-import info.faceland.loot.items.CustomItemDropData;
-import info.faceland.loot.items.LootCustomItemBuilder;
-import info.faceland.loot.utils.MaterialUtil;
+import info.faceland.loot.LootPlugin;
+import info.faceland.loot.data.CustomItemDropData;
+import info.faceland.loot.items.NewCustomItem;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
-import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,58 +29,45 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
 
 public final class CustomItemManager {
 
-  private final Map<String, CustomItem> customItemMap;
-  private final Map<String, CustomItem> uneditedHash;
+  private final LootPlugin plugin;
+
+  private final Map<String, NewCustomItem> newUniques;
 
   private final Map<Integer, CustomItemDropData> cachedRates = new HashMap<>();
 
-  public CustomItemManager() {
-    customItemMap = new HashMap<>();
-    uneditedHash = new HashMap<>();
+  public CustomItemManager(LootPlugin plugin) {
+    this.plugin = plugin;
+    newUniques = new HashMap<>();
   }
 
-  public Set<CustomItem> getCustomItems() {
-    return new HashSet<>(customItemMap.values());
+  public Set<NewCustomItem> getCustomItems() {
+    return new HashSet<>(newUniques.values());
   }
 
   public Set<String> listCustomItems() {
-    return customItemMap.keySet().stream().map(value -> value.replace(" ", "_"))
+    return newUniques.keySet().stream().map(value -> value.replace(" ", "_"))
         .collect(Collectors.toSet());
   }
 
-  public CustomItem getCustomItem(String name) {
-    if (customItemMap.containsKey(name.toLowerCase())) {
-      return customItemMap.get(name.toLowerCase());
+  @Deprecated
+  public NewCustomItem getCustomItem(String name) {
+    if (newUniques.containsKey(name.toLowerCase())) {
+      return newUniques.get(name.toLowerCase());
     }
     return null;
   }
 
-  public CustomItem getCustomItemFromStack(ItemStack stack) {
-    return uneditedHash.get(customItemSerial(stack));
+  public NewCustomItem getUnique(String name) {
+    if (newUniques.containsKey(name.toLowerCase())) {
+      return newUniques.get(name.toLowerCase());
+    }
+    return null;
   }
 
-  private String customItemSerial(ItemStack stack) {
-    String material = stack.getType().toString();
-    String name = ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack));
-    boolean enchantable = MaterialUtil.hasEnchantmentTag(stack);
-    String gemData = MaterialUtil.getSocketString(stack);
-    return material + name + enchantable + gemData;
-  }
-
-  public void addCustomItem(String key, CustomItem ci) {
-    customItemMap.put(key.toLowerCase(), ci);
-    uneditedHash.put(customItemSerial(ci.toItemStack(1)), ci);
-  }
-
-  public CustomItem getRandomCustomItemByLevel(int level) {
+  public NewCustomItem getRandomByLevel(int level) {
     level = Math.max(0, Math.min(100, level));
     CustomItemDropData cidd = cachedRates.get(level);
     if (cidd == null || cidd.getDropTable().isEmpty()) {
@@ -97,13 +80,13 @@ public final class CustomItemManager {
     cachedRates.clear();
     for (int i = 0; i <= 100; i++) {
       double total = 0;
-      Map<CustomItem, Double> weightsMap = new HashMap<>();
-      for (CustomItem ci : customItemMap.values()) {
-        double diff = Math.abs(ci.getLevelBase() - i);
-        if (diff >= ci.getLevelRange()) {
+      Map<NewCustomItem, Double> weightsMap = new HashMap<>();
+      for (var ci : newUniques.values()) {
+        double diff = Math.abs(ci.getDropLevel() - i);
+        if (diff >= ci.getDropRange()) {
           continue;
         }
-        double calcWeight = ci.getWeight() * (1 - diff / ci.getLevelRange());
+        double calcWeight = ci.getWeight() * (1 - diff / ci.getDropRange());
         total += calcWeight;
         weightsMap.put(ci, calcWeight);
       }
@@ -114,42 +97,23 @@ public final class CustomItemManager {
     }
   }
 
-  public void loadFromFiles(List<SmartYamlConfiguration> files) {
-    customItemMap.clear();
+  public void loadNewUniques(List<SmartYamlConfiguration> files) {
+    newUniques.clear();
     for (SmartYamlConfiguration file : files) {
       for (String key : file.getKeys(false)) {
         try {
           if (!file.isConfigurationSection(key)) {
             continue;
           }
-          ConfigurationSection cs = file.getConfigurationSection(key);
-          String matString = cs.getString("material");
-          Material material = Material.valueOf(matString);
-          CustomItemBuilder builder = new LootCustomItemBuilder(key, material);
-          builder.withDisplayName(cs.getString("display-name"));
-          builder.withLore(UnicodeUtil.unicodePlacehold(cs.getStringList("lore")));
-          double weight = cs.getDouble("weight");
-          builder.withWeight(weight);
-          builder.withLevelBase(cs.getInt("level-base"));
-          builder.withLevelRange(cs.getInt("level-range"));
-          builder.withCustomData(cs.getInt("custom-data-value", -1));
-          builder.withBroadcast(cs.getBoolean("broadcast"));
-          builder.withExport(cs.getBoolean("export", weight > 0));
-          List<String> flags = cs.getStringList("flags");
-          Set<ItemFlag> itemFlags = new HashSet<>();
-          for (String s : flags) {
-            itemFlags.add(ItemFlag.valueOf(s));
-          }
-          builder.withFlags(itemFlags);
-          builder.withCanBreak(new HashSet<>(cs.getStringList("can-break")));
-          addCustomItem(key, builder.build());
+          NewCustomItem nci = NewCustomItem.fromConfigSection(plugin, key, file.getConfigurationSection(key));
+          newUniques.put(key, nci);
         } catch (Exception e) {
-          Bukkit.getLogger().warning("[Loot] Failed to load unique named " + key + " from file " + file.getName());
+          Bukkit.getLogger().warning("[Loot] Failed to load nu-unique named " + key + " from file " + file.getName());
           e.printStackTrace();
         }
       }
     }
-    Bukkit.getLogger().info("[Loot] Loaded " + customItemMap.size() + " items from " + files.size() + " files");
+    Bukkit.getLogger().info("[Loot] Loaded " + newUniques.size() + " uniques from " + files.size() + " files");
     cacheDropRates();
   }
 }

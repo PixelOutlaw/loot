@@ -1,7 +1,7 @@
 package info.faceland.loot.events;
 
 import info.faceland.loot.api.events.LootCancellableEvent;
-import info.faceland.loot.enchantments.EnchantmentTome;
+import info.faceland.loot.items.EnchantmentTome;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 

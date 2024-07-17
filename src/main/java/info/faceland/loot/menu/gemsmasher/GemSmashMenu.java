@@ -18,7 +18,6 @@ package info.faceland.loot.menu.gemsmasher;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.data.ExistingSocketData;
 import info.faceland.loot.utils.MaterialUtil;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -28,7 +27,6 @@ import org.bukkit.inventory.ItemStack;
 
 public class GemSmashMenu extends ItemMenu {
 
-  private final Map<Player, ExistingSocketData> data = new WeakHashMap<>();
   private final Map<Player, ItemStack> stacks = new WeakHashMap<>();
   private final Map<Player, Integer> costs = new WeakHashMap<>();
 
@@ -52,10 +50,6 @@ public class GemSmashMenu extends ItemMenu {
     setItem(16, new GemOption(this, 3));
   }
 
-  public ExistingSocketData getData(Player player) {
-    return data.get(player);
-  }
-
   public ItemStack getStack(Player player) {
     return stacks.get(player);
   }
@@ -64,8 +58,7 @@ public class GemSmashMenu extends ItemMenu {
     return costs.get(player);
   }
 
-  public void setData(Player player, ExistingSocketData newData, ItemStack stack) {
-    data.put(player, newData);
+  public void setData(Player player, ItemStack stack) {
     stacks.put(player, stack);
     if (stack != null) {
       double cost = MaterialUtil.getLevelRequirement(stack) * 73;

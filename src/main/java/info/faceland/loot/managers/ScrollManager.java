@@ -1,14 +1,12 @@
 package info.faceland.loot.managers;
 
-import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
-import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
-import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
+import com.google.common.base.Strings;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.StringUtils;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.data.UpgradeScroll;
+import info.faceland.loot.items.UpgradeScroll;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.bukkit.ChatColor;
@@ -17,92 +15,57 @@ import org.bukkit.inventory.ItemStack;
 
 public class ScrollManager {
 
-  private Map<String, UpgradeScroll> scrolls;
-  private Map<UpgradeScroll, ItemStack> cachedScrollStacks;
-  private Material scrollMaterial;
-  private double totalWeight;
-
-  public ScrollManager() {
-    scrolls = new HashMap<>();
-    cachedScrollStacks = new HashMap<>();
-    scrollMaterial = Material.PAPER;
-  }
+  private double totalWeight = -1;
 
   public Collection<UpgradeScroll> getScrolls() {
-    return scrolls.values();
+    return UpgradeScroll.getScrolls().values();
   }
 
-  public ItemStack buildItemStack(UpgradeScroll upgradeScroll) {
-    if (!cachedScrollStacks.containsKey(upgradeScroll)) {
-      ItemStack stack = new ItemStack(scrollMaterial);
-      ItemStackExtensionsKt.setDisplayName(stack, FaceColor.GREEN + upgradeScroll.getPrefix() + " Upgrade Scroll");
-      TextUtils.setLore(stack, upgradeScroll.getLore(), false);
-      stack.setDurability((short) 11);
-      ItemStackExtensionsKt.setCustomModelData(stack, upgradeScroll.getCustomData());
-      cachedScrollStacks.put(upgradeScroll, stack);
-    }
-    return cachedScrollStacks.get(upgradeScroll).clone();
-  }
-
+  @Deprecated
   public UpgradeScroll getScroll(ItemStack stack) {
-    if (stack == null || stack.getType() != scrollMaterial) {
+    if (stack == null || stack.getType() != Material.PAPER) {
       return null;
     }
-    String name = ItemStackExtensionsKt.getDisplayName(stack);
-    if (StringUtils.isBlank(name)) {
-      return null;
+    String name = ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack).replace(" Upgrade Scroll", ""));
+    return UpgradeScroll.get(name.toLowerCase());
+  }
+
+  @Deprecated
+  public UpgradeScroll getScroll(String name) {
+    return UpgradeScroll.get(name.toLowerCase());
+  }
+
+  public double getTotalWeight() {
+    if (totalWeight != -1) {
+      return totalWeight;
     }
-    if (!name.endsWith("Upgrade Scroll")) {
-      return null;
-    }
-    name = ChatColor.stripColor(name);
-    for (UpgradeScroll scroll : scrolls.values()) {
-      if (name.startsWith(scroll.getPrefix())) {
-        return scroll;
+    totalWeight = 0;
+    for (UpgradeScroll scroll : UpgradeScroll.getScrolls().values()) {
+      double d = scroll.getWeight();
+      if (d > 0D) {
+        totalWeight += d;
       }
     }
-    return null;
-  }
-
-  public UpgradeScroll getScroll(String name) {
-    return scrolls.get(name);
-  }
-
-  public void addScroll(String name, UpgradeScroll scroll) {
-    scrolls.put(name, scroll);
-  }
-
-  public void rebuildTotalWeight() {
-    totalWeight = getTotalWeight();
+    return totalWeight;
   }
 
   public UpgradeScroll getRandomScroll() {
-    double selectedWeight = LootPlugin.RNG.nextFloat() * totalWeight;
+    double selectedWeight = LootPlugin.RNG.nextFloat() * getTotalWeight();
     double currentWeight = 0;
-    for (UpgradeScroll scroll : scrolls.values()) {
-      double calcWeight = scroll.getWeight();
+    for (var scroll : UpgradeScroll.getScrolls().entrySet()) {
+      double calcWeight = scroll.getValue().getWeight();
       if (calcWeight > 0) {
         currentWeight += calcWeight;
         if (currentWeight >= selectedWeight) {
-          return scroll;
+          return scroll.getValue();
         }
       }
     }
     return null;
   }
 
+  @Deprecated
   public Set<String> getScrollIds() {
-    return scrolls.keySet().stream().map(value -> value.replace(" ", "_")).collect(Collectors.toSet());
-  }
-
-  private double getTotalWeight() {
-    double weight = 0;
-    for (UpgradeScroll scroll : scrolls.values()) {
-      double d = scroll.getWeight();
-      if (d > 0D) {
-        weight += d;
-      }
-    }
-    return weight;
+    return UpgradeScroll.getScrolls().keySet().stream().map(value -> value.replace(" ", "_")).collect(Collectors.toSet());
   }
 }

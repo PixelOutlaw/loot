@@ -1,20 +1,18 @@
 /**
  * The MIT License Copyright (c) 2015 Teal Cube Games
  * <p>
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
  * <p>
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
  * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
- * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package info.faceland.loot.commands;
 
@@ -22,6 +20,7 @@ import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.send
 
 import com.destroystokyo.paper.Namespaced;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
@@ -37,12 +36,21 @@ import com.tealcube.minecraft.bukkit.shade.google.gson.Gson;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.ItemRarity;
-import info.faceland.loot.data.UpgradeScroll;
 import info.faceland.loot.data.export.ExportEntry;
-import info.faceland.loot.enchantments.EnchantmentTome;
-import info.faceland.loot.groups.ItemGroup;
-import info.faceland.loot.items.CustomItem;
+import info.faceland.loot.items.CraftMaterial;
+import info.faceland.loot.items.EnchantmentTome;
+import info.faceland.loot.items.NewCustomItem;
+import info.faceland.loot.items.SocketGem;
+import info.faceland.loot.items.SoulGem;
+import info.faceland.loot.items.Tier;
+import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
+import info.faceland.loot.items.prefabs.AspectOfPerfection;
+import info.faceland.loot.items.prefabs.DistortionCell;
+import info.faceland.loot.items.prefabs.DivineHammer;
+import info.faceland.loot.items.prefabs.ManaCrystal;
+import info.faceland.loot.items.prefabs.OrbOfManyFaces;
+import info.faceland.loot.items.prefabs.PerfectSphere;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
@@ -51,25 +59,19 @@ import info.faceland.loot.menu.gemsmasher.GemSmashMenu;
 import info.faceland.loot.menu.pawn.PawnMenu;
 import info.faceland.loot.menu.transmute.TransmuteMenu;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
-import info.faceland.loot.sockets.SocketGem;
-import info.faceland.loot.tier.Tier;
 import info.faceland.loot.utils.DropUtil;
+import info.faceland.loot.utils.EssenceUtil;
 import info.faceland.loot.utils.InventoryUtil;
-import info.faceland.loot.utils.MaterialUtil;
+import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
-import java.util.Set;
 import land.face.dinvy.DeluxeInvyPlugin;
 import land.face.dinvy.entity.PlayerData;
 import land.face.dinvy.windows.equipment.EquipmentMenu.DeluxeSlot;
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
@@ -78,7 +80,6 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
@@ -157,13 +158,6 @@ public class LootCommand extends BaseCommand {
     MessageUtils.sendMessage(sender, "&aSuccess!");
   }
 
-  @Subcommand("gemdestroy")
-  @CommandPermission("loot.admin")
-  public void gemdestroy(Player sender, int slot) {
-    boolean success = MaterialUtil.destroyGem(sender.getEquipment().getItemInMainHand(), slot) != null;
-    sendMessage(sender, success ? "success" : "fail");
-  }
-
   @Subcommand("mortar")
   @CommandPermission("loot.admin")
   public void gemdestroy(CommandSender sender, OnlinePlayer player) {
@@ -181,7 +175,7 @@ public class LootCommand extends BaseCommand {
   public void exportCommand(CommandSender sender) {
 
     List<ExportEntry> exportGems = new ArrayList<>();
-    for (SocketGem gem : plugin.getSocketGemManager().getSocketGems()) {
+    for (SocketGem gem : SocketGem.getGems().values()) {
       ExportEntry exportGem = new ExportEntry();
       exportGem.setTitle("Socket Gem");
       exportGem.setName("|lime|" + gem.getName());
@@ -189,7 +183,8 @@ public class LootCommand extends BaseCommand {
       List<String> lore = new ArrayList<>(gem.getLore());
       lore.removeIf(str -> str.contains("Ս") || str.contains("tag_unique"));
       exportGem.setDescription(lore);
-      exportGem.setGroupNames(buildItemTags(gem.getItemGroups()));
+      // todo: groups
+      //exportGem.setGroupNames(buildItemTags(gem.getItemGroup()));
       exportGem.getGroupNames().add("Upgrade");
       if (gem.getWeight() == 0) {
         exportGem.setSpecialFlag(gem.getBonusWeight() > 0 ? "transmute" : "event");
@@ -215,11 +210,12 @@ public class LootCommand extends BaseCommand {
       exportTome.setTitle("Enchantment Tome");
       exportTome.setName("|blue|" + tome.getName());
       exportTome.setStrippedName(ChatColor.stripColor(PaletteUtil.color(exportTome.getName())));
-      List<String> lore = new ArrayList<>(EnchantmentTome.UNCOLORED_TOME_DESC);
+      List<String> lore = new ArrayList<>(List.of("For enchanting items!"));
       lore.add(tome.getDescription());
       lore.removeIf(str -> str.contains("Ս") || str.contains("tag_upgrade"));
       exportTome.setDescription(lore);
-      exportTome.setGroupNames(buildItemTags(tome.getItemGroups()));
+      // todo: groups
+      //exportTome.setGroupNames(buildItemTags(tome.getItemGroups()));
       exportTome.getGroupNames().add("Upgrade");
       exportTome.getGroupNames().add("Enchanting");
       exportTome.setRarity(
@@ -229,27 +225,25 @@ public class LootCommand extends BaseCommand {
     }
 
     List<ExportEntry> exportUniques = new ArrayList<>();
-    for (CustomItem customItem : plugin.getCustomItemManager().getCustomItems()) {
-      if (customItem.getWeight() > 10000 || !customItem.isExport()) {
+    for (var unique : plugin.getCustomItemManager().getCustomItems()) {
+      if (unique.getWeight() > 10000 || !unique.isExport()) {
         continue;
       }
       ExportEntry exportUnique = new ExportEntry();
       exportUnique.setTitle("Unique Item");
-      exportUnique.setName(customItem.getDisplayName());
+      exportUnique.setName(unique.getItemName());
       exportUnique.setStrippedName(ChatColor.stripColor(PaletteUtil.color(exportUnique.getName())));
-      List<String> lore = new ArrayList<>(customItem.getLore());
+      // TODO: gotta send stats in export
+      List<String> lore = new ArrayList<>(unique.getFlavorText());
       lore.removeIf(str -> str.contains("\uD86D\uDFEA") || str.contains("tag_unique"));
       exportUnique.setDescription(lore);
       exportUnique.setRarity(
-          customItem.getWeight() > 1000 ? "Common" :
-              customItem.getWeight() > 100 ? "Uncommon" :
-                  customItem.getWeight() > 10 ? "Rare" : "Epic");
-      Tier t = plugin.getItemGroupManager().getTierFromStack(customItem.toItemStack(1));
-      if (t == null) {
-        exportUnique.setGroupNames(List.of("Misc"));
-      } else {
-        exportUnique.setGroupNames(buildItemTags(t.getItemGroups()));
-      }
+          unique.getWeight() > 1000 ? "Common" :
+              unique.getWeight() > 100 ? "Uncommon" :
+                  unique.getWeight() > 10 ? "Rare" : "Epic");
+      Tier t = unique.getTier();
+      // TODO match to new item groups
+      exportUnique.setGroupNames(List.of("Misc"));
       exportUniques.add(exportUnique);
     }
 
@@ -295,17 +289,6 @@ public class LootCommand extends BaseCommand {
     }
   }
 
-  private static List<String> buildItemTags(Collection<ItemGroup> groups) {
-    Set<String> tags = new HashSet<>();
-    for (ItemGroup group : groups) {
-      if (group.isInverse()) {
-        continue;
-      }
-      tags.add(group.getName());
-    }
-    return new ArrayList<>(tags);
-  }
-
   @Subcommand("reward")
   @CommandCompletion("@players @range:1-100 @range:1-100")
   @CommandPermission("loot.reward")
@@ -341,72 +324,79 @@ public class LootCommand extends BaseCommand {
     sendMessage(sender, "Rewarded " + player.getPlayer().getName() + " successfully!");
   }
 
-  @Subcommand("rgb")
-  @CommandPermission("loot.rgb")
-  public void memeCommand(Player player, @Default("0") int number) {
-    if (number > 0) {
-      Color color = Color.fromRGB(number);
-      MessageUtils.sendMessage(player,
-          "r:" + color.getRed() + " g:" + color.getGreen() + " b:" + color.getBlue());
-      return;
-    }
-    ItemStack stack = player.getEquipment().getItemInMainHand();
-    if (stack.getItemMeta() instanceof LeatherArmorMeta) {
-      Color color = ((LeatherArmorMeta) stack.getItemMeta()).getColor();
-      MessageUtils.sendMessage(player,
-          "r:" + color.getRed() + " g:" + color.getGreen() + " b:" + color.getBlue());
-    }
-  }
-
   @Subcommand("give")
   @CommandPermission("loot.give")
   public class GiveCommand extends BaseCommand {
 
     @Subcommand("essence")
-    @CommandCompletion("@players @tiers level name")
-    public void giveEssence(CommandSender sender, OnlinePlayer player, String tier,
-        @Default("1") int level, String stat) {
-
-      String typeString;
-      if (tier.equalsIgnoreCase("ANY")) {
-        typeString = "慏";
-      } else {
-        Tier t = tier.equalsIgnoreCase("random") ? null : plugin.getTierManager().getTier(tier);
-        if (t == null) {
-          sendMessage(sender, "Invalid tier...");
-          return;
-        }
-        typeString = t.getName();
+    @CommandCompletion("@players @tiers @rarities itemLevel statId percentRoll")
+    public void giveEssence(CommandSender sender, OnlinePlayer player, @Default("sword") String tier,
+        @Default("RARE") String rarity, @Default("1") int level, String stat, double percentRoll) {
+      Tier t = Tier.get(tier);
+      if (t == null) {
+        sender.sendMessage("Invalid Tier");
+        return;
       }
-      ItemStack itemEss = MaterialUtil.createEssence(typeString, level, stat);
+      ItemRarity ir = plugin.getRarityManager().getRarity(rarity);
+      if (ir == null) {
+        sender.sendMessage("Invalid Rarity");
+        return;
+      }
+      ItemStack itemEss = EssenceUtil.createEssence(stat, tier, level, percentRoll, ir.getPower());
       player.getPlayer().getInventory().addItem(itemEss);
       sendMessage(sender, "Success!");
     }
 
+    @Subcommand("material")
+    @CommandCompletion("@players @materials")
+    public void giveEssence(CommandSender sender, OnlinePlayer player, String id) {
+      var mat = CraftMaterial.get(id);
+      if (mat != null) {
+        ItemUtils.giveOrDrop(player.getPlayer(), mat.item());
+        sendMessage(sender, "Success!");
+      } else {
+        sendMessage(sender, "Not a real material!!!");
+      }
+    }
+
+    @Subcommand("soulgem")
+    @CommandCompletion("@players @soulgems")
+    public void getSoulGem(CommandSender sender, OnlinePlayer player, String material) {
+      var gemb = SoulGem.get(material);
+      if (gemb != null) {
+        ItemUtils.giveOrDrop(player.getPlayer(), gemb.item());
+        sendMessage(sender, "Success!");
+      } else {
+        sendMessage(sender, "Not a real gemb!!!");
+      }
+    }
+
     @Subcommand("tier")
     @CommandCompletion("@players @tiers @rarities amount level distorted")
-    public void giveTier(CommandSender sender, OnlinePlayer player, String tier, String rarity,
-        @Default("1") int amount, @Default("-1") int level, @Default("false") boolean distorted) {
-      Tier t = tier.equalsIgnoreCase("random") ?
-          null : plugin.getTierManager().getTier(tier);
-      if (t == null) {
-        t = plugin.getTierManager().getRandomTier();
-      }
-      ItemRarity r = rarity.equalsIgnoreCase("random") ?
-          null : plugin.getRarityManager().getRarity(rarity);
+    public void giveTier(CommandSender sender, OnlinePlayer player,
+        String tier,
+        String rarity,
+        @Default("1") int amount,
+        @Default("-1") int level,
+        @Default("false") boolean distorted,
+        @Default("false") boolean soulbound
+    ) {
+      Tier t = tier.equalsIgnoreCase("random") ? Tier.getRandomTier() : Tier.get(tier);
+      ItemRarity r = rarity.equalsIgnoreCase("random") ? null : plugin.getRarityManager().getRarity(rarity);
       if (r == null) {
         r = plugin.getRarityManager().getRandomRarity(1, -1);
       }
       for (int i = 0; i < amount; i++) {
-        player.getPlayer().getInventory().addItem(
-            plugin.getNewItemBuilder().withItemGenerationReason(ItemGenerationReason.COMMAND)
-                .withTier(t)
-                .withRarity(r)
-                .withLevel(level == -1 ? 1 + LootPlugin.RNG.nextInt(100) : level)
-                .withDistortion(distorted)
-                .withCreator(player.getPlayer())
-                .build()
-                .getStack());
+        ItemStack stack = plugin.getNewItemBuilder().withItemGenerationReason(ItemGenerationReason.COMMAND)
+            .withTier(t)
+            .withRarity(r)
+            .withLevel(level == -1 ? 1 + LootPlugin.RNG.nextInt(100) : level)
+            .withDistortion(distorted)
+            .withCreator(player.getPlayer())
+            .withSoulbound(soulbound)
+            .build()
+            .getStack();
+        ItemUtils.giveOrDrop(player.getPlayer(), stack);
       }
       sendMessage(sender,
           plugin.getSettings().getString("language.commands.spawn.other-success", ""),
@@ -446,8 +436,7 @@ public class LootCommand extends BaseCommand {
     public void giveGem(CommandSender sender, OnlinePlayer player, String id, @Default("1") int amount) {
       if (id.equalsIgnoreCase("random")) {
         for (int i = 0; i < amount; i++) {
-          giveItem(player.getPlayer(),
-              plugin.getSocketGemManager().getRandomSocketGem(true).toItemStack(1));
+          giveItem(player.getPlayer(), plugin.getSocketGemManager().getRandomSocketGem(true).toItemStack(1));
         }
         sendMessage(sender,
             plugin.getSettings().getString("language.commands.spawn.gem-success", ""),
@@ -469,25 +458,36 @@ public class LootCommand extends BaseCommand {
 
     @Subcommand("unique")
     @CommandCompletion("@players @uniques @range:1-10")
-    public void giveUnique(CommandSender sender, OnlinePlayer player, String id,
-        @Default("1") int amount) {
+    public void giveUnique(CommandSender sender, OnlinePlayer player,
+        String id,
+        @Default("1") int amount,
+        @Default("false") boolean soulbound
+    ) {
       if (id.equalsIgnoreCase("random")) {
         for (int i = 0; i < amount; i++) {
-          giveItem(player.getPlayer(), plugin.getCustomItemManager().getRandomCustomItemByLevel(player.getPlayer().getLevel()).toItemStack(1));
+          ItemStack item = plugin.getCustomItemManager().getRandomByLevel(player.getPlayer().getLevel()).item();
+          if (soulbound) {
+            PersistHelper.setTradeLocked(item, true);
+          }
+          ItemUtils.giveOrDrop(player.getPlayer(), item);
         }
         sendMessage(sender,
             plugin.getSettings().getString("language.commands.spawn.custom-success", ""),
             new String[][]{{"%amount%", amount + ""}});
         return;
       }
-      CustomItem ci = plugin.getCustomItemManager().getCustomItem(id);
+      NewCustomItem ci = plugin.getCustomItemManager().getCustomItem(id);
       if (ci == null) {
         sendMessage(sender,
             plugin.getSettings().getString("language.commands.spawn.custom-failure", ""));
         return;
       }
       for (int i = 0; i < amount; i++) {
-        player.getPlayer().getInventory().addItem(ci.toItemStack(1));
+        ItemStack stack = ci.item();
+        if (soulbound) {
+          PersistHelper.setTradeLocked(stack, true);
+        }
+        ItemUtils.giveOrDrop(player.getPlayer(), stack);
       }
       sendMessage(sender,
           plugin.getSettings().getString("language.commands.spawn.custom-success", ""),
@@ -497,7 +497,7 @@ public class LootCommand extends BaseCommand {
     @Subcommand("unique-equip")
     @CommandCompletion("@players @uniques")
     public void giveUnique(CommandSender sender, OnlinePlayer player, String id, String dSlot) {
-      CustomItem ci = plugin.getCustomItemManager().getCustomItem(id);
+      NewCustomItem ci = plugin.getCustomItemManager().getCustomItem(id);
       if (ci == null) {
         sendMessage(sender,
             plugin.getSettings().getString("language.commands.spawn.custom-failure", ""));
@@ -510,7 +510,7 @@ public class LootCommand extends BaseCommand {
         sendMessage(sender, "[Loot] No unique-equip slot " + dSlot);
         return;
       }
-      ItemStack stack = ci.toItemStack(1);
+      ItemStack stack = ci.item();
       PlayerData playerData = DeluxeInvyPlugin.getInstance()
           .getPlayerManager().getPlayerData(player.getPlayer());
       if (playerData.getEquipmentItem(slot) == null) {
@@ -528,22 +528,21 @@ public class LootCommand extends BaseCommand {
         @Default("1") int amount) {
       if (id.equalsIgnoreCase("random")) {
         for (int i = 0; i < amount; i++) {
-          player.getPlayer().getInventory().addItem(plugin.getScrollManager()
-              .buildItemStack(plugin.getScrollManager().getRandomScroll()));
+          player.getPlayer().getInventory().addItem(plugin.getScrollManager().getRandomScroll().item());
         }
         sendMessage(sender, plugin.getSettings()
                 .getString("language.commands.spawn.upgrade-scroll", ""),
             new String[][]{{"%amount%", amount + ""}});
         return;
       }
-      UpgradeScroll scroll = plugin.getScrollManager().getScroll(id);
+      UpgradeScroll scroll = UpgradeScroll.get(id);
       if (scroll == null) {
         sendMessage(sender, plugin.getSettings()
             .getString("language.commands.spawn.other-failure", ""));
         return;
       }
       for (int i = 0; i < amount; i++) {
-        player.getPlayer().getInventory().addItem(plugin.getScrollManager().buildItemStack(scroll));
+        player.getPlayer().getInventory().addItem(scroll.item());
       }
       sendMessage(sender, plugin.getSettings()
           .getString("language.commands.spawn.upgrade-scroll", ""));
@@ -555,7 +554,68 @@ public class LootCommand extends BaseCommand {
       for (int i = 0; i < amount; i++) {
         player.getPlayer().getInventory().addItem(SocketExtender.EXTENDER.clone());
       }
-      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""), new String[][]{{"%amount%", amount + ""}});
+      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
+          new String[][]{{"%amount%", amount + ""}});
+    }
+
+    @Subcommand("reroll")
+    @CommandCompletion("@players @range:1-100")
+    public void giveFaceOrb(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(OrbOfManyFaces.item());
+      }
+      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
+          new String[][]{{"%amount%", amount + ""}});
+    }
+
+    @Subcommand("reroll2")
+    @CommandCompletion("@players @range:1-100")
+    public void giveHyperCube(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(PerfectSphere.item());
+      }
+      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
+          new String[][]{{"%amount%", amount + ""}});
+    }
+
+    @Subcommand("reroll3")
+    @CommandCompletion("@players @range:1-100")
+    public void giveDivineHammer(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(DivineHammer.item());
+      }
+      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
+          new String[][]{{"%amount%", amount + ""}});
+    }
+
+    @Subcommand("refill|manacrystal")
+    @CommandCompletion("@players @range:1-100")
+    public void manananananaa(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(ManaCrystal.item());
+      }
+      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
+          new String[][]{{"%amount%", amount + ""}});
+    }
+
+    @Subcommand("perfection")
+    @CommandCompletion("@players @range:1-100")
+    public void perfection(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(AspectOfPerfection.item());
+      }
+      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
+          new String[][]{{"%amount%", amount + ""}});
+    }
+
+    @Subcommand("distortcell")
+    @CommandCompletion("@players @range:1-100")
+    public void distortion(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(DistortionCell.item());
+      }
+      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
+          new String[][]{{"%amount%", amount + ""}});
     }
 
     @Subcommand("purity|purify")
@@ -589,20 +649,6 @@ public class LootCommand extends BaseCommand {
       sendMessage(sender,
           plugin.getSettings().getString("language.commands.spawn.arcane-enhancer", ""),
           new String[][]{{"%amount%", amount + ""}});
-    }
-  }
-
-  @Subcommand("materials")
-  @CommandCompletion("@players @range:1-100 @range:1-100")
-  @CommandPermission("loot.give")
-  public void materials(CommandSender sender, Player target, int itemLevel, int rarity) {
-
-    rarity = Math.min(5, Math.max(rarity, 1));
-
-    for (Material m : plugin.getCraftMaterialManager().getCraftMaterials().keySet()) {
-      ItemStack itemStack = MaterialUtil.buildMaterial(m,
-          plugin.getCraftMaterialManager().getCraftMaterials().get(m), itemLevel, rarity);
-      target.getInventory().addItem(itemStack);
     }
   }
 
@@ -667,11 +713,10 @@ public class LootCommand extends BaseCommand {
   @Subcommand("gemsmasher")
   @CommandPermission("loot.cut")
   public void openSmash(CommandSender sender, OnlinePlayer target) {
-    gemsmasherMenu.setData(target.getPlayer(), null, null);
+    gemsmasherMenu.setData(target.getPlayer(), null);
     gemsmasherMenu.open(target.getPlayer());
   }
 
-  // TODO: handle this with a real menu
   @Subcommand("transmute")
   @CommandPermission("loot.transmute")
   public void openTransmuator(CommandSender sender, OnlinePlayer target) {

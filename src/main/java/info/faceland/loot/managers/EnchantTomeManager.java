@@ -19,48 +19,22 @@
 package info.faceland.loot.managers;
 
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.enchantments.EnchantmentTome;
+import info.faceland.loot.items.EnchantmentTome;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class EnchantTomeManager {
 
-  private final Map<String, EnchantmentTome> tomeMap;
 
-  public EnchantTomeManager() {
-    this.tomeMap = new HashMap<>();
-  }
-
+  @Deprecated
   public EnchantmentTome getEnchantTome(String name) {
-    if (tomeMap.containsKey(name.toLowerCase())) {
-      return tomeMap.get(name.toLowerCase());
-    }
-    if (tomeMap.containsKey(name.toLowerCase().replace(" ", "_"))) {
-      return tomeMap.get(name.toLowerCase().replace(" ", "_"));
-    }
-    if (tomeMap.containsKey(name.toLowerCase().replace("_", " "))) {
-      return tomeMap.get(name.toLowerCase().replace("_", " "));
-    }
-    return null;
+    return EnchantmentTome.get(name);
   }
 
+  @Deprecated
   public Collection<EnchantmentTome> getEnchantmentTomes() {
-    return tomeMap.values();
-  }
-
-  public void addEnchantTome(EnchantmentTome gem) {
-    if (gem != null) {
-      tomeMap.put(gem.getName().toLowerCase(), gem);
-    }
-  }
-
-  public void removeEnchantTome(String name) {
-    if (name != null) {
-      tomeMap.remove(name.toLowerCase());
-    }
+    return EnchantmentTome.getTomes().values();
   }
 
   public EnchantmentTome getRandomEnchantTome() {
@@ -68,14 +42,14 @@ public final class EnchantTomeManager {
   }
 
   public Set<String> getTomeIds() {
-    return tomeMap.keySet().stream().map(value -> value.replace(" ", "_")).collect(Collectors.toSet());
+    return EnchantmentTome.getTomes().keySet().stream().map(value -> value.replace(" ", "_")).collect(Collectors.toSet());
   }
 
   public EnchantmentTome getRandomEnchantTome(double bonus) {
     bonus -= 1;
     double selectedWeight = LootPlugin.RNG.nextFloat() * getTotalWeight(bonus);
     double currentWeight = 0D;
-    for (EnchantmentTome tome : tomeMap.values()) {
+    for (EnchantmentTome tome : EnchantmentTome.getTomes().values()) {
       double weight = Math.max(0, tome.getWeight() + bonus * tome.getBonusWeight());
       currentWeight += weight;
       if (currentWeight >= selectedWeight) {
@@ -87,7 +61,7 @@ public final class EnchantTomeManager {
 
   public double getTotalWeight(double bonus) {
     double total = 0;
-    for (EnchantmentTome tome : tomeMap.values()) {
+    for (EnchantmentTome tome : EnchantmentTome.getTomes().values()) {
       total += Math.max(0, tome.getWeight() + tome.getBonusWeight() * bonus);
     }
     return total;

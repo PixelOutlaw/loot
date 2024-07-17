@@ -22,7 +22,8 @@ import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.CraftToolData;
 import info.faceland.loot.menu.salvage.SalvageMenu;
-import info.faceland.loot.tier.Tier;
+import info.faceland.loot.items.Tier;
+import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import ninja.amp.ampmenus.menus.MenuHolder;
 import org.bukkit.Material;
@@ -104,7 +105,7 @@ public record SalvageMenuListener(LootPlugin plugin) implements Listener {
           Sound.ENTITY_VILLAGER_WORK_TOOLSMITH, 1, 1.2f);
       return;
     }
-    Tier t = plugin.getItemGroupManager().getTierFromStack(stack);
+    Tier t = PersistHelper.getEquipmentData(stack).getTier();
     if (t != null) {
       salvageMenu.setEquipment((Player) event.getWhoClicked(), stack);
       ((Player) event.getWhoClicked()).playSound(event.getWhoClicked().getLocation(),

@@ -18,27 +18,13 @@
  */
 package info.faceland.loot.items;
 
-import com.destroystokyo.paper.Namespaced;
-import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
-import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
-import info.faceland.loot.LootPlugin;
-import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.attribute.AttributeModifier.Operation;
 import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 @Getter @Setter
 public class CustomItem {
@@ -61,63 +47,6 @@ public class CustomItem {
     this.name = name;
     this.material = material;
     this.lore = new ArrayList<>();
-  }
-
-  void setDisplayName(String displayName) {
-    this.displayName = displayName;
-  }
-
-  void setLore(List<String> lore) {
-    this.lore = lore;
-  }
-
-  public ItemStack toItemStack(int amount) {
-    ItemStack itemStack = new ItemStack(material);
-    if (itemStack.getType() == Material.AIR) {
-      return itemStack;
-    }
-    itemStack.setAmount(amount);
-    ItemStackExtensionsKt.setDisplayName(itemStack, PaletteUtil.color(this.displayName));
-    TextUtils.setLore(itemStack, PaletteUtil.color(lore));
-    itemStack.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-
-    if (material.getMaxStackSize() == 1 && customDataNumber > 8000) {
-      // This section exists to clear existing item attributes and enforce
-      // no stacking on equipment items
-      ItemMeta meta = itemStack.getItemMeta();
-      double serialValue = LootPlugin.RNG.nextFloat() * 0.0001;
-      AttributeModifier serial = new AttributeModifier("SERIAL", serialValue, Operation.ADD_NUMBER);
-      meta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE, serial);
-      itemStack.setItemMeta(meta);
-    }
-
-    if (customDataNumber != -1) {
-      ItemStackExtensionsKt.setCustomModelData(itemStack, customDataNumber);
-      ItemMeta iMeta = itemStack.getItemMeta();
-      iMeta.addItemFlags(ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_DYE, ItemFlag.HIDE_ITEM_SPECIFICS);
-      if (customDataNumber != -1 && iMeta instanceof LeatherArmorMeta) {
-        ((LeatherArmorMeta) iMeta).setColor(Color.fromRGB(customDataNumber));
-      }
-      itemStack.setItemMeta(iMeta);
-    }
-    if (!canBreak.isEmpty()) {
-      ItemMeta iMeta = itemStack.getItemMeta();
-      Set<Namespaced> breakSpaces = new HashSet<>();
-      for (String s : canBreak) {
-        breakSpaces.add(NamespacedKey.minecraft(s));
-      }
-      iMeta.setDestroyableKeys(breakSpaces);
-      iMeta.addItemFlags(ItemFlag.HIDE_DESTROYS);
-      itemStack.setItemMeta(iMeta);
-    }
-    if (!flags.isEmpty()) {
-      ItemMeta iMeta = itemStack.getItemMeta();
-      for (ItemFlag flag : flags) {
-        iMeta.addItemFlags(flag);
-      }
-      itemStack.setItemMeta(iMeta);
-    }
-    return itemStack;
   }
 
   @Override

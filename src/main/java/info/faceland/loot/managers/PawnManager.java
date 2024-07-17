@@ -3,13 +3,18 @@ package info.faceland.loot.managers;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
+import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.PawnShopType;
 import info.faceland.loot.data.PriceData;
-import info.faceland.loot.data.UpgradeScroll;
-import info.faceland.loot.enchantments.EnchantmentTome;
+import info.faceland.loot.data.pdc.StoredStat;
+import info.faceland.loot.items.EnchantmentTome;
+import info.faceland.loot.items.SocketGem;
+import info.faceland.loot.items.Tier;
+import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.menu.pawn.PawnMenu;
-import info.faceland.loot.sockets.SocketGem;
 import info.faceland.loot.utils.MaterialUtil;
+import info.faceland.loot.utils.ModifyEquipmentUtil;
+import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +30,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class PawnManager {
 
-  private LootPlugin plugin;
+  private final LootPlugin plugin;
 
   private final double baseEquipmentPrice;
   private final double baseGemPrice;
@@ -76,20 +81,20 @@ public class PawnManager {
       return new PriceData(amount * namedPrices.get(itemName), namedPrices.get(itemName) > 500 &&
           !(itemName.contains("Silver Bar") || itemName.contains("Gold Bar")));
     }
-    SocketGem socketGem = plugin.getSocketGemManager().getSocketGem(stack);
+    SocketGem socketGem = SocketGem.get(stack);
     if (socketGem != null) {
       double divisor = (gemWeightHalf + socketGem.getWeight()) / gemWeightHalf;
       price = (int) (baseGemPrice * 2 * Math.pow(0.5, divisor));
       price = Math.max(8, price);
       return new PriceData(amount * price, socketGem.getWeight() < 100);
     }
-    UpgradeScroll scroll = plugin.getScrollManager().getScroll(stack);
+    UpgradeScroll scroll = UpgradeScroll.get(stack);
     if (scroll != null) {
       double divisor = (scrollWeightHalf + scroll.getWeight()) / scrollWeightHalf;
       price = (int) (baseScrollPrice * 2 * Math.pow(0.5, divisor));
       return new PriceData(amount * price, scroll.getWeight() < 100);
     }
-    EnchantmentTome tome = MaterialUtil.getEnchantmentItem(stack);
+    EnchantmentTome tome = EnchantmentTome.get(stack);
     if (tome != null) {
       boolean rare;
       if (tome.getSellPrice() > 0) {
@@ -102,12 +107,13 @@ public class PawnManager {
       }
       return new PriceData(amount * price, rare);
     }
-    if (MaterialUtil.isEssence(stack)) {
+    if ("essence".equals(PersistHelper.getItemType(stack))) {
+      StoredStat stat = PersistHelper.getEssenceStat(stack);
       price = 2;
-      price += MaterialUtil.getEssenceLevel(stack) * 0.15f;
+      price += (stat == null ? 1 : stat.getLevel(1)) * 0.15f;
       return new PriceData(amount * price, false);
     }
-    if (MaterialUtil.getTierFromStack(stack) != null) {
+    if (Tier.get(stack) != null) {
       boolean cool = false;
       List<String> lore = TextUtils.getLore(stack);
       if (lore.size() > 1 && (lore.get(1).contains("\uD86D\uDFEA") ||
@@ -116,13 +122,14 @@ public class PawnManager {
         cool = true;
       }
       double itemLevel = MaterialUtil.getLevelRequirement(stack);
-      int itemPlus = MaterialUtil.getUpgradeLevel(ItemStackExtensionsKt.getDisplayName(stack));
+      int itemPlus = ModifyEquipmentUtil.getUpgradeLevel(stack);
       price = (int) (baseEquipmentPrice + itemLevel * equipPricePerLevel);
       price *= (float) Math.pow(1.1, itemPlus);
       return new PriceData(amount * price, itemPlus > 4 || cool);
     }
+    // TODO: food logic
     if (stack.getType() == Material.KELP) {
-      int rarity = MaterialUtil.getRarity(stack);
+      int rarity = (int) MaterialUtil.getRarity(stack).getPower();
       float rarityMult = 0.5f * rarity;
       String stripped = net.md_5.bungee.api.ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack));
       Matcher matcher = pattern.matcher(stripped);
@@ -132,9 +139,10 @@ public class PawnManager {
       }
       return new PriceData(1, false);
     }
-    double rarity = 1 + MaterialUtil.getRarity(stack);
+    ItemRarity ir = MaterialUtil.getRarity(stack);
+    double rarity = 1 + ((ir == null) ? 0 : ir.getPower());
     double itemPrice = materialPrices.getOrDefault(stack.getType(), -1D);
-    double itemLevel = MaterialUtil.getItemLevel(stack);
+    double itemLevel = ModifyEquipmentUtil.getItemLevel(stack);
     if (itemLevel >= 1) {
       itemPrice = Math.max(itemPrice, 1);
       itemPrice *= 1 + (itemLevel / 25);

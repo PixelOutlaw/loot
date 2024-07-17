@@ -22,7 +22,7 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.listeners.sockets.CombinerListener;
-import info.faceland.loot.sockets.SocketGem;
+import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.utils.InventoryUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.List;

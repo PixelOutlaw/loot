@@ -21,6 +21,7 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
+import info.faceland.loot.items.SocketGem;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,9 +72,9 @@ public class TransmuteMenu extends ItemMenu {
   }
 
   public void attemptGemEntry(Player player, ItemStack stack, int slot) {
-    if (!isSocketGem(stack)) {
-      MessageUtils.sendMessage(player, LootPlugin.getInstance()
-          .getSettings().getString("language.socket.must-be-gem", ""));
+    SocketGem gem = SocketGem.get(stack);
+    if (gem == null) {
+      MessageUtils.sendMessage(player, LootPlugin.getInstance().getSettings().getString("language.socket.must-be-gem", ""));
       return;
     }
     boolean change = false;
@@ -133,15 +134,6 @@ public class TransmuteMenu extends ItemMenu {
       validateResult(player);
     }
     update(player);
-  }
-
-  private boolean isSocketGem(ItemStack item) {
-    if (item == null || item.getType() != Material.EMERALD) {
-      return false;
-    }
-    String name = ItemStackExtensionsKt.getDisplayName(item);
-    return StringUtils.isNotBlank(name) &&
-        net.md_5.bungee.api.ChatColor.stripColor(name).startsWith("Socket Gem - ");
   }
 
   public void validateResult(Player player) {

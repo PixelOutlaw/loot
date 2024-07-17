@@ -20,13 +20,16 @@ package info.faceland.loot.menu.gemsmasher;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
-import info.faceland.loot.LootPlugin;
-import info.faceland.loot.data.ExistingSocketData;
-import info.faceland.loot.items.ItemBuilder;
+import info.faceland.loot.builders.ItemBuilder;
+import info.faceland.loot.data.pdc.EquipmentData;
+import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.utils.MaterialUtil;
+import info.faceland.loot.utils.ModifyEquipmentUtil;
+import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
+import jdk.net.Sockets;
 import land.face.strife.StrifePlugin;
 import net.milkbowl.vault.economy.EconomyResponse;
 import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
@@ -52,40 +55,26 @@ public class GemOption extends MenuItem {
 
   @Override
   public ItemStack getFinalIcon(Player player) {
-    ExistingSocketData data = menu.getData(player);
-    if (data == null || data.getIndexes(index) == null) {
+    if (menu.getStack(player) == null) {
       return new ItemStack(Material.AIR);
     }
-    ItemStack gemb = new ItemStack(Material.EMERALD);
-    ItemStackExtensionsKt.setCustomModelData(gemb, 2000);
-    ItemStackExtensionsKt.setDisplayName(gemb, PaletteUtil.color("|red||b|WOO! SMASH IT!"));
-    List<String> lore = new ArrayList<>();
-    lore.add("");
-    lore.add(PaletteUtil.color("|white|Clicking this will destroy a gem and"));
-    lore.add(PaletteUtil.color("|white|restore the " + ItemBuilder.SOCKET));
-    lore.add("");
-    ItemStack stack = menu.getStack(player);
-    List<String> handLore = TextUtils.getLore(stack);
-    for (int i : data.getIndexes(index)) {
-      lore.add(handLore.get(i));
+    List<SocketGem> sockets = ModifyEquipmentUtil.getSockets(menu.getStack(player));
+    if (sockets.size() < (index - 1) || sockets.get(index) == null) {
+      return new ItemStack(Material.AIR);
     }
-    lore.add("");
-    lore.add(PaletteUtil.color("|red|Click to destroy this gem!"));
-    lore.add(PaletteUtil.color("|orange|Cost: |yellow|" +
-        StrifePlugin.INT_FORMAT.format(menu.getCost(player)) + "◎"));
-    lore.add("");
-    lore.add(ChatColor.WHITE + "哄");
-    lore.add("");
-    lore.add("");
-    TextUtils.setLore(gemb, lore, false);
-    return gemb;
+    return sockets.get(index).item();
   }
 
   @Override
   public void onItemClick(ItemClickEvent event) {
     super.onItemClick(event);
-    ExistingSocketData data = menu.getData(event.getPlayer());
-    if (data == null || data.getIndexes((index)) == null) {
+    if (menu.getStack(event.getPlayer()) == null) {
+      event.setWillUpdate(false);
+      event.setWillClose(false);
+      return;
+    }
+    List<SocketGem> sockets = ModifyEquipmentUtil.getSockets(menu.getStack(event.getPlayer()));
+    if (sockets.size() < (index - 1) || sockets.get(index) == null) {
       event.setWillUpdate(false);
       event.setWillClose(false);
       return;
@@ -101,9 +90,17 @@ public class GemOption extends MenuItem {
           StrifePlugin.INT_FORMAT.format(cost) + "◎ |orange|to do this!");
       return;
     }
+    EquipmentData data = PersistHelper.getEquipmentData(menu.getStack(event.getPlayer()));
+    var result = data.extractGem(index);
+    if (result == null) {
+      event.setWillUpdate(false);
+      event.setWillClose(false);
+      return;
+    }
     PaletteUtil.sendMessage(event.getPlayer(), "|lgreen|Socket gem removed!");
-    ExistingSocketData newData = MaterialUtil.destroyGem(menu.getStack(event.getPlayer()), index);
-    menu.setData(event.getPlayer(), newData, menu.getStack(event.getPlayer()));
+    PersistHelper.setEquipmentData(menu.getStack(event.getPlayer()), data);
+
+    menu.setData(event.getPlayer(), menu.getStack(event.getPlayer()));
     event.getPlayer().playSound(event.getPlayer().getLocation(),
         "minecraft:custom.container.ceramic_break", SoundCategory.MASTER, 1, 1.7f);
     event.setWillUpdate(true);

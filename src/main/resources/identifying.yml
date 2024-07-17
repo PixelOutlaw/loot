@@ -1,9 +1,0 @@
-version: "0.0.1"
-identity-tome:
-  name: "<dark purple>Identity Tome"
-  lore:
-  - "<white>Fuck yeah, Identity Tome"
-unidentified-item:
-  name: "<white>Unidentified Item"
-  lore:
-  - "<white>Fuck yeah, Unidentified Item"

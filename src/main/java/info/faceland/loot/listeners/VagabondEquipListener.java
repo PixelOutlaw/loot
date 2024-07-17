@@ -23,11 +23,12 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.ItemRarity;
-import info.faceland.loot.items.CustomItem;
-import info.faceland.loot.tier.Tier;
+import info.faceland.loot.items.NewCustomItem;
+import info.faceland.loot.items.Tier;
 import info.faceland.loot.utils.DropUtil;
 import info.faceland.loot.utils.InventoryUtil;
 import info.faceland.loot.utils.MaterialUtil;
+import info.faceland.loot.utils.ModifyEquipmentUtil;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -80,28 +81,28 @@ public final class VagabondEquipListener implements Listener {
       }
       ItemStack item = null;
       if (LootPlugin.RNG.nextFloat() < vagabondUniqueChance) {
-        List<CustomItem> potentialItems = buildPotentialItems(data, slot, event.getLevel());
+        List<NewCustomItem> potentialItems = buildPotentialItems(data, slot, event.getLevel());
         if (potentialItems.size() > 1) {
-          CustomItem customItem = selectItemByWeight(potentialItems);
-          item = customItem.toItemStack(1);
+          NewCustomItem customItem = selectItemByWeight(potentialItems);
+          item = customItem.item();
         }
       }
       if (item == null) {
         ItemRarity rarity = plugin.getRarityManager().getRandomRarity(1, 2.0);
         // TODO: this is ugly
         String selectedTier = data.getTierList().get(slot).get(LootPlugin.RNG.nextInt(data.getTierList().get(slot).size()));
-        Tier tier = plugin.getTierManager().getTier(selectedTier);
+        Tier tier = Tier.get(selectedTier);
         item = plugin.getNewItemBuilder()
             .withItemGenerationReason(ItemGenerationReason.MONSTER)
             .withTier(tier)
             .withRarity(rarity)
+            .withPlus(upgradeLevel / tier.getUpgradeScale())
             .withLevel(event.getLevel())
             .withDistortion(LootPlugin.RNG.nextFloat() < 0.05)
             .withCreator(null)
             .build()
             .getStack();
       }
-      DropUtil.upgradeItem(item, upgradeLevel);
       ItemMeta m = item.getItemMeta();
       m.setUnbreakable(true);
       item.setItemMeta(m);
@@ -138,8 +139,8 @@ public final class VagabondEquipListener implements Listener {
       m.setUnbreakable(false);
       stack.setItemMeta(m);
 
-      int rarity = MaterialUtil.getRarity(stack);
-      boolean announce = MaterialUtil.getUpgradeLevel(stack) > 6 || rarity > 3;
+      int rarity = (int) MaterialUtil.getRarity(stack).getPower();
+      boolean announce = ModifyEquipmentUtil.getUpgradeLevel(stack) > 6 || rarity > 3;
       Color dropRgb = rarity == 4 ? FaceColor.RED.getRawColor() : FaceColor.PURPLE.getRawColor();
       ChatColor glow = rarity == 4 ? ChatColor.RED : ChatColor.DARK_PURPLE;
 
@@ -178,12 +179,12 @@ public final class VagabondEquipListener implements Listener {
     }
   }
 
-  private List<CustomItem> buildPotentialItems(VagabondData data, EquipmentSlot slot, int level) {
-    List<CustomItem> options = new ArrayList<>();
+  private List<NewCustomItem> buildPotentialItems(VagabondData data, EquipmentSlot slot, int level) {
+    List<NewCustomItem> options = new ArrayList<>();
     for (String s : data.getUniquesList().get(slot)) {
-      CustomItem ci = plugin.getCustomItemManager().getCustomItem(s);
-      if (level > ci.getLevelBase() + ci.getLevelRange() ||
-          level < ci.getLevelBase() - ci.getLevelRange()) {
+      NewCustomItem ci = plugin.getCustomItemManager().getUnique(s);
+      if (level > ci.getDropLevel() + ci.getDropRange() ||
+          level < ci.getDropLevel() - ci.getDropRange()) {
         continue;
       }
       options.add(ci);
@@ -191,14 +192,14 @@ public final class VagabondEquipListener implements Listener {
     return options;
   }
 
-  private CustomItem selectItemByWeight(List<CustomItem> options) {
-    float totalWeight = 0;
-    for (CustomItem ci : options) {
+  private NewCustomItem selectItemByWeight(List<NewCustomItem> options) {
+    double totalWeight = 0;
+    for (var ci : options) {
       totalWeight += ci.getWeight();
     }
-    float selectorValue = LootPlugin.RNG.nextFloat() * totalWeight;
-    float currentWeight = 0;
-    for (CustomItem ci : options) {
+    double selectorValue = LootPlugin.RNG.nextFloat() * totalWeight;
+    double currentWeight = 0;
+    for (var ci : options) {
       currentWeight += ci.getWeight();
       if (currentWeight >= selectorValue) {
         return ci;

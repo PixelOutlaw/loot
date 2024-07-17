@@ -1,15 +1,14 @@
 package info.faceland.loot.data;
 
-import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
-import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils;
-import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
 import info.faceland.loot.utils.MaterialUtil;
-import lombok.Data;
-import org.bukkit.ChatColor;
+import info.faceland.loot.utils.ModifyEquipmentUtil;
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-@Data
+@Getter
+@Setter
 public class CraftResultData {
 
   private final int numMaterials;
@@ -27,16 +26,9 @@ public class CraftResultData {
         continue;
       }
       ItemStack loopItem = new ItemStack(is);
-      if (MaterialUtil.hasItemLevel(loopItem)) {
-        int iLevel = NumberUtils.toInt(CharMatcher.digit().or(CharMatcher.is('-')).negate()
-            .collapseFrom(ChatColor.stripColor(TextUtils.getLore(loopItem).get(0)), ' ')
-            .trim());
-        totalItemLevel += iLevel;
-      } else {
-        totalItemLevel += 0.5F;
-      }
+      totalItemLevel += ModifyEquipmentUtil.getItemLevel(loopItem);
       numMaterials++;
-      totalRarity += MaterialUtil.getRarity(loopItem);
+      totalRarity += (float) MaterialUtil.getRarity(loopItem).getPower();
     }
 
     this.numMaterials = numMaterials;

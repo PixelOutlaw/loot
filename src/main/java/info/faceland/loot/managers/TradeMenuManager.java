@@ -40,18 +40,21 @@ public class TradeMenuManager {
         try {
           String optionOne = section.getString(key + ".item-one");
           int quantityOne = section.getInt(key + ".quantity-one", 1);
-          ItemStack stack1 = plugin.getCustomItemManager().getCustomItem(optionOne).toItemStack(quantityOne);
+          ItemStack stack1 = plugin.getCustomItemManager().getCustomItem(optionOne).item();
+          stack1.setAmount(quantityOne);
 
           String optionTwo = section.getString(key + ".item-two");
           int quantityTwo = section.getInt(key + ".quantity-two", 0);
           ItemStack stack2 = null;
           if (optionTwo != null && quantityTwo >= 1) {
-            stack2 = plugin.getCustomItemManager().getCustomItem(optionTwo).toItemStack(quantityOne);
+            stack2 = plugin.getCustomItemManager().getCustomItem(optionTwo).item();
+            stack2.setAmount(quantityTwo);
           }
 
           String result = section.getString(key + ".result");
           int resultQuantity = section.getInt(key + ".result-quantity", 0);
-          ItemStack resulttem = plugin.getCustomItemManager().getCustomItem(result).toItemStack(resultQuantity);
+          ItemStack resulttem = plugin.getCustomItemManager().getCustomItem(result).item();
+          resulttem.setAmount(resultQuantity);
           if (stack2 == null) {
             trades.add(new VillagerTrade(stack1, resulttem, 9999));
           } else {

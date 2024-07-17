@@ -17,9 +17,11 @@
 package info.faceland.loot.menu.gemcutter;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
+import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.menu.TransparentIcon;
 import info.faceland.loot.utils.CraftingUtil;
 import info.faceland.loot.utils.MaterialUtil;
@@ -84,11 +86,14 @@ public class GemcutterMenu extends ItemMenu {
     SkillRank rank = SkillRank.getRank(LootPlugin.getInstance()
         .getStrifePlugin().getChampionManager().getChampion(player), LifeSkillType.CRAFTING);
     int maxLvl = CraftingUtil.getMaxActionLevel(rank);
-    int itemLevel = Integer.parseInt(ChatColor.stripColor(
-        TextUtils.getLore(selectedStack).get(0)).replace("Item Level: ", ""));
+    CraftMaterial selectedMaterial = CraftMaterial.get(selectedStack);
+    if (selectedMaterial == null) {
+      player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
+      return;
+    }
+    int itemLevel = selectedMaterial.getItemLevel();
     if (itemLevel > maxLvl) {
-      MessageUtils.sendMessage(player, "&e[!] You need &fCrafting " + (itemLevel - 10) +
-          " &eto do this!");
+      MessageUtils.sendMessage(player, "&e[!] You need &fCrafting " + (itemLevel - 10) + " &eto do this!");
       player.playSound(player.getLocation(), Sound.BLOCK_GRINDSTONE_USE, 1, 0.8f);
       return;
     }
@@ -96,60 +101,27 @@ public class GemcutterMenu extends ItemMenu {
     float effectiveCraftLevel = data.getLevelWithBonus();
     int modelData = ItemUtil.getCustomData(selectedStack);
     Material material = Material.DIAMOND;
-    String name = "Diamond";
     if (modelData >= 1000 && modelData < 2000) {
       material = Material.RED_DYE;
-      name = "Ruby";
     } else if (modelData < 3000) {
       material = Material.EMERALD;
-      name = "Emerald";
     } else if (modelData < 4000) {
       material = Material.LAPIS_LAZULI;
-      name = "Sapphire";
     } else if (modelData < 5000) {
       material = Material.ORANGE_DYE;
-      name = "Topaz";
     } else if (modelData < 6000) {
-      material = Material.AMETHYST_SHARD;
-      name = "Amethyst";
+      material = Material.PURPLE_DYE;
     } else if (modelData < 7000) {
       material = Material.PINK_DYE;
-      name = "Opal";
     }
-    ItemStack result = new ItemStack(material);
-    float upgradeChance = 0.2f * ((effectiveCraftLevel + 100) / (itemLevel + 100));
-    int rarity = 0;
-    while (rarity < 3 && LootPlugin.RNG.nextFloat() < upgradeChance) {
-      rarity++;
+
+    float upgradeChance = 0.15f * ((effectiveCraftLevel + 100) / (itemLevel + 100));
+    int stars = 1;
+    while (stars < 4 && LootPlugin.RNG.nextFloat() < upgradeChance) {
+      stars++;
     }
-    FaceColor color = switch (rarity) {
-      case 0 -> FaceColor.WHITE;
-      case 1 -> FaceColor.BLUE;
-      case 2 -> FaceColor.PURPLE;
-      case 3 -> FaceColor.RED;
-      case 4 -> FaceColor.ORANGE;
-      default -> throw new IllegalStateException("Unexpected value: " + rarity);
-    };
-    String tag = switch (rarity) {
-      case 0 -> MaterialUtil.TAG_COMMON;
-      case 1 -> MaterialUtil.TAG_UNCOMMON;
-      case 2 -> MaterialUtil.TAG_RARE;
-      case 3 -> MaterialUtil.TAG_EPIC;
-      case 4 -> MaterialUtil.TAG_UNIQUE;
-      default -> throw new IllegalStateException("Unexpected value: " + rarity);
-    };
-    ItemStackExtensionsKt.setDisplayName(result, color + name);
-    List<String> lore = new ArrayList<>();
-    lore.add(FaceColor.WHITE + "Item Level: " + itemLevel);
-    lore.add(FaceColor.WHITE + tag + "\uD86D\uDFF5");
-    lore.add("");
-    lore.add(FaceColor.GRAY + "A very pretty jewel!");
-    TextUtils.setLore(result, lore);
-    HashMap<Integer, ItemStack> leftovers = player.getInventory().addItem(result);
-    for (ItemStack leftover : leftovers.values()) {
-      Item item = player.getWorld().dropItemNaturally(player.getLocation(), leftover);
-      item.setOwner(player.getUniqueId());
-    }
+    ItemStack result = CraftMaterial.get(material, itemLevel, stars).item();
+    ItemUtils.giveOrDrop(player, result);
     selectedStack.setAmount(selectedStack.getAmount() - 1);
     StrifePlugin.getInstance().getSkillExperienceManager().addExperience(player,
         LifeSkillType.CRAFTING, 10 + itemLevel * 3, false, false);

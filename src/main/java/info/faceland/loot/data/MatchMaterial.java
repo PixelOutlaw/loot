@@ -1,7 +1,7 @@
 package info.faceland.loot.data;
 
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.tier.Tier;
+import info.faceland.loot.items.Tier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;

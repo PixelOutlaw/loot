@@ -28,8 +28,8 @@ import com.loohp.interactivechatdiscordsrvaddon.graphics.ImageGeneration;
 import com.loohp.interactivechatdiscordsrvaddon.objectholders.DiscordMessageContent;
 import com.loohp.interactivechatdiscordsrvaddon.utils.DiscordItemStackUtils;
 import com.loohp.interactivechatdiscordsrvaddon.utils.DiscordItemStackUtils.DiscordToolTip;
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
-import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
 import github.scarsz.discordsrv.DiscordSRV;
 import github.scarsz.discordsrv.dependencies.jda.api.entities.TextChannel;
 import info.faceland.loot.LootPlugin;
@@ -44,7 +44,6 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -153,8 +152,12 @@ public final class InventoryUtil {
   }
 
   public static net.md_5.bungee.api.ChatColor getRollColor(ItemStat stat, double roll) {
-    return getRollColor(Math.max(0.01, roll), stat.getMinHue(), stat.getMaxHue(), stat.getMinSaturation(),
-        stat.getMaxSaturation(), stat.getMinBrightness(), stat.getMaxBrightness());
+    if (roll >= 0) {
+      return getRollColor(Math.max(0.01, roll), stat.getMinHue(), stat.getMaxHue(), stat.getMinSaturation(),
+          stat.getMaxSaturation(), stat.getMinBrightness(), stat.getMaxBrightness());
+    } else {
+      return FaceColor.RED.getColor();
+    }
   }
 
   public static net.md_5.bungee.api.ChatColor getRollColor(double roll, float minHue, float maxHue,
@@ -165,54 +168,11 @@ public final class InventoryUtil {
     return net.md_5.bungee.api.ChatColor.of(Color.getHSBColor(hue, saturation, brightness));
   }
 
-  public static ChatColor getFirstColor(String s) {
-    for (int i = 0; i < s.length() - 1; i++) {
-      if (!s.startsWith(ChatColor.COLOR_CHAR + "", i)) {
-        continue;
-      }
-      ChatColor c = ChatColor.getByChar(s.substring(i + 1, i + 2));
-      if (c != null) {
-        return c;
-      }
-    }
-    return ChatColor.RESET;
-  }
-
-  public static ChatColor getLastColor(String s) {
-    for (int i = s.length() - 1; i >= 0; i--) {
-      if (!s.startsWith(ChatColor.COLOR_CHAR + "", i)) {
-        continue;
-      }
-      ChatColor c = ChatColor.getByChar(s.substring(i + 1, i + 2));
-      if (c != null) {
-        return c;
-      }
-    }
-    return ChatColor.RESET;
-  }
-
-  public static String getItemType(ItemStack itemStack) {
-    Material material = itemStack.getType();
-    if (isWand(itemStack)) {
-      return "Wand";
-    }
-    return WordUtils.capitalizeFully(material.toString().replace("_", " "));
-  }
-
   public static List<String> stripColor(List<String> strings) {
     List<String> ret = new ArrayList<>();
     for (String s : strings) {
       ret.add(ChatColor.stripColor(s));
     }
     return ret;
-  }
-
-  // Dirty hardcoded check for Faceland, as wood swords are still a thing, but wands use the item type
-  private static boolean isWand(ItemStack itemStack) {
-    if (!itemStack.hasItemMeta() || !itemStack.getItemMeta().hasLore()) {
-      return false;
-    }
-    return itemStack.getItemMeta().getLore().size() > 1 && itemStack.getItemMeta().getLore().get(1)
-        .endsWith("Wand");
   }
 }

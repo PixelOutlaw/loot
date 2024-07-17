@@ -12,4 +12,5 @@ public class StatResponse {
   private float statRoll;
   private boolean inverted = false;
   private boolean crafted = false;
+  private int value;
 }
