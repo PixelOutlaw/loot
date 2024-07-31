@@ -83,6 +83,7 @@ public class StatManager {
       response.setStatRoll(statRoll);
     }
     statValue = (int) (((float) statValue * multiplier) + flatBonus);
+    statValue = statValue == 0 ? 1 : statValue;
 
     String value = Integer.toString(statValue);
     if (itemStat.getStat() != null) {

@@ -30,14 +30,17 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.groups.ItemGroup;
+import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
+import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import land.face.strife.StrifePlugin;
 import land.face.strife.data.LoreAbility;
 import land.face.strife.stats.StrifeStat;
 import land.face.strife.stats.StrifeTrait;
@@ -80,8 +83,8 @@ public final class SocketGem {
   private Map<StrifeStat, Float> stats = new HashMap<>();
   private Map<StrifeStat, Float> percentStats = new HashMap<>();
 
-  @Getter(value=AccessLevel.NONE)
-  @Setter(value=AccessLevel.NONE)
+  @Getter(value = AccessLevel.NONE)
+  @Setter(value = AccessLevel.NONE)
   private ItemStack builtItem;
 
   public SocketGem(String id) {
@@ -126,8 +129,9 @@ public final class SocketGem {
   public static void update(ItemStack stack) {
     SocketGem gemb = LootPlugin.getInstance().getSocketGemManager().getSocketGem(PersistHelper.getItemId(stack));
     if (gemb != null) {
-      stack.setType(Material.EMERALD);
-      stack.setItemMeta(gemb.meta());
+      int amount = stack.getAmount();
+      ItemRenderer.replace(stack, gemb.builtItem.clone());
+      stack.setAmount(amount);
     }
   }
 
@@ -146,9 +150,34 @@ public final class SocketGem {
         GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C");
     lore.add(centerSmallText(FaceColor.WHITE + "Usable On: " + FaceColor.CYAN + itemGroup.getName()));
     lore.add("");
-    lore.add(FaceColor.WHITE + centerSmallText("Bonuses Applied:"));
+    for (var stuff : percentStats.entrySet()) {
+      int val = Math.round(stuff.getValue());
+      if (val >= 0) {
+        lore.add(centerSmallText(FaceColor.ORANGE + "+" + val + "% " + stuff.getKey().getName()));
+      } else {
+        lore.add(centerSmallText(FaceColor.RED.s() + (val + "% " + stuff.getKey().getName())));
+      }
+    }
+    for (var stuff : stats.entrySet()) {
+      int val = Math.round(stuff.getValue());
+      if (val >= 0) {
+        lore.add(centerSmallText(FaceColor.ORANGE + "+" + val + " " + stuff.getKey().getName()));
+      } else {
+        lore.add(centerSmallText(FaceColor.RED.s() + val + " " + stuff.getKey().getName()));
+      }
+    }
+    for (var stuff : traits) {
+      for (String s : stuff.getAdditionalText()) {
+        lore.add(centerSmallText(s));
+      }
+    }
+    for (var stuff : loreAbilities) {
+      for (String s : stuff.getDescription()) {
+        lore.add(centerSmallText(s));
+      }
+    }
     for (String s : this.lore) {
-      lore.add(centerSmallText(PaletteUtil.color(s)));
+      lore.add(centerSmallText(s));
     }
     lore.add("");
     lore.addAll(List.of(
@@ -167,6 +196,7 @@ public final class SocketGem {
     pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, id);
 
     builtItem.setItemMeta(meta);
+    ItemRenderer.applyCommonFlags(builtItem);
   }
 
   public static void loadFromFile(LootPlugin plugin, SmartYamlConfiguration file) {
@@ -187,11 +217,11 @@ public final class SocketGem {
         gem.setWeightPerLevel(cs.getDouble("weight-per-level"));
         gem.setCustomModelData(cs.getInt("custom-model-data", 2000));
         gem.setItemGroup(ItemGroup.get(cs.getString("item-group")));
-        gem.setLore(cs.getStringList("lore"));
+        gem.setLore(PaletteUtil.color(cs.getStringList("lore")));
         gem.setStats(StatUtil.getStatMapFromSection(cs.getConfigurationSection("stats")));
         gem.setPercentStats(StatUtil.getStatMapFromSection(cs.getConfigurationSection("percentage-stats")));
-        gem.setTraits(StatUtil.getTraitsFromSection(cs.getConfigurationSection("traits")));
-        gem.setLoreAbilities(StatUtil.getLoreAbilitiesFromSection(cs.getConfigurationSection("passives")));
+        gem.setTraits(getTraits(trueId, cs.getStringList("traits")));
+        gem.setLoreAbilities(getPassives(trueId, cs.getStringList("passives")));
         gem.setBroadcast(cs.getBoolean("broadcast"));
 
         gem.buildStack();
@@ -203,5 +233,30 @@ public final class SocketGem {
       }
     }
     Bukkit.getLogger().info("[Loot] Loaded " + gems.size() + " socket gems!");
+  }
+
+  private static Set<StrifeTrait> getTraits(String id, List<String> strs) {
+    Set<StrifeTrait> traits = new HashSet<>();
+    for (String s : strs) {
+      try {
+        traits.add(StrifeTrait.valueOf(s));
+      } catch (Exception e) {
+        Bukkit.getLogger().warning("[Loot] Invalid trait " + s + " used for gem " + id);
+      }
+    }
+    return traits;
+  }
+
+  private static Set<LoreAbility> getPassives(String id, List<String> strs) {
+    Set<LoreAbility> passives = new HashSet<>();
+    for (String s : strs) {
+      var la = StrifePlugin.getInstance().getLoreAbilityManager().getLoreAbilityFromId(s);
+      if (la == null) {
+        Bukkit.getLogger().warning("[Loot] Invalid la " + s + " used for gem " + id);
+        continue;
+      }
+      passives.add(la);
+    }
+    return passives;
   }
 }

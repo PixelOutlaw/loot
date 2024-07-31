@@ -52,7 +52,7 @@ public final class ItemGroup {
 
   public boolean matches(EquipmentData data) {
     if (data == null || data.getTier() == null) {
-      System.out.println("null groop");
+      //System.out.println("null groop");
       return false;
     }
     return matches(data.getTier());
@@ -64,7 +64,7 @@ public final class ItemGroup {
 
   public boolean matches(Tier t) {
     for (var tier : validTiers) {
-      System.out.println(tier + " " + t.getId());
+      //System.out.println(tier + " " + t.getId());
       if (tier.equals(t.getId())) {
         return true;
       }

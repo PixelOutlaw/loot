@@ -105,8 +105,8 @@ public final class CustomItemManager {
           if (!file.isConfigurationSection(key)) {
             continue;
           }
-          NewCustomItem nci = NewCustomItem.fromConfigSection(plugin, key, file.getConfigurationSection(key));
-          newUniques.put(key, nci);
+          NewCustomItem nci = NewCustomItem.fromConfigSection(plugin, key.toLowerCase(), file.getConfigurationSection(key));
+          newUniques.put(key.toLowerCase(), nci);
         } catch (Exception e) {
           Bukkit.getLogger().warning("[Loot] Failed to load nu-unique named " + key + " from file " + file.getName());
           e.printStackTrace();

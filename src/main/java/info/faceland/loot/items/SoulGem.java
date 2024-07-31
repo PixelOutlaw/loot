@@ -28,9 +28,13 @@ import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
+import info.faceland.loot.LootPlugin;
+import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
+import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,6 +48,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
@@ -107,9 +112,19 @@ public final class SoulGem  {
   public static void update(ItemStack stack) {
     SoulGem s = get(stack);
     if (s != null) {
-      stack.setType(s.item().getType());
-      stack.setItemMeta(s.meta());
+      int amount = stack.getAmount();
+      ItemRenderer.replace(stack, s.builtItem.clone());
+      stack.setAmount(amount);
     }
+  }
+
+  public static SoulGem getSimilar(ItemStack stack) {
+    String id = ItemStackExtensionsKt.getDisplayName(stack);
+    if (id == null || id.isBlank()) {
+      return null;
+    }
+    id = ChatColor.stripColor(id).replace("Soul Gem - ", "").toLowerCase();
+    return SoulGem.get(id);
   }
 
   public static boolean matches(ItemStack stack) {
@@ -124,7 +139,7 @@ public final class SoulGem  {
     List<String> lore = new ArrayList<>();
     lore.add(PaletteUtil.color("|ns|\uF808俊\uF808\uF801"));
     lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C");
-    if (breakChance < 2) {
+    if (breakChance < 0.2) {
       lore.add(centerSmallText(FaceColor.WHITE + "Break Chance: " + FaceColor.GREEN + "Very Low"));
     } else if (breakChance < 0.4) {
       lore.add(centerSmallText(FaceColor.WHITE + "Break Chance: " + FaceColor.LIME + "Low"));
@@ -137,7 +152,6 @@ public final class SoulGem  {
     }
     lore.add("");
     if (!hideStats && !(stats.isEmpty() && percentStats.isEmpty())) {
-      lore.add(centerSmallText(FaceColor.WHITE + "Bonuses Applied:"));
       for (var e : stats.entrySet()) {
         lore.add(centerSmallText(
             FaceColor.PINK + "+" + e.getValue().intValue() + " " + e.getKey().getName()) + "\uF80B");
@@ -157,11 +171,34 @@ public final class SoulGem  {
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
     pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, TYPE_KEY);
     pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, id);
+
     builtItem.setItemMeta(meta);
+    ItemRenderer.applyCommonFlags(builtItem);
   }
 
   public static void clear() {
     gems.clear();
+  }
+
+  public static SoulGem getRandom() {
+    double selectedWeight = LootPlugin.RNG.nextFloat() * weight();
+    double currentWeight = 0D;
+    for (SoulGem sg : gems.values()) {
+      double calcWeight = sg.getWeight();
+      currentWeight += calcWeight;
+      if (currentWeight >= selectedWeight) {
+        return sg;
+      }
+    }
+    return null;
+  }
+
+  private static double weight() {
+    double totalWeight = 0;
+    for (SoulGem sg : gems.values()) {
+      totalWeight += sg.getWeight();
+    }
+    return totalWeight;
   }
 
   public static SoulGem loadFromConfig(String id, ConfigurationSection section) {

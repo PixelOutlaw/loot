@@ -21,6 +21,7 @@ package info.faceland.loot.managers;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemRarity;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,8 +31,17 @@ public final class LootNameManager {
   private final Map<ItemRarity, List<String>> prefixes = new HashMap<>();
   private final Map<ItemRarity, List<String>> suffixes = new HashMap<>();
 
-  public String getRandomPrefix(ItemRarity rarity) {
-    return prefixes.get(rarity).get(LootPlugin.RNG.nextInt(prefixes.get(rarity).size()));
+  public String getRandomPrefix(ItemRarity rarity, int remainingCharacters) {
+    List<String> options = new ArrayList<>();
+    for (var option : prefixes.get(rarity)) {
+      if (option.length() <= remainingCharacters) {
+        options.add(option);
+      }
+    }
+    if (options.isEmpty()) {
+      return null;
+    }
+    return options.get(LootPlugin.RNG.nextInt(options.size()));
   }
 
   public void setPrefixes(ItemRarity rarity, List<String> prefixes) {

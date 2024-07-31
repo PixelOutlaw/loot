@@ -12,6 +12,7 @@ import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
+import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ public class CraftMaterial {
     if (!PersistHelper.getItemType(stack).equals(TYPE_KEY)) {
       return null;
     }
-    return materials.getOrDefault(PersistHelper.getItemId(stack), null);
+    return materials.getOrDefault(PersistHelper.getItemId(stack).toLowerCase(), null);
   }
 
   public static CraftMaterial get(Material type, int level, int quality) {
@@ -92,13 +93,20 @@ public class CraftMaterial {
   public static void update(ItemStack stack) {
     CraftMaterial mat = get(stack);
     if (mat != null) {
-      stack.setType(mat.getMaterial());
-      stack.setItemMeta(mat.meta());
+      int amount = stack.getAmount();
+      ItemRenderer.replace(stack, mat.cachedStack.clone());
+      stack.setAmount(amount);
     }
   }
 
+  public void sync(ItemStack stack) {
+    stack.setType(item().getType());
+    stack.setItemMeta(item().getItemMeta());
+  }
+
   public static boolean matches(ItemStack stack) {
-    return PersistHelper.getItemType(stack).equals(TYPE_KEY) && materials.containsKey(PersistHelper.getItemId(stack));
+    return PersistHelper.getItemType(stack).equals(TYPE_KEY) &&
+        materials.containsKey(PersistHelper.getItemId(stack).toLowerCase());
   }
 
   public static void buildGeneric() {
@@ -124,7 +132,7 @@ public class CraftMaterial {
     for (int itemLevel = 0; itemLevel <= 120; itemLevel += 5) {
       int level = Math.max(itemLevel, 1);
       for (int quality = 1; quality <= 5; quality++) {
-        String id = "generic_" + material + "_" + level + "_" + quality;
+        String id = "generic_" + material.name().toLowerCase() + "_" + level + "_" + quality;
         var mat = new CraftMaterial(id);
         var name = switch (quality) {
           case 2 -> "Pretty Okay " + baseName;
@@ -135,7 +143,7 @@ public class CraftMaterial {
         };
         mat.setMaterial(material);
         mat.setName(name);
-        mat.setModelData(1000 * quality + level);
+        mat.setModelData(2000 * quality + level);
         mat.setQuality(quality);
         mat.setItemLevel(level);
         mat.setDescription(List.of(PaletteUtil.color("|lgray|Normal crafting material")));
@@ -210,5 +218,6 @@ public class CraftMaterial {
     pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, TYPE_KEY);
     pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, id);
     cachedStack.setItemMeta(meta);
+    ItemRenderer.applyCommonFlags(cachedStack);
   }
 }

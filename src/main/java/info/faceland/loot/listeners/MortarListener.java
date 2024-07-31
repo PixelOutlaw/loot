@@ -39,24 +39,6 @@ import org.bukkit.inventory.ItemStack;
 public record MortarListener(LootPlugin plugin) implements Listener {
 
   @EventHandler(priority = EventPriority.LOWEST)
-  public void onClickMortarMenu(PlayerInteractEvent event) {
-    if (event.getHand() != EquipmentSlot.HAND) {
-      return;
-    }
-    if (event.getItem() == null || event.getItem().getType() == Material.AIR) {
-      return;
-    }
-    if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
-      return;
-    }
-    if (event.getItem().getType() != Material.MUSIC_DISC_13) {
-      return;
-    }
-    event.setCancelled(true);
-    plugin.getMortarMenu().open(event.getPlayer());
-  }
-
-  @EventHandler(priority = EventPriority.LOWEST)
   public void onClickMortarFrame(PlayerInteractEntityEvent event) {
     if (event.getPlayer().getGameMode() == GameMode.CREATIVE) {
       return;

@@ -2,6 +2,8 @@ package info.faceland.loot.data.pdc;
 
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemRarity;
+import info.faceland.loot.items.CustomItem;
+import info.faceland.loot.items.NewCustomItem;
 import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.Tier;
 import java.io.Serializable;
@@ -9,10 +11,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.LoreAbility;
 import land.face.strife.stats.StrifeStat;
@@ -20,6 +20,7 @@ import land.face.strife.stats.StrifeTrait;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Bukkit;
 
 @Getter
 @Setter
@@ -77,20 +78,33 @@ public class EquipmentData implements Serializable {
       StrifeStat stat = enchantment.getStat().getStat();
       itemDetails.getStats().put(stat, itemDetails.getStats().getOrDefault(stat, 0f) + enchantment.getCachedValue());
     }
+    if (getTier() != null) {
+      for (var stat : getTier().getHiddenStats().entrySet()) {
+        itemDetails.getStats().put(stat.getKey(),
+            itemDetails.getStats().getOrDefault(stat.getKey(), 0f) + stat.getValue().intValue());
+      }
+    }
     for (String s : passives) {
       LoreAbility la = StrifePlugin.getInstance().getLoreAbilityManager().getLoreAbilityFromId(s);
       if (la != null) {
         itemDetails.getLoreAbilities().add(la);
         continue;
       }
-      StrifeTrait trait = StrifeTrait.fromName(s);
-      if (trait != null) {
-        itemDetails.getTraits().add(trait);
+      try {
+        itemDetails.getTraits().add(StrifeTrait.valueOf(s));
+      } catch (Exception ignored) {
+        // Nothing
       }
+      Bukkit.getLogger().warning("[Loot] Bad passive load" + s + " attempted");
     }
     for (SocketGem gem : getSocketGems()) {
       for (var gemStats : gem.getStats().entrySet()) {
-        itemDetails.getStats().put(gemStats.getKey(), itemDetails.getStats().getOrDefault(gemStats.getKey(), 0f) + gemStats.getValue().intValue());
+        itemDetails.getStats().put(gemStats.getKey(),
+            itemDetails.getStats().getOrDefault(gemStats.getKey(), 0f) + gemStats.getValue().intValue());
+      }
+      for (var gemStats : gem.getPercentStats().entrySet()) {
+        itemDetails.getStats().put(gemStats.getKey(),
+            itemDetails.getStats().getOrDefault(gemStats.getKey(), 0f) + gemStats.getValue().intValue());
       }
       itemDetails.getTraits().addAll(gem.getTraits());
       itemDetails.getLoreAbilities().addAll(gem.getLoreAbilities());
@@ -168,21 +182,60 @@ public class EquipmentData implements Serializable {
     if (bonusStats.isEmpty()) {
       return false;
     }
-    List<StoredStat> eligibleStats = new ArrayList<>();
-    for (StoredStat s : bonusStats) {
-      if (s.isEssenceSlot()) {
-        continue;
-      }
-      eligibleStats.add(s);
-    }
+    List<StoredStat> eligibleStats = getExtractableStats();
     if (eligibleStats.isEmpty()) {
       return false;
     }
-    if (!allowMultipleEssenceSlots && eligibleStats.size() != bonusStats.size()) {
-      System.out.println("not eligibile");
+    if (!allowMultipleEssenceSlots && hasExistingCraftedStat()) {
+      //System.out.println("not eligibile");
       return false;
     }
     return true;
+  }
+
+  public boolean hasCraftSlot() {
+    for (StoredStat stat : bonusStats) {
+      if (stat.isEssenceSlot()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public StoredStat extractBonusStat(boolean allowMultipleEssenceSlots) {
+    if (bonusStats.isEmpty()) {
+      return null;
+    }
+    List<StoredStat> eligibleStats = getExtractableStats();
+    if (eligibleStats.isEmpty()) {
+      return null;
+    }
+    if (!allowMultipleEssenceSlots && hasExistingCraftedStat()) {
+      //System.out.println("not eligibile");
+      return null;
+    }
+    StoredStat stat = eligibleStats.get(LootPlugin.RNG.nextInt(eligibleStats.size()));
+    StoredStat extractedStat = new StoredStat(stat.getStat().getId(), stat.getStatRoll());
+    extractedStat.copyFrom(stat);
+    stat.setEssenceSlot(true);
+
+    extractedStat.setCrafted(true);
+    extractedStat.setRarityPower(getItemRarity().getPower());
+    extractedStat.setLevel(getLevel());
+
+    return extractedStat;
+  }
+
+  public boolean hasExistingCraftedStat() {
+    if (bonusStats.isEmpty()) {
+      return false;
+    }
+    for (StoredStat s : bonusStats) {
+      if (s.isEssenceSlot() || s.isCrafted()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public List<StoredStat> getExtractableStats() {
@@ -191,7 +244,7 @@ public class EquipmentData implements Serializable {
     }
     List<StoredStat> eligibleStats = new ArrayList<>();
     for (StoredStat s : bonusStats) {
-      if (s.isEssenceSlot()) {
+      if (s.isEssenceSlot() || s.isInverted() || s.isCrafted() || s.getCachedValue() < 0) {
         continue;
       }
       eligibleStats.add(s);
@@ -199,34 +252,20 @@ public class EquipmentData implements Serializable {
     return eligibleStats;
   }
 
-  public StoredStat extractBonusStat(boolean allowMultipleEssenceSlots) {
+  // For use in crafting to ensure no dupes
+  public List<StoredStat> getNormalStats() {
     if (bonusStats.isEmpty()) {
-      return null;
+      return new ArrayList<>();
     }
     List<StoredStat> eligibleStats = new ArrayList<>();
     for (StoredStat s : bonusStats) {
+      // Skip because it'll be overwritten
       if (s.isEssenceSlot()) {
         continue;
       }
       eligibleStats.add(s);
     }
-    if (eligibleStats.isEmpty()) {
-      return null;
-    }
-    if (!allowMultipleEssenceSlots && eligibleStats.size() != bonusStats.size()) {
-      System.out.println("not eligibile");
-      return null;
-    }
-    StoredStat stat = eligibleStats.get(LootPlugin.RNG.nextInt(eligibleStats.size()));
-    StoredStat extractedStat = new StoredStat(stat.getStat().getId(), stat.getStatRoll());
-    extractedStat.copyFrom(stat);
-    stat.setEssenceSlot();
-
-    extractedStat.setCrafted(true);
-    extractedStat.setRarityPower(getItemRarity().getPower());
-    extractedStat.setLevel(getLevel());
-
-    return extractedStat;
+    return eligibleStats;
   }
 
   public List<SocketGem> getSocketGems() {
@@ -285,8 +324,8 @@ public class EquipmentData implements Serializable {
   }
 
   public boolean enhance() {
-    if (isEnchanted() && !booleanData.getOrDefault("enhanced", false)) {
-      booleanData.put("enhanced", true);
+    if (isEnchanted() && !isEnhanced()) {
+      doubleData.put("enhancement", 1 + 0.3 * Math.pow(Math.random(), 2));
       return true;
     }
     return false;
@@ -304,6 +343,16 @@ public class EquipmentData implements Serializable {
 
   public void reroll() {
     reroll(0);
+  }
+
+  public void forceRoll(double amount) {
+    for (StoredStat b : bonusStats) {
+      if (b.isCrafted()) {
+        continue;
+      }
+      b.setStatRoll(amount);
+    }
+    sortBonusStats();
   }
 
   public void polish(double minimum, double exponent) {
@@ -381,7 +430,7 @@ public class EquipmentData implements Serializable {
       enchantment = null;
       intData.remove("maxEnchantPoints");
       intData.remove("enchantPoints");
-      booleanData.remove("enhanced");
+      doubleData.remove("enhancement");
       return true;
     }
     return false;
@@ -394,7 +443,7 @@ public class EquipmentData implements Serializable {
     enchantment = storedStat;
     intData.put("maxEnchantPoints", maxEnchantment);
     intData.put("enchantPoints", maxEnchantment);
-    booleanData.put("enhanced", false);
+    doubleData.remove("enhancement");
     return true;
   }
 
@@ -403,7 +452,7 @@ public class EquipmentData implements Serializable {
   }
 
   public boolean isEnhanced() {
-    return enchantment != null && booleanData.getOrDefault("enhanced", true);
+    return enchantment != null && doubleData.getOrDefault("enhancement", 0D) > 0;
   }
 
   public boolean isEnchantable() {
@@ -418,7 +467,7 @@ public class EquipmentData implements Serializable {
       enchantment = null;
       intData.remove("maxEnchantPoints");
       intData.remove("enchantPoints");
-      booleanData.remove("enhanced");
+      doubleData.remove("enhancement");
     }
   }
 
@@ -435,13 +484,36 @@ public class EquipmentData implements Serializable {
     Collections.reverse(getBonusStats());
   }
 
+  public void updateUniqueMultipliers(NewCustomItem parentUnique) {
+    for (StoredStat newStat : getBonusStats()) {
+      if (newStat.getOriginUnique().isBlank()) {
+        continue;
+      }
+      NewCustomItem originUnique;
+      if (parentUnique != null && newStat.getOriginUnique().equals(parentUnique.getId())) {
+        originUnique = parentUnique;
+      } else {
+        originUnique = LootPlugin.getInstance().getCustomItemManager().getUnique(newStat.getOriginUnique());
+      }
+      if (originUnique == null) {
+        continue;
+      }
+      for (var loopStat : originUnique.getBonusStats()) {
+        if (newStat.getStat().getId().equals(loopStat.getStat().getId())) {
+          newStat.setUniqueMult(loopStat.getValueModifier(), originUnique.getId());
+          break;
+        }
+      }
+    }
+  }
+
   public int getEmptyGemSlots() {
     return intData.getOrDefault("sockets", 0);
   }
 
   public void setEmptyGemSlots(int i) {
     intData.put("sockets", i);
-    System.out.println("Current gem slots: " + getEmptyGemSlots());
+    //System.out.println("Current gem slots: " + getEmptyGemSlots());
   }
 
   public int getEmptyExtendSlots() {
@@ -450,7 +522,7 @@ public class EquipmentData implements Serializable {
 
   public void setEmptyExtendSlots(int i) {
     intData.put("lockedSockets", i);
-    System.out.println("Current expend slots: " + getEmptyExtendSlots());
+    //System.out.println("Current expend slots: " + getEmptyExtendSlots());
   }
 
   public String getString(String key) {

@@ -24,27 +24,37 @@ import static info.faceland.loot.utils.MaterialUtil.FAILURE_BONUS;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
+import info.faceland.loot.items.NewCustomItem;
 import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
+import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.MaterialUtil;
+import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.List;
 import land.face.strife.StrifePlugin;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EnchantingInventory;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -74,6 +84,52 @@ public final class InteractListener implements Listener {
     }
     event.getEntity().setCustomName(name);
     event.getEntity().setCustomNameVisible(true);
+  }
+
+  @EventHandler(priority = EventPriority.HIGHEST)
+  public void onInteractUnique(PlayerInteractEvent event) {
+    if (event.getPlayer().getOpenInventory().getType() != InventoryType.CRAFTING) {
+      return;
+    }
+    if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+      ItemStack stack;
+      if (event.getHand() == EquipmentSlot.HAND) {
+        stack = event.getPlayer().getEquipment().getItemInMainHand();
+      } else if (event.getHand() == EquipmentSlot.OFF_HAND) {
+        stack = event.getPlayer().getEquipment().getItemInOffHand();
+      } else {
+        return;
+      }
+      NewCustomItem nci = PersistHelper.getNonEquipmentUniqueItem(stack);
+      if (nci == null || nci.getRightClickActions().isEmpty()) {
+        return;
+      }
+      for (String s : nci.getRightClickActions()) {
+        Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), s.replace("@p", event.getPlayer().getName()));
+      }
+      event.setCancelled(true);
+    }
+  }
+
+  @EventHandler(priority = EventPriority.HIGHEST)
+  public void runUniqueFromInvy(InventoryClickEvent event) {
+    if (event.getWhoClicked().getOpenInventory().getType() != InventoryType.CRAFTING) {
+      return;
+    }
+    if (event.getWhoClicked().getOpenInventory().getBottomInventory() != event.getClickedInventory()) {
+      return;
+    }
+    if (event.getClick() != ClickType.RIGHT || event.getCursor().getType() != Material.AIR) {
+      return;
+    }
+    NewCustomItem nci = PersistHelper.getNonEquipmentUniqueItem(event.getCurrentItem());
+    if (nci == null || nci.getRightClickActions().isEmpty()) {
+      return;
+    }
+    for (String s : nci.getRightClickActions()) {
+      Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), s.replace("@p", event.getWhoClicked().getName()));
+    }
+    event.setCancelled(true);
   }
 
   @EventHandler(priority = EventPriority.LOWEST)
@@ -191,6 +247,13 @@ public final class InteractListener implements Listener {
       event.setResult(Event.Result.DENY);
       player.updateInventory();
       player.playSound(player.getEyeLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 1L, 2F);
+    }
+  }
+
+  @EventHandler(priority = EventPriority.MONITOR)
+  public void onItemPickupEvent(EntityPickupItemEvent event) {
+    if (!event.isCancelled()) {
+      ItemRenderer.renderItem(event.getItem().getItemStack(), false);
     }
   }
 

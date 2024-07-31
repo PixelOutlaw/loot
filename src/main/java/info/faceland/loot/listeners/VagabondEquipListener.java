@@ -96,7 +96,7 @@ public final class VagabondEquipListener implements Listener {
             .withItemGenerationReason(ItemGenerationReason.MONSTER)
             .withTier(tier)
             .withRarity(rarity)
-            .withPlus(upgradeLevel / tier.getUpgradeScale())
+            .withPlus(upgradeLevel)
             .withLevel(event.getLevel())
             .withDistortion(LootPlugin.RNG.nextFloat() < 0.05)
             .withCreator(null)

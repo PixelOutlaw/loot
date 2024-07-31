@@ -18,16 +18,15 @@
  */
 package info.faceland.loot.menu.salvage;
 
-import static info.faceland.loot.utils.MaterialUtil.TAG_EPIC;
 import static info.faceland.loot.utils.MaterialUtil.getLevelRequirement;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.data.CraftToolData;
+import info.faceland.loot.data.pdc.EquipmentData;
+import info.faceland.loot.items.NewCustomItem;
 import info.faceland.loot.items.Tier;
 import info.faceland.loot.utils.CraftingUtil;
-import info.faceland.loot.utils.MaterialUtil;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
@@ -81,10 +80,16 @@ public class SalvageConfirmIcon extends MenuItem {
       return stack;
     }
 
-    CraftToolData craftToolData = menu.getPlugin().getSalvageManager().getToolData(menu.getTool(player));
-    if (craftingLevel < craftToolData.getLevel()) {
+    NewCustomItem tool = PersistHelper.getNonEquipmentUniqueItem(menu.getTool(player));
+    if (tool == null || !tool.getId().contains("crafttool")) {
+      ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&e&lInvalid tool!?"));
+      lore.add(FaceColor.LIGHT_GRAY + "How did you get that in there, huh??");
+      TextUtils.setLore(stack, lore, false);
+      return stack;
+    }
+    if (craftingLevel < tool.getItemLevel()) {
       ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&e&lCraft Level Too Low!"));
-      lore.add(FaceColor.LIGHT_GRAY + "This tool requires Lvl " + craftToolData.getLevel());
+      lore.add(FaceColor.LIGHT_GRAY + "This tool requires Lvl " + tool.getItemLevel());
       TextUtils.setLore(stack, lore, false);
       return stack;
     }
@@ -99,7 +104,7 @@ public class SalvageConfirmIcon extends MenuItem {
       return stack;
     }
 
-    float essenceChance = (effectiveLevelAdvantage / 100) + craftToolData.getRarity() * 0.2f;
+    float essenceChance = (effectiveLevelAdvantage / 100) + (tool.getQuality() - 1) * 0.2f;
 
     ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&a&lClick To Salvage!"));
 
@@ -115,15 +120,17 @@ public class SalvageConfirmIcon extends MenuItem {
     lore.add(FaceColor.LIGHT_GRAY + "Destroy this item to get raw");
     lore.add(FaceColor.LIGHT_GRAY + "materials and maybe an essence!");
     lore.add("");
-    List<String> possibleStats = CraftingUtil.getPossibleStats(TextUtils.getLore(menu.getEquipment(player)));
-    if (possibleStats.isEmpty()) {
+    EquipmentData equipmentData = PersistHelper.getEquipmentData(menu.getEquipment(player));
+    var stats = equipmentData.getExtractableStats();
+    if (stats.isEmpty()) {
       lore.add(FaceColor.CYAN + "Essence Chance: 0%");
       lore.add(FaceColor.PINK + "(No Valid Essence Stats)");
     } else {
       lore.add(FaceColor.CYAN + "Essence Chance: " + (int) (essenceChance * 100) + "%");
       lore.add(FaceColor.CYAN + "Possible Essence Stats:");
-      for (String s : possibleStats) {
-        lore.add(" " + s);
+      for (var s : stats) {
+        lore.add(FaceColor.TEAL + " " +
+            s.getCachedValue() + (s.getStat().isPercentage() ? "% " : " " + s.getStat().getStat().getName()));
       }
     }
     lore.add("");

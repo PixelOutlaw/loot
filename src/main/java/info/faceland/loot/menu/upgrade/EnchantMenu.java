@@ -32,6 +32,7 @@ import info.faceland.loot.items.prefabs.AspectOfPerfection;
 import info.faceland.loot.items.prefabs.DistortionCell;
 import info.faceland.loot.items.prefabs.DivineHammer;
 import info.faceland.loot.items.prefabs.ManaCrystal;
+import info.faceland.loot.items.prefabs.NormalItem;
 import info.faceland.loot.items.prefabs.OrbOfManyFaces;
 import info.faceland.loot.items.prefabs.PerfectSphere;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
@@ -47,7 +48,6 @@ import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import land.face.strife.data.champion.Champion;
 import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.data.champion.SkillRank;
@@ -229,6 +229,7 @@ public class EnchantMenu extends ItemMenu {
       case PurifyingScroll.TYPE_KEY -> updatePurityDisplay();
       case ManaCrystal.TYPE_KEY -> updateRefillDisplay(lore);
       case DistortionCell.TYPE_KEY -> updateDistortDisplay();
+      case NormalItem.TYPE_KEY -> updateNormalDisplay();
       default -> {
         // NOTHING
       }
@@ -312,11 +313,17 @@ public class EnchantMenu extends ItemMenu {
   }
 
   private void updateTinkerDisplay() {
-    Map<Integer, String> stats = MaterialUtil.getTinkerableStats(TextUtils.getLore(selectedEquipment));
-    if (stats == null) {
+    EquipmentData equipmentData = PersistHelper.getEquipmentData(selectedEquipment);
+    if (equipmentData == null) {
       updateConfirmDisplay(invalidTinker, hasCraftStatLore, 62);
       return;
     }
+    boolean canExtract = equipmentData.canExtractStat(false);
+    if (!canExtract) {
+      updateConfirmDisplay(invalidTinker, noTinkerStatsLore, 62);
+      return;
+    }
+    var stats = equipmentData.getExtractableStats();
     if (stats.isEmpty()) {
       updateConfirmDisplay(invalidTinker, noTinkerStatsLore, 62);
       return;
@@ -372,11 +379,33 @@ public class EnchantMenu extends ItemMenu {
     );
   }
 
+  private void updateNormalDisplay() {
+    updateConfirmDisplay(
+        PaletteUtil.color("|green|Normalize Item"),
+        PaletteUtil.color(List.of(
+            "",
+            "|lgray|Makes an item more normal by",
+            "|lgray|making all random rolls exactly",
+            "|lgray|50% between min/max!"
+        )),
+        60
+    );
+  }
 
   private void updateScrollDisplay(UpgradeScroll scroll, Player player, List<String> lore) {
     if (!MaterialUtil.isUpgradePossible(selectedEquipment)) {
       updateConfirmDisplay(invalidUpgrade, invalidUpgradeLore, 62);
       return;
+    }
+    if (!MaterialUtil.canBeUpgraded(selectedUpgradeItem, selectedEquipment)) {
+      updateConfirmDisplay(
+          invalidUpgrade,
+          PaletteUtil.color(List.of(
+              "|lgray|This scroll can only upgrade",
+              "|lgray|items up to |cyan|+" + scroll.getMaxLevel()
+          )),
+          62
+      );
     }
 
     EquipmentData data = PersistHelper.getEquipmentData(selectedEquipment);
@@ -562,7 +591,13 @@ public class EnchantMenu extends ItemMenu {
         return true;
       }
       case DistortionCell.TYPE_KEY -> {
-        MaterialUtil.doDistortEffects(plugin, selectedEquipment, selectedUpgradeItem, player);
+        MaterialUtil.doDistortEffects(plugin, selectedUpgradeItem, selectedEquipment, player);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case NormalItem.TYPE_KEY -> {
+        MaterialUtil.doNormalEffects(plugin, selectedEquipment, selectedUpgradeItem, player);
         setSelectedUpgradeItem(player, selectedUpgradeItem);
         setSelectedEquipment(player, selectedEquipment);
         return true;

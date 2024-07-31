@@ -18,12 +18,11 @@
  */
 package info.faceland.loot.items;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.ItemStat;
-import info.faceland.loot.utils.MaterialUtil;
 import info.faceland.loot.utils.ModifyEquipmentUtil;
-import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +41,8 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
-@Getter @Setter
+@Getter
+@Setter
 public final class Tier {
   
   private static final Map<String, Tier> TIERS = new HashMap<>();
@@ -55,6 +55,7 @@ public final class Tier {
   private List<ItemStat> secondaryStats;
   private List<ItemStat> bonusStats;
   private Map<StrifeStat, Float> hiddenStats;
+  private Map<StrifeStat, Float> weaponMods;
   private int upgradeScale;
   private double spawnWeight;
   private double identifyWeight;
@@ -84,6 +85,22 @@ public final class Tier {
 
   public static Tier get(ItemStack stack) {
     return ModifyEquipmentUtil.getTier(stack);
+  }
+
+  public static Tier determine(ItemStack stack) {
+    if (stack == null) {
+      return null;
+    }
+    Material material = stack.getType();
+    int data = ItemUtils.getModelData(stack);
+    for (var t : TIERS.values()) {
+      int start = t.getCustomDataStart();
+      int max = start + 100 / t.getCustomDataInterval();
+      if (t.getMaterial() == material && data >= start && data <= max) {
+        return t;
+      }
+    }
+    return null;
   }
 
   public static Tier getRandomTier() {
@@ -152,6 +169,7 @@ public final class Tier {
         }
         tier.setSecondaryStats(secondaryStats);
         tier.setHiddenStats(StatUtil.getStatMapFromSection(cs.getConfigurationSection("hidden-stats")));
+        tier.setWeaponMods(StatUtil.getStatMapFromSection(cs.getConfigurationSection("weapon-mods")));
         List<ItemStat> bonusStats = new ArrayList<>();
         for (String statName : cs.getStringList("bonus-stats")) {
           bonusStats.add(plugin.getStatManager().getStat(statName));

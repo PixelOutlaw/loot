@@ -9,15 +9,14 @@ import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.BuiltItem;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.MobLootTable;
+import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.items.NewCustomItem;
+import info.faceland.loot.items.SoulGem;
 import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.EnchantmentTome;
 import info.faceland.loot.events.LootDropEvent;
-import info.faceland.loot.items.prefabs.ArcaneEnhancer;
-import info.faceland.loot.items.prefabs.PurifyingScroll;
-import info.faceland.loot.items.prefabs.SocketExtender;
-import info.faceland.loot.items.prefabs.TinkerersGear;
+import info.faceland.loot.items.prefabs.*;
 import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.Tier;
 import java.awt.Color;
@@ -40,14 +39,9 @@ public class DropUtil implements Listener {
 
   private static String itemFoundFormat;
 
-  private static double customizedTierChance;
-  private static double normalDropChance;
-  private static double scrollDropChance;
-  private static double socketDropChance;
-  private static double tomeDropChance;
-  private static double enhancerDropChance;
-  private static double tinkerGearDropChance;
-  private static double purityDropChance;
+  private static double customizedTierChance, normalDropChance, scrollDropChance, socketDropChance, tomeDropChance,
+      enhancerDropChance, tinkerGearDropChance, faceOrbDropChance, hypercubeDropChance, purityDropChance,
+      normalItemDropChance, distortDropChance, soulGemDropChance;
 
   private static final RandomSound distortedDropSound =
       new RandomSound(SoundCategory.MASTER, Sound.ENTITY_ENDERMAN_HURT, 4f, 1f, 0.05f);
@@ -84,7 +78,12 @@ public class DropUtil implements Listener {
     tomeDropChance = plugin.getSettings().getDouble("config.drops.enchant-gem", 0D);
     enhancerDropChance = plugin.getSettings().getDouble("config.drops.arcane-enhancer", 0D);
     tinkerGearDropChance = plugin.getSettings().getDouble("config.drops.tinker-gear", 0D);
+    faceOrbDropChance = plugin.getSettings().getDouble("config.drops.face-orb", 0D);
+    hypercubeDropChance = plugin.getSettings().getDouble("config.drops.hypercube", 0D);
+    distortDropChance = plugin.getSettings().getDouble("config.drops.distort", 0D);
     purityDropChance = plugin.getSettings().getDouble("config.drops.purity-scroll", 0D);
+    normalItemDropChance = plugin.getSettings().getDouble("config.drops.normal-item", 0D);
+    soulGemDropChance = plugin.getSettings().getDouble("config.drops.soul-gem", 0.0001D);
   }
 
   public static void dropLoot(LootDropEvent event) {
@@ -146,7 +145,7 @@ public class DropUtil implements Listener {
       }
 
       boolean distort = LootPlugin.RNG.nextFloat() < 0.01;
-      int upgradeBonus = 1;
+      int upgradeBonus = 0;
       double upgradeChance = plugin.getSettings().getDouble("config.random-upgrade-chance", 0.1);
       double multiUpgradeChance = plugin.getSettings()
           .getDouble("config.multi-upgrade-chance", 0.1);
@@ -160,7 +159,7 @@ public class DropUtil implements Listener {
           .withTier(tier)
           .withRarity(rarity)
           .withLevel((int) itemLevel)
-          .withPlus(upgradeBonus / tier.getUpgradeScale())
+          .withPlus(upgradeBonus)
           .withDistortion(distort)
           .withItemGenerationReason(ItemGenerationReason.MONSTER)
           .withCreator(killer)
@@ -168,7 +167,7 @@ public class DropUtil implements Listener {
 
       ItemStack tierItem = builtItem.getStack();
 
-      boolean broadcast = rarity.isBroadcast() || upgradeBonus > 4;
+      boolean broadcast = rarity.isBroadcast() || (int) rarity.getPower() + (upgradeBonus / tier.getUpgradeScale()) > 7;
       Color trailColor = broadcast || rarity.isAlwaysTrail() ? rarity.getColor().getRawColor() : null;
       ChatColor glowColor = broadcast || rarity.isAlwaysGlow() ? rarity.getGlowColor() : null;
       RandomSound randomSound = null;
@@ -210,6 +209,31 @@ public class DropUtil implements Listener {
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * tinkerGearDropChance) {
       dropItem(event.getLocation(), TinkerersGear.get(), killer, 0, true,
           FaceColor.RED.getRawColor(), ChatColor.RED, tinkerDropSound);
+    }
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * faceOrbDropChance) {
+      dropItem(event.getLocation(), OrbOfManyFaces.item(), killer, 0, true,
+          FaceColor.RED.getRawColor(), ChatColor.RED, tinkerDropSound);
+    }
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * hypercubeDropChance) {
+      dropItem(event.getLocation(), PerfectSphere.item(), killer, 0, true,
+          FaceColor.RED.getRawColor(), ChatColor.RED, tinkerDropSound);
+    }
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * normalItemDropChance) {
+      dropItem(event.getLocation(), NormalItem.item(), killer, 0, false,
+          FaceColor.BLUE.getRawColor(), ChatColor.BLUE, purifyDropSound);
+    }
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * distortDropChance) {
+      dropItem(event.getLocation(), DistortionCell.item(), killer, 0, true,
+          FaceColor.BLACK.getRawColor(), ChatColor.BLACK, tinkerDropSound);
+    }
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * soulGemDropChance) {
+      if (killer != null && killer.getLevel() > 25) {
+        SoulGem gemb = SoulGem.getRandom();
+        if (gemb != null) {
+          dropItem(event.getLocation(), SoulGem.getRandom().item(), killer, 0, false,
+              FaceColor.PINK.getRawColor(), ChatColor.LIGHT_PURPLE, gemDropSound);
+        }
+      }
     }
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * scrollDropChance) {
       UpgradeScroll us = plugin.getScrollManager().getRandomScroll();
@@ -319,10 +343,11 @@ public class DropUtil implements Listener {
     List<ItemStack> itemStacks = getWornItems(killer);
     List<Tier> wornTiers = new ArrayList<>();
     for (ItemStack i : itemStacks) {
-      Tier tier = PersistHelper.getEquipmentData(i).getTier();
-      if (tier != null) {
-        wornTiers.add(tier);
+      EquipmentData data = PersistHelper.getEquipmentData(i);
+      if (data == null || data.getTier() == null) {
+        continue;
       }
+      wornTiers.add(data.getTier());
     }
     if (wornTiers.isEmpty()) {
       return Tier.getRandomTier();

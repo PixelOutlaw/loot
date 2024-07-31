@@ -44,16 +44,7 @@ import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.SoulGem;
 import info.faceland.loot.items.Tier;
 import info.faceland.loot.items.UpgradeScroll;
-import info.faceland.loot.items.prefabs.ArcaneEnhancer;
-import info.faceland.loot.items.prefabs.AspectOfPerfection;
-import info.faceland.loot.items.prefabs.DistortionCell;
-import info.faceland.loot.items.prefabs.DivineHammer;
-import info.faceland.loot.items.prefabs.ManaCrystal;
-import info.faceland.loot.items.prefabs.OrbOfManyFaces;
-import info.faceland.loot.items.prefabs.PerfectSphere;
-import info.faceland.loot.items.prefabs.PurifyingScroll;
-import info.faceland.loot.items.prefabs.SocketExtender;
-import info.faceland.loot.items.prefabs.TinkerersGear;
+import info.faceland.loot.items.prefabs.*;
 import info.faceland.loot.menu.gemcutter.GemcutterMenu;
 import info.faceland.loot.menu.gemsmasher.GemSmashMenu;
 import info.faceland.loot.menu.pawn.PawnMenu;
@@ -71,6 +62,8 @@ import java.util.List;
 import land.face.dinvy.DeluxeInvyPlugin;
 import land.face.dinvy.entity.PlayerData;
 import land.face.dinvy.windows.equipment.EquipmentMenu.DeluxeSlot;
+import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.util.PlayerDataUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -234,7 +227,7 @@ public class LootCommand extends BaseCommand {
       exportUnique.setName(unique.getItemName());
       exportUnique.setStrippedName(ChatColor.stripColor(PaletteUtil.color(exportUnique.getName())));
       // TODO: gotta send stats in export
-      List<String> lore = new ArrayList<>(unique.getFlavorText());
+      List<String> lore = new ArrayList<>(unique.getRawFlavorText());
       lore.removeIf(str -> str.contains("\uD86D\uDFEA") || str.contains("tag_unique"));
       exportUnique.setDescription(lore);
       exportUnique.setRarity(
@@ -458,7 +451,9 @@ public class LootCommand extends BaseCommand {
 
     @Subcommand("unique")
     @CommandCompletion("@players @uniques @range:1-10")
-    public void giveUnique(CommandSender sender, OnlinePlayer player,
+    public void giveUnique(
+        CommandSender sender,
+        OnlinePlayer player,
         String id,
         @Default("1") int amount,
         @Default("false") boolean soulbound
@@ -588,6 +583,16 @@ public class LootCommand extends BaseCommand {
           new String[][]{{"%amount%", amount + ""}});
     }
 
+    @Subcommand("normal")
+    @CommandCompletion("@players @range:1-100")
+    public void giveNormalItem(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(NormalItem.item());
+      }
+      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
+          new String[][]{{"%amount%", amount + ""}});
+    }
+
     @Subcommand("refill|manacrystal")
     @CommandCompletion("@players @range:1-100")
     public void manananananaa(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
@@ -670,6 +675,22 @@ public class LootCommand extends BaseCommand {
     }
     EnchantMenu menu = new EnchantMenu(plugin);
     menu.open(target.getPlayer());
+  }
+
+  @Subcommand("salvage")
+  @CommandCompletion("@players")
+  @CommandPermission("loot.upgrade")
+  public void salvageItem(CommandSender sender, OnlinePlayer target, int levelReq) {
+    if (target == null || !target.getPlayer().isValid()) {
+      return;
+    }
+    if (levelReq > PlayerDataUtil.getLifeSkillLevel(target.getPlayer(), LifeSkillType.CRAFTING)) {
+      PaletteUtil.sendMessage(target.getPlayer(), "|yellow|Your crafting level is too low to use this!");
+      return;
+    }
+    plugin.getSalvageMenu().setTool(target.getPlayer(), target.getPlayer().getEquipment().getItemInMainHand());
+    plugin.getSalvageMenu().setEquipment(target.getPlayer(), null);
+    plugin.getSalvageMenu().open(target.getPlayer());
   }
 
   @Subcommand("dumb")

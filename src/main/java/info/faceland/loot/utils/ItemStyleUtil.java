@@ -3,8 +3,11 @@ package info.faceland.loot.utils;
 import com.google.common.collect.Lists;
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.items.SocketGem;
+import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.ChatColor;
 
@@ -12,6 +15,7 @@ public class ItemStyleUtil {
 
   public static final List<String> ENCHANT_CHARS = Lists.reverse(
       List.of("俼", "俪", "俫", "俬", "俭", "修", "俯", "俱", "俲", "俳"));
+  public static final List<String> CORRUPT_STAT_FX = List.of("懜" + "懝" + "懞" + "懟");
 
   public static final String EMPTY_GEM = "並";
   public static final String LOCKED_GEM = "丧";
@@ -59,6 +63,32 @@ public class ItemStyleUtil {
       "\uF822举"
   );
 
+  public static List<String> breakText(String s, boolean large) {
+    int maxLineSize = large ? 138 : 112;
+    String[] strs = s.split(" ");
+    List<String> lore = new ArrayList<>();
+    List<String> line = new ArrayList<>();
+    int spaceWidth = 3;
+    int lineCount = 0;
+    for (String word : strs) {
+      String stripped = ChatColor.stripColor(word);
+      int wordSize = countNormalTextSize(stripped);
+      if (lineCount + wordSize + (line.size() * spaceWidth) > maxLineSize) {
+        lore.add(StringUtils.join(line, " "));
+        line.clear();
+        line.add(word);
+        lineCount = wordSize;
+      } else {
+        line.add(word);
+        lineCount += wordSize;
+      }
+    }
+    if (!line.isEmpty()) {
+      lore.add(StringUtils.join(line, " "));
+    }
+    return lore;
+  }
+
   public static String centerText(String s, boolean large) {
     return large ? centerLargeText(s) : centerSmallText(s);
   }
@@ -86,6 +116,10 @@ public class ItemStyleUtil {
           SPACING_4_GEMS + socketSlotStyle(sockets, 2, extendSlots > 1) +
           SPACING_4_GEMS + socketSlotStyle(sockets, 3, extendSlots > 0);
     };
+  }
+
+  public static String getCorruptAddon() {
+    return FaceColor.TRUE_WHITE + " 應";
   }
 
   public static String socketSlotStyle(List<SocketGem> sockets, int index, boolean extend) {
@@ -265,11 +299,31 @@ public class ItemStyleUtil {
     size -= StringUtils.countMatches(s, '!') * 4;
     size -= StringUtils.countMatches(s, ':') * 4;
     size -= StringUtils.countMatches(s, 'i') * 4;
+    size -= StringUtils.countMatches(s, 'I') * 2;
     size -= StringUtils.countMatches(s, 'l') * 3;
     size -= StringUtils.countMatches(s, '\'') * 3;
     size -= StringUtils.countMatches(s, 't') * 2;
     size -= StringUtils.countMatches(s, 'f');
+    size -= StringUtils.countMatches(s, '[') * 2;
+    size -= StringUtils.countMatches(s, ']') * 2;
+    size -= StringUtils.countMatches(s, '(') * 2;
+    size -= StringUtils.countMatches(s, ')') * 2;
+    size -= StringUtils.countMatches(s, '/') * 2;
     size -= StringUtils.countMatches(s, ' ') * 2;
+    size += StringUtils.countMatches(s, '丐') * 29;
+    size += StringUtils.countMatches(s, '丑') * 41;
+    size += StringUtils.countMatches(s, '丒') * 39;
+    size += StringUtils.countMatches(s, '专') * 53;
+    size += StringUtils.countMatches(s, '且') * 65;
+    size += StringUtils.countMatches(s, '丕') * 21;
+    size += StringUtils.countMatches(s, '世') * 41;
+    size += StringUtils.countMatches(s, '丗') * 15;
+    size += StringUtils.countMatches(s, '丘') * 34;
+    size += StringUtils.countMatches(s, '丙') * 32;
+    size += StringUtils.countMatches(s, '业') * 39;
+    size += StringUtils.countMatches(s, '丛') * 40;
+    size += StringUtils.countMatches(s, '东') * 34;
+    size += StringUtils.countMatches(s, '丝') * 33; //todo: air jump
     return size;
   }
 }

@@ -29,6 +29,7 @@ import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
+import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.List;
@@ -54,8 +55,9 @@ public final class SocketExtender {
   }
 
   public static void update(ItemStack stack) {
-    stack.setType(EXTENDER.getType());
-    stack.setItemMeta(meta());
+    int amount = stack.getAmount();
+    ItemRenderer.replace(stack, EXTENDER.clone());
+    stack.setAmount(amount);
   }
 
   public static boolean matches(ItemStack stack) {
@@ -84,6 +86,7 @@ public final class SocketExtender {
     pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, TYPE_KEY);
 
     EXTENDER.setItemMeta(meta);
+    ItemRenderer.applyCommonFlags(EXTENDER);
     return EXTENDER;
   }
 

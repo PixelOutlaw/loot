@@ -29,12 +29,8 @@ import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.groups.ItemGroup;
 import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
-import info.faceland.loot.listeners.crafting.PreCraftListener;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 import land.face.strife.data.champion.Champion;
 import land.face.strife.data.champion.LifeSkillType;
@@ -163,10 +159,10 @@ public final class MaterialUtil {
       Audience audience = Audience.audience(player);
       audience.playSound(UPGRADE_ITEM);
 
+      PersistHelper.setEquipmentData(stack, data);
       if (targetLevel >= 10 && !strippedName.contains("Starter")) {
         InventoryUtil.sendToDiscord(player, stack, upgradeSuccessBroadcast);
       }
-      PersistHelper.setEquipmentData(stack, data);
       return;
     }
 
@@ -225,6 +221,8 @@ public final class MaterialUtil {
   }
 
   private static void distributeShards(Player player, int amount) {
+    return;
+    /*
     if (amount > 0) {
       ItemStack shard = ShardOfFailure.build(player.getName());
       while (amount > 0) {
@@ -239,6 +237,7 @@ public final class MaterialUtil {
         amount -= 64;
       }
     }
+     */
   }
 
   public static boolean meetsUpgradeRange(UpgradeScroll type, int itemPlus) {
@@ -262,7 +261,7 @@ public final class MaterialUtil {
     if (scroll == null) {
       return false;
     }
-    return meetsUpgradeRange(scroll, ModifyEquipmentUtil.getUpgradeLevel(stack));
+    return meetsUpgradeRange(scroll, PersistHelper.getItemPlus(stack));
   }
 
   public static boolean isInGroup(ItemStack stack, ItemGroup group) {
@@ -366,55 +365,30 @@ public final class MaterialUtil {
     return true;
   }
 
-  public static Map<Integer, String> getTinkerableStats(List<String> lore) {
-    Map<Integer, String> validTargetStats = new HashMap<>();
-    int loreIndex = -1;
-    for (String str : lore) {
-      loreIndex++;
-      if (FaceColor.CYAN.isStartOf(str)) {
-        return null;
-      }
-      if (!ChatColor.stripColor(str).startsWith("+")) {
-        continue;
-      }
-      net.md_5.bungee.api.ChatColor color = CraftingUtil.getHexFromString(str);
-      if (color != null) {
-        if (CraftingUtil.isValidStealColor(color.getColor())) {
-          validTargetStats.put(loreIndex, str);
-        }
-        continue;
-      }
-      if (str.startsWith(ChatColor.GREEN + "") || str.startsWith(ChatColor.YELLOW + "")) {
-        validTargetStats.put(loreIndex, str);
-      }
-    }
-    return validTargetStats;
-  }
-
-  public static void doTinkerEffects(LootPlugin plugin, ItemStack tinkerGear,
-      ItemStack targetItem, Player player) {
-    List<String> itemLore = new ArrayList<>(TextUtils.getLore(targetItem));
-    Map<Integer, String> validTargetStats = getTinkerableStats(itemLore);
-
-    if (validTargetStats == null) {
+  public static void doTinkerEffects(LootPlugin plugin, ItemStack tinkerGear, ItemStack targetItem, Player player) {
+    EquipmentData equipmentData = PersistHelper.getEquipmentData(targetItem);
+    if (equipmentData == null) {
       sendMessage(player, TextUtils.color(plugin.getSettings().getString(
           "language.tinker.only-one-crafted-stat", "Only one stat can be tinkered!")));
       return;
     }
-    if (validTargetStats.isEmpty()) {
+    boolean canExtract = equipmentData.canExtractStat(false);
+    if (!canExtract) {
+      sendMessage(player, TextUtils.color(plugin.getSettings().getString(
+          "language.tinker.only-one-crafted-stat", "Only one stat can be tinkered!")));
+      return;
+    }
+    var stats = equipmentData.getExtractableStats();
+    if (stats.isEmpty()) {
       sendMessage(player, TextUtils.color(plugin.getSettings().getString(
           "language.tinker.no-valid-stats", "No valid stats to be tinkered!")));
       return;
     }
 
-    List<Integer> keysAsArray = new ArrayList<>(validTargetStats.keySet());
-    int selectedIndex = keysAsArray.get(LootPlugin.RNG.nextInt(keysAsArray.size()));
-    itemLore.set(selectedIndex, FaceColor.CYAN + PreCraftListener.ESSENCE_SLOT_TEXT);
-    TextUtils.setLore(targetItem, itemLore);
+    boolean extracted = EssenceUtil.extract(player, targetItem, false, false, true);
 
     player.playSound(player.getEyeLocation(), Sound.BLOCK_PISTON_EXTEND, 1F, 1.5F);
-    plugin.getStrifePlugin().getSkillExperienceManager()
-        .addExperience(player, LifeSkillType.CRAFTING, 200, false, false);
+    plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player, LifeSkillType.CRAFTING, 200, false, false);
     tinkerGear.setAmount(tinkerGear.getAmount() - 1);
   }
 
@@ -479,11 +453,29 @@ public final class MaterialUtil {
     polishItem.setAmount(polishItem.getAmount() - 1);
   }
 
+  public static void doNormalEffects(LootPlugin plugin, ItemStack equipmentItem, ItemStack rerollOrb, Player player) {
+    EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
+    if (data == null) {
+      PaletteUtil.sendMessage(player, "|yellow|Only equipment can be normalized!");
+      return;
+    }
+    data.undistort();
+    data.forceRoll(0.5);
+    PersistHelper.setEquipmentData(equipmentItem, data);
+    player.playSound(player.getEyeLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1F, 1F);
+    plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player,
+        LifeSkillType.ENCHANTING, 200, false, false);
+    rerollOrb.setAmount(rerollOrb.getAmount() - 1);
+  }
+
   public static void doDistortEffects(LootPlugin plugin, ItemStack distortItem, ItemStack equipmentItem, Player player) {
     EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
     if (data == null) {
       PaletteUtil.sendMessage(player, "|yellow|Only equipment can be distorted!");
       return;
+    }
+    if (data.isDistorted()) {
+      data.undistort();
     }
     data.distort();
     PersistHelper.setEquipmentData(equipmentItem, data);

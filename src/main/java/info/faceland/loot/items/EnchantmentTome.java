@@ -32,6 +32,7 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.groups.ItemGroup;
+import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -120,8 +121,9 @@ public class EnchantmentTome {
   public static void update(ItemStack stack) {
     EnchantmentTome item = EnchantmentTome.get(stack);
     if (item != null) {
-      stack.setType(stack.getType());
-      stack.setItemMeta(item.meta());
+      int amount = stack.getAmount();
+      ItemRenderer.replace(stack, item.builtItem.clone());
+      stack.setAmount(amount);
     }
   }
 
@@ -153,6 +155,7 @@ public class EnchantmentTome {
     pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, id);
 
     builtItem.setItemMeta(meta);
+    ItemRenderer.applyCommonFlags(builtItem);
   }
 
   public static void loadFromFile(LootPlugin plugin, SmartYamlConfiguration file) {

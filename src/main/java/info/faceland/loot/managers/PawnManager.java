@@ -129,7 +129,7 @@ public class PawnManager {
     }
     // TODO: food logic
     if (stack.getType() == Material.KELP) {
-      int rarity = (int) MaterialUtil.getRarity(stack).getPower();
+      int rarity = 1; // (int) MaterialUtil.getRarity(stack).getPower();
       float rarityMult = 0.5f * rarity;
       String stripped = net.md_5.bungee.api.ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack));
       Matcher matcher = pattern.matcher(stripped);

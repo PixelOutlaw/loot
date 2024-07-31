@@ -162,8 +162,6 @@ public final class ItemBuilder {
     data.setLevel(level);
     data.setUpgradeLevel(plus / tier.getUpgradeScale());
 
-    data.setUpgradeLevel(0);
-
     ItemStat primaryStat = getRandomPrimaryStat();
     ItemStat secondaryStat = getRandomSecondaryStat();
     StoredStat primaryStoredStat = new StoredStat(primaryStat.getId(), 1);
@@ -203,7 +201,7 @@ public final class ItemBuilder {
       }
     }
     while (craftedStatSlots > 0) {
-      data.getBonusStats().get(craftedStatSlots - 1).setEssenceSlot();
+      data.getBonusStats().get(craftedStatSlots - 1).setEssenceSlot(true);
       craftedStatSlots--;
     }
     data.sortBonusStats();
@@ -234,15 +232,15 @@ public final class ItemBuilder {
       data.distort();
     }
 
-    String prefix = LootPlugin.getInstance().getNameManager().getRandomPrefix(rarity);
     String suffix;
     if (LootPlugin.RNG.nextFloat() < 0.3f) {
       suffix = LootPlugin.getInstance().getNameManager().getRandomSuffix(rarity);
     } else {
       suffix = tier.getItemSuffixes(rarity).get(LootPlugin.RNG.nextInt(tier.getItemSuffixes(rarity).size()));
     }
+    String prefix = LootPlugin.getInstance().getNameManager().getRandomPrefix(rarity, 21 - suffix.length());
 
-    data.setString("name", prefix + " " + suffix);
+    data.setString("name", prefix != null ? prefix + " " + suffix : suffix);
 
     ItemMeta meta = stack.getItemMeta();
 

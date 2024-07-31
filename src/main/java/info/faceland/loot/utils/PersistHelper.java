@@ -9,6 +9,7 @@ import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 
 import com.tealcube.minecraft.bukkit.shade.google.gson.Gson;
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.data.pdc.StoredStat;
 import info.faceland.loot.items.NewCustomItem;
@@ -16,8 +17,6 @@ import info.faceland.loot.items.UniqueItemStat;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
-import land.face.strife.data.LoreAbility;
-import land.face.strife.util.StatUtil;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -27,10 +26,25 @@ import org.jetbrains.annotations.NotNull;
 
 public class PersistHelper {
 
+  private static final Gson gson = new Gson();
+
+  public static NewCustomItem getNonEquipmentUniqueItem(ItemStack stack) {
+    if (stack == null || stack.getType() == Material.AIR) {
+      //System.out.println("invalid material for itemId");
+      return null;
+    }
+    var pdc = stack.getItemMeta().getPersistentDataContainer();
+    if (!"unique".equals(pdc.getOrDefault(ITEM_TYPE_KEY, PersistentDataType.STRING, ""))) {
+      return null;
+    }
+    String id = pdc.getOrDefault(ITEM_EXTRA_KEY, PersistentDataType.STRING, "");
+    return LootPlugin.getInstance().getCustomItemManager().getUnique(id);
+  }
+
   @NotNull
   public static String getItemId(ItemStack stack) {
     if (stack == null || stack.getType() == Material.AIR) {
-      System.out.println("invalid material for itemId");
+      //System.out.println("invalid material for itemId");
       return "";
     }
     return stack.getItemMeta().getPersistentDataContainer().getOrDefault(ITEM_EXTRA_KEY, PersistentDataType.STRING, "");
@@ -39,18 +53,16 @@ public class PersistHelper {
   @NotNull
   public static String getItemType(ItemStack stack) {
     if (stack == null || stack.getType() == Material.AIR) {
-      System.out.println("[Loot] Invalid material for itemType...");
+      //System.out.println("[Loot] Invalid material for itemType...");
       return "";
     }
     return stack.getItemMeta().getPersistentDataContainer().getOrDefault(ITEM_TYPE_KEY, PersistentDataType.STRING, "");
   }
 
-  private static Gson gson = new Gson();
-
   @NotNull
   public static int getItemVersion(ItemStack stack) {
     if (stack == null || stack.getType() == Material.AIR) {
-      System.out.println("invalid material for version");
+      //System.out.println("invalid material for version");
       return Integer.MAX_VALUE;
     }
     return stack.getItemMeta().getPersistentDataContainer()
@@ -111,7 +123,7 @@ public class PersistHelper {
 
   public static EquipmentData getEquipmentData(ItemStack stack) {
     if (stack == null || stack.getType() == Material.AIR) {
-      System.out.println("invalid material for data");
+      //System.out.println("invalid material for data");
       return null;
     }
     ItemMeta meta = stack.getItemMeta();
@@ -146,6 +158,7 @@ public class PersistHelper {
     data.setInt("modelData", ci.getCustomDataNumber());
     data.setInt("level", ci.getItemLevel());
     data.setTier(ci.getTier());
+    data.setRarity("RARE");
 
     data.getCoreStats().clear();
     for (UniqueItemStat stat : ci.getCoreStats()) {
@@ -153,31 +166,33 @@ public class PersistHelper {
         continue;
       }
       StoredStat storedStat = new StoredStat(stat.getStat().getId(), 1f);
-      storedStat.setUniqueMult(stat.getValueModifier());
+      storedStat.setUniqueMult(stat.getValueModifier(), ci.getId());
       data.getCoreStats().add(storedStat);
     }
 
-    List<StoredStat> oldUniqueRolls = new ArrayList<>(data.getBonusStats());
+    // Store old stats
+    List<StoredStat> oldStats = new ArrayList<>(data.getBonusStats());
     data.getBonusStats().clear();
+
+    // Remove excess stats and regenerate missing ones
     for (UniqueItemStat stat : ci.getBonusStats()) {
       if (stat.getStat() == null) {
         continue;
       }
       StoredStat storedStat = new StoredStat(stat.getStat().getId(), Math.pow(Math.random(), 2.5));
-      storedStat.setUniqueMult(stat.getValueModifier());
+      storedStat.setUniqueMult(stat.getValueModifier(), ci.getId());
       data.getBonusStats().add(storedStat);
     }
-    for (StoredStat oldStat : oldUniqueRolls) {
+    // restore crafted stats
+    for (StoredStat oldStat : oldStats) {
       for (StoredStat newStat : data.getBonusStats()) {
         if (oldStat.getOriginalStatId().equals(newStat.getOriginalStatId())) {
-          double uniqueMult = newStat.getUniqueMult(1);
           newStat.copyFrom(oldStat);
-          if (!newStat.isCrafted()) {
-            newStat.setUniqueMult(uniqueMult);
-          }
         }
       }
     }
+    data.updateUniqueMultipliers(ci);
+
     data.sortBonusStats();
 
     data.setEnchantable(ci.isEnchantable());

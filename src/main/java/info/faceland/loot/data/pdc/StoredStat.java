@@ -14,9 +14,6 @@ import lombok.Setter;
 @Setter
 public class StoredStat implements Serializable {
 
-  //@Serial
-  //private static final long serialVersionUID = 2L;
-
   private Map<String, String> stringData = new HashMap<>();
   private Map<String, Integer> intData = new HashMap<>();
   private Map<String, Double> doubleData = new HashMap<>();
@@ -59,11 +56,16 @@ public class StoredStat implements Serializable {
     doubleData.put("statRoll", statRoll);
   }
 
-  public StoredStat setEssenceSlot() {
-    StoredStat removed = new StoredStat(stringData.get("statId"), doubleData.get("statRoll"));
-    removed.copyFrom(this);
-    setBoolean("essence", true);
-    return removed;
+  public StoredStat setEssenceSlot(boolean val) {
+    if (val) {
+      StoredStat removed = new StoredStat(stringData.get("statId"), doubleData.get("statRoll"));
+      removed.copyFrom(this);
+      setBoolean("essence", true);
+      return removed;
+    } else {
+      setBoolean("essence", false);
+      return null;
+    }
   }
 
   public boolean isEssenceSlot() {
@@ -118,6 +120,14 @@ public class StoredStat implements Serializable {
     intData.put("level", value);
   }
 
+  public int getEssenceLevel(int fallback) {
+    return intData.getOrDefault("essenceLevel", fallback);
+  }
+
+  public void setEssenceLevel(int value) {
+    intData.put("essenceLevel", Math.max(1, value));
+  }
+
   public double getRarityPower() {
     return doubleData.getOrDefault("rarityPower", 0D);
   }
@@ -138,8 +148,13 @@ public class StoredStat implements Serializable {
     return doubleData.getOrDefault("uniqueMult", fallback);
   }
 
-  public void setUniqueMult(double value) {
+  public void setUniqueMult(double value, String id) {
     doubleData.put("uniqueMult", value);
+    stringData.put("originUnique", id);
+  }
+
+  public String getOriginUnique() {
+    return stringData.getOrDefault("originUnique", "");
   }
 
   public double getSortOrder() {
@@ -155,7 +170,7 @@ public class StoredStat implements Serializable {
   }
 
   public void setCachedValue(int value) {
-    System.out.println("val: " + value);
+    //System.out.println("val: " + value);
     intData.put("cachedValue", value);
   }
 
@@ -208,6 +223,7 @@ public class StoredStat implements Serializable {
   }
 
   public void copyFrom(StoredStat oldStat) {
+    String originalStatId = getOriginalStatId();
     booleanData.clear();
     booleanData.putAll(oldStat.getBooleanData());
     stringData.clear();
@@ -216,6 +232,8 @@ public class StoredStat implements Serializable {
     intData.putAll(oldStat.getIntData());
     doubleData.clear();
     doubleData.putAll(oldStat.getDoubleData());
+    stringData.put("originalStatId", originalStatId);
+    stat = LootPlugin.getInstance().getStatManager().getStat(getString("statId"));
   }
 
 }

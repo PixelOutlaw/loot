@@ -28,6 +28,7 @@ import info.faceland.loot.items.prefabs.AspectOfPerfection;
 import info.faceland.loot.items.prefabs.DistortionCell;
 import info.faceland.loot.items.prefabs.DivineHammer;
 import info.faceland.loot.items.prefabs.ManaCrystal;
+import info.faceland.loot.items.prefabs.NormalItem;
 import info.faceland.loot.items.prefabs.OrbOfManyFaces;
 import info.faceland.loot.items.prefabs.PerfectSphere;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
@@ -87,7 +88,7 @@ public final class EnchantMenuListener implements Listener {
       case SocketGem.TYPE_KEY, EnchantmentTome.TYPE_KEY, PurifyingScroll.TYPE_KEY, ArcaneEnhancer.TYPE_KEY,
           SocketExtender.TYPE_KEY, TinkerersGear.TYPE_KEY, OrbOfManyFaces.TYPE_KEY, UpgradeScroll.TYPE_KEY,
           PerfectSphere.TYPE_KEY, DivineHammer.TYPE_KEY, ManaCrystal.TYPE_KEY, DistortionCell.TYPE_KEY,
-          AspectOfPerfection.TYPE_KEY -> true;
+          AspectOfPerfection.TYPE_KEY, NormalItem.TYPE_KEY-> true;
       default -> false;
     };
     if (select) {

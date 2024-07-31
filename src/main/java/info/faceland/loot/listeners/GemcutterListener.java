@@ -69,7 +69,7 @@ public record GemcutterListener(LootPlugin plugin) implements Listener {
       return;
     }
     ItemStack stack = event.getCurrentItem();
-    if (stack == null || stack.getType() == Material.AIR) {
+    if (stack == null || stack.getType() == Material.AIR || stack.getType() != Material.CHARCOAL) {
       return;
     }
     if (LootPlugin.getInstance().getStrifePlugin() != null && LootPlugin.getInstance()

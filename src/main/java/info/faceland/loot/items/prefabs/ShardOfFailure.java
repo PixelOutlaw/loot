@@ -19,6 +19,7 @@ package info.faceland.loot.items.prefabs;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
@@ -61,6 +62,13 @@ public final class ShardOfFailure {
     )));
     ItemStackExtensionsKt.setCustomModelData(stack, 500);
     item = stack;
+    ItemRenderer.applyCommonFlags(item);
+  }
+
+  public static void update(ItemStack stack) {
+    int amount = stack.getAmount();
+    ItemRenderer.replace(stack, item.clone());
+    stack.setAmount(amount);
   }
 
   public static boolean isSimilar(ItemStack stack) {

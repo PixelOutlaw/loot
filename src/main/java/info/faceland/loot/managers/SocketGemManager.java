@@ -168,7 +168,7 @@ public final class SocketGemManager {
       return false;
     }
     EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
-    System.out.println("data: " + data.getTier().getId());
+    //System.out.println("data: " + data.getTier().getId());
     if (!MaterialUtil.isInGroup(data, gem.getItemGroup())) {
       sendMessage(player, plugin.getSettings().getString("language.socket.failure", ""));
       player.playSound(player.getEyeLocation(), Sound.BLOCK_LAVA_POP, 1F, 0.5F);

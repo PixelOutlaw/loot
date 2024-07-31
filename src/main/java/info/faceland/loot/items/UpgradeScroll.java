@@ -29,6 +29,7 @@ import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
+import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import java.awt.Color;
@@ -99,8 +100,9 @@ public final class UpgradeScroll {
   public static void update(ItemStack stack) {
     UpgradeScroll item = UpgradeScroll.get(stack);
     if (item != null) {
-      stack.setType(stack.getType());
-      stack.setItemMeta(item.meta());
+      int amount = stack.getAmount();
+      ItemRenderer.replace(stack, item.stack.clone());
+      stack.setAmount(amount);
     }
   }
 
@@ -159,5 +161,6 @@ public final class UpgradeScroll {
     pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, id);
 
     stack.setItemMeta(meta);
+    ItemRenderer.applyCommonFlags(stack);
   }
 }

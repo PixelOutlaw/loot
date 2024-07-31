@@ -4,22 +4,18 @@ import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.send
 import static info.faceland.loot.utils.MaterialUtil.getLevelRequirement;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
-import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.data.CraftToolData;
 import info.faceland.loot.items.CraftMaterial;
+import info.faceland.loot.items.NewCustomItem;
 import info.faceland.loot.items.Tier;
 import info.faceland.loot.utils.CraftingUtil;
 import info.faceland.loot.utils.EssenceUtil;
 import info.faceland.loot.utils.MaterialUtil;
 import info.faceland.loot.utils.PersistHelper;
-import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
-import java.util.List;
 import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.data.champion.SkillRank;
 import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.PlayerDataUtil;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -51,8 +47,12 @@ public class SalvageManager {
       return;
     }
 
-    CraftToolData craftToolData = getToolData(toolStack);
-    if (craftingLevel < craftToolData.getLevel()) {
+    NewCustomItem tool = PersistHelper.getNonEquipmentUniqueItem(toolStack);
+    if (tool == null) {
+      player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
+      return;
+    }
+    if (craftingLevel < tool.getItemLevel()) {
       sendMessage(player, plugin.getSettings().getString("language.craft.low-level-tool", ""));
       player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
       return;
@@ -61,9 +61,6 @@ public class SalvageManager {
     float effectiveCraftLevel = data.getLevelWithBonus();
     // double levelAdvantage = Math.max(0, craftingLevel - itemLevel);
     float effectiveLevelAdvantage = Math.max(0f, effectiveCraftLevel - itemLevel);
-
-    List<String> lore = TextUtils.getLore(selectedStack);
-    List<String> possibleStats = CraftingUtil.getPossibleStats(lore);
 
     ItemStack materialDetectionItem = selectedStack.clone();
     materialDetectionItem.setDurability((short) 0);
@@ -77,7 +74,7 @@ public class SalvageManager {
 
     int rarity = (int) MaterialUtil.getRarity(selectedStack).getPower();
 
-    float rarityUpChance = CraftingUtil.getRarityUpChance(effectiveLevelAdvantage, craftToolData);
+    float rarityUpChance = CraftingUtil.getRarityUpChance(effectiveLevelAdvantage, tool.getQuality());
     while (LootPlugin.RNG.nextFloat() < rarityUpChance && rarity < 3) {
       rarity++;
     }
@@ -85,7 +82,7 @@ public class SalvageManager {
     ItemStack craftMaterial = CraftMaterial.get(material, itemLevel, rarity).item();
     player.playSound(player.getEyeLocation(), Sound.ENTITY_ITEM_BREAK, 1F, 0.8F);
 
-    float essenceChance = (effectiveLevelAdvantage / 100) + craftToolData.getRarity() * 0.2f;
+    float essenceChance = (effectiveLevelAdvantage / 100) + (tool.getItemLevel() - 1) * 0.2f;
     if (LootPlugin.RNG.nextFloat() < essenceChance) {
       if (EssenceUtil.canExtractStat(selectedStack, true)) {
         player.playSound(player.getEyeLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.4F, 2F);
@@ -101,38 +98,6 @@ public class SalvageManager {
     double exp = 5 + itemLevel * 1.1;
     plugin.getStrifePlugin().getSkillExperienceManager()
         .addExperience(player, LifeSkillType.CRAFTING, exp, false, false);
-  }
-
-  public CraftToolData getToolData(ItemStack stack) {
-    if (stack == null) {
-      return null;
-    }
-    String stackName = ItemStackExtensionsKt.getDisplayName(stack);
-    if (stackName == null) {
-      return null;
-    }
-    if (!stackName.endsWith("Craftsman's Tools") && !stackName.endsWith("Crafting Tools")) {
-      return null;
-    }
-    CraftToolData data = new CraftToolData();
-    data.setLevel(getToolLevel(stack));
-    data.setRarity((int) MaterialUtil.getRarity(stack).getPower());
-
-    return data;
-  }
-
-  public int getToolLevel(ItemStack stack) {
-    if (stack.getItemMeta() == null) {
-      return 0;
-    }
-    if (TextUtils.getLore(stack).get(0) == null) {
-      return 0;
-    }
-    String lvlReqString = ChatColor.stripColor(TextUtils.getLore(stack).get(0));
-    if (!lvlReqString.startsWith("Craft Skill Requirement:")) {
-      return 0;
-    }
-    return MaterialUtil.getDigit(TextUtils.getLore(stack).get(0));
   }
   
 }

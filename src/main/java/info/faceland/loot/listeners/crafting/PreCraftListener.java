@@ -16,14 +16,10 @@
  */
 package info.faceland.loot.listeners.crafting;
 
-import static info.faceland.loot.utils.InventoryUtil.stripColor;
-
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.ShaderStyle;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
-import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.math.NumberUtils;
-import com.tealcube.minecraft.bukkit.shade.google.common.base.CharMatcher;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.CraftResultData;
 import info.faceland.loot.data.ItemStat;
@@ -31,6 +27,7 @@ import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.data.pdc.StoredStat;
 import info.faceland.loot.items.Tier;
 import info.faceland.loot.utils.CraftingUtil;
+import info.faceland.loot.utils.EssenceUtil;
 import info.faceland.loot.utils.MaterialUtil;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
@@ -157,24 +154,19 @@ public final class PreCraftListener implements Listener {
       craftingInventory.getResult().setItemMeta(wrongTypeMeta);
       return;
     }
-    if (data.getTier().getId().equals(stat.getOriginTier())) {
+    if (!data.getTier().getId().equals(stat.getOriginTier())) {
       craftingInventory.getResult().setType(Material.BARRIER);
       craftingInventory.getResult().setItemMeta(wrongTypeMeta);
       return;
     }
 
-    List<String> lore = TextUtils.getLore(equipmentItem);
-    List<String> strippedLore = stripColor(lore);
-
-    int slotIndex = strippedLore.indexOf(PreCraftListener.ESSENCE_SLOT_TEXT);
-    if (slotIndex == -1) {
+    if (!data.hasCraftSlot()) {
       craftingInventory.getResult().setType(Material.BARRIER);
       craftingInventory.getResult().setItemMeta(noSlotsMeta);
       return;
     }
 
-    int itemLevel = NumberUtils.toInt(CharMatcher.digit().or(CharMatcher.is('-')).negate()
-        .collapseFrom(ChatColor.stripColor(strippedLore.get(0)), ' ').trim());
+    int itemLevel = data.getLevel();
     int essenceLevel = stat.getLevel();
     int craftingLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.CRAFTING);
     double levelAdvantage = craftingLevel + 10 - itemLevel;
@@ -190,10 +182,10 @@ public final class PreCraftListener implements Listener {
       return;
     }
 
-    List<StoredStat> existingCraftStatStrings = data.getExtractableStats();
+    List<StoredStat> existingStats = data.getNormalStats();
 
     // TODO: use tier limits on stat combos
-    for(var s : existingCraftStatStrings) {
+    for(var s : existingStats) {
       if (s.getStat() == stat.getStat()) {
         craftingInventory.getResult().setType(Material.BARRIER);
         craftingInventory.getResult().setItemMeta(dupeStatMeta);
@@ -201,10 +193,11 @@ public final class PreCraftListener implements Listener {
       }
     }
 
-    lore.set(slotIndex, FaceColor.CYAN + "Adds " + stat.getStat().getStat().getName());
-
+    // TODO: THIS IS LIKELY INEFFICIENT
     ItemStack newResult = equipmentItem.clone();
-    TextUtils.setLore(newResult, lore, false);
+    EquipmentData newData = PersistHelper.getEquipmentData(newResult);
+    EssenceUtil.applyEssence(newData, stat);
+    PersistHelper.setEquipmentData(newResult, newData);
 
     craftingInventory.setResult(newResult);
   }
@@ -256,7 +249,7 @@ public final class PreCraftListener implements Listener {
       return;
     }
 
-    Tier tier = PersistHelper.getEquipmentData(result).getTier();
+    Tier tier = Tier.determine(result);
     if (tier == null) {
       craftingInventory.getResult().setType(Material.BARRIER);
       ItemStackExtensionsKt.setCustomModelData(craftingInventory.getResult(), 150);

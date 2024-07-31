@@ -1,6 +1,5 @@
 package info.faceland.loot.utils;
 
-import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.pdc.EquipmentData;
@@ -10,8 +9,6 @@ import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.Tier;
 import java.util.ArrayList;
 import java.util.List;
-import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class ModifyEquipmentUtil {
@@ -19,23 +16,6 @@ public class ModifyEquipmentUtil {
   public static boolean applyCraftedStat(ItemStack stack, StoredStat storedStat) {
 
     return false;
-  }
-
-  public static void extractStat(Player player, ItemStack stack, boolean allowMultipleEssences) {
-    EquipmentData data = PersistHelper.getEquipmentData(stack);
-    if (data != null) {
-      System.out.println("1");
-      StoredStat storedStat = data.extractBonusStat(allowMultipleEssences);
-      PersistHelper.setEquipmentData(stack, data);
-      if (storedStat != null && player != null) {
-        System.out.println("2");
-        ItemStack essenceItem = new ItemStack(Material.GHAST_TEAR);
-        storedStat.setOriginTier(data.getTier().getId());
-        PersistHelper.storeEssenceStat(essenceItem, storedStat);
-        ItemRenderer.renderEssence(essenceItem, storedStat);
-        ItemUtils.giveOrDrop(player, essenceItem);
-      }
-    }
   }
 
   public static void upgrade(ItemStack stack, int amount) {

@@ -29,6 +29,7 @@ import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
+import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import java.util.List;
 import org.bukkit.Material;
@@ -53,13 +54,13 @@ public final class DistortionCell {
         PaletteUtil.color("|ns|\uF808丌\uF808\uF801"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|This weird mass of flesh")),
-        centerSmallText(PaletteUtil.color("|lgray|can be used to make an item")),
-        centerSmallText(PaletteUtil.color("|green|really.... weird...")),
+        centerSmallText(PaletteUtil.color("|lgray|can be used to make an")),
+        centerSmallText(PaletteUtil.color("|lgray|item |green|really.... weird...")),
         "",
-        centerSmallText(PaletteUtil.color("|red|When used, an item's random")),
-        centerSmallText(PaletteUtil.color("|red|stats are improved, but")),
-        centerSmallText(PaletteUtil.color("|red|one is inverted, subtracting")),
-        centerSmallText(PaletteUtil.color("|red|from your stats instead")),
+        centerSmallText(PaletteUtil.color("|red|When used, this improves")),
+        centerSmallText(PaletteUtil.color("|red|an equipment item's random")),
+        centerSmallText(PaletteUtil.color("|red|stats, but inverts one of")),
+        centerSmallText(PaletteUtil.color("|red|them!")),
         "",
         centerSmallText(PaletteUtil.color("|gray||i|It pulsates with chaotic")),
         centerSmallText(PaletteUtil.color("|gray||i|energy... gross!"))
@@ -71,6 +72,7 @@ public final class DistortionCell {
     pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, TYPE_KEY);
 
     item.setItemMeta(meta);
+    ItemRenderer.applyCommonFlags(item);
   }
 
   public static ItemStack item() {
@@ -82,8 +84,9 @@ public final class DistortionCell {
   }
 
   public static void update(ItemStack stack) {
-    stack.setType(item.getType());
-    stack.setItemMeta(meta());
+    int amount = stack.getAmount();
+    ItemRenderer.replace(stack, item.clone());
+    stack.setAmount(amount);
   }
 
   public static boolean matches(ItemStack stack) {

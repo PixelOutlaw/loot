@@ -38,6 +38,7 @@ import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.data.pdc.ItemDetails;
 import info.faceland.loot.data.pdc.StoredStat;
 import info.faceland.loot.items.EnchantmentTome;
+import info.faceland.loot.utils.EssenceUtil;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.ModifyEquipmentUtil;
 import info.faceland.loot.utils.PersistHelper;
@@ -64,7 +65,7 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("render")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void render(Player player, @Default("false") boolean force) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     if (stack.getType() == Material.AIR) {
@@ -75,13 +76,15 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("read")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void read(Player player) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     if (stack.getType() == Material.AIR) {
       player.sendMessage("hold an item");
       return;
     }
+    player.sendMessage("reeee: " + PersistHelper.getItemId(player.getItemInHand()));
+    player.sendMessage("reeee2: " + PersistHelper.getItemType(player.getItemInHand()));
     ItemRenderer.renderItem(stack, false);
     EquipmentData data = validateItemData(player, stack);
     if (data == null) {
@@ -100,7 +103,7 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("set")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void render(Player player, String itemType, @Optional String extraData) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     if (stack.getType() == Material.AIR) {
@@ -120,7 +123,7 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("edit level")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void editlevel(Player player, int level) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     EquipmentData data = validateItemData(player, stack);
@@ -132,7 +135,7 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("edit name-base")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void editNameBase(Player player, String text) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     EquipmentData data = validateItemData(player, stack);
@@ -144,7 +147,7 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("edit upgrade-level")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void editUpgradeLevel(Player player, int level) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     EquipmentData data = validateItemData(player, stack);
@@ -156,7 +159,7 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("edit tier")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void render(Player player, String tier) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     EquipmentData data = validateItemData(player, stack);
@@ -168,7 +171,7 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("edit rarity")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void setRarity(Player player, String rarity) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     EquipmentData data = validateItemData(player, stack);
@@ -180,7 +183,7 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("edit add-core-stat")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void render(Player player, String coreStat, float roll) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     EquipmentData data = validateItemData(player, stack);
@@ -198,7 +201,7 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("edit remove-core-stat")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void render(Player player, int index) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     EquipmentData data = validateItemData(player, stack);
@@ -214,7 +217,7 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("edit add-bonus-stat")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void removeBonus(Player player, String bonusStat, float roll, @Default("false") boolean crafted) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     EquipmentData data = validateItemData(player, stack);
@@ -233,7 +236,7 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("edit remove-bonus-stat")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void removebonus(Player player, int index) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     EquipmentData data = validateItemData(player, stack);
@@ -249,7 +252,7 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("edit enchantable")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void removeBonus(Player player, @Default("true") boolean enchantable) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     EquipmentData data = validateItemData(player, stack);
@@ -262,14 +265,14 @@ public class ItemModifyCommand extends BaseCommand {
 
   @Subcommand("edit enchant apply")
   @CommandCompletion("@tomes")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void enchantItem(Player player, String tomeId) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     ModifyEquipmentUtil.enchant(stack, EnchantmentTome.get(tomeId), player.getLevel(), 0.1f);
   }
 
   @Subcommand("edit enchant refill")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void refillEnchant(Player player, int amount) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     ModifyEquipmentUtil.refillEnchantment(stack, amount);
@@ -282,28 +285,28 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("edit unenchant")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void enchantItem(Player player) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     ModifyEquipmentUtil.unenchant(stack);
   }
 
   @Subcommand("edit enhance")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void enhanceItem(Player player, boolean e) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     ModifyEquipmentUtil.enhance(stack);
   }
 
   @Subcommand("edit reroll")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void reroll(Player player) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     ModifyEquipmentUtil.reroll(stack);
   }
 
   @Subcommand("edit distort")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void distort(Player player, boolean dist) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     if (dist) {
@@ -314,7 +317,7 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("edit socket add")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void removeBonus(Player player) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     EquipmentData data = validateItemData(player, stack);
@@ -326,7 +329,7 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("edit socket remove")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void removeSockets(Player player) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     EquipmentData data = validateItemData(player, stack);
@@ -339,7 +342,7 @@ public class ItemModifyCommand extends BaseCommand {
 
   @Subcommand("edit socket apply")
   @CommandCompletion("@gems")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void removeBonus(Player player, String gemId) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     ModifyEquipmentUtil.applySocket(stack, gemId);
@@ -347,14 +350,14 @@ public class ItemModifyCommand extends BaseCommand {
 
   @Subcommand("edit socket extract")
   //@CommandCompletion("@gems")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void extractGem(Player player, int index) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     ModifyEquipmentUtil.removeSocket(stack, index);
   }
 
   @Subcommand("edit extender add")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void removeexter(Player player) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     EquipmentData data = validateItemData(player, stack);
@@ -366,7 +369,7 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("edit extender remove")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void removeext(Player player) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     EquipmentData data = validateItemData(player, stack);
@@ -378,14 +381,14 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("edit extender apply")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void extend(Player player) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     ModifyEquipmentUtil.applyExtender(stack);
   }
 
   @Subcommand("edit craft by")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void serCraftedBy(Player player, String s) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     EquipmentData data = validateItemData(player, stack);
@@ -397,14 +400,14 @@ public class ItemModifyCommand extends BaseCommand {
   }
 
   @Subcommand("edit craft extract")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void extract(Player player, @Default("false") boolean allowMultiple) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
-    ModifyEquipmentUtil.extractStat(player, stack, allowMultiple);
+    EssenceUtil.extract(player, stack, false, allowMultiple, true);
   }
 
   @Subcommand("edit soulbound")
-  @CommandPermission("test.admin")
+  @CommandPermission("loot.editor")
   public void soulbound(Player player, @Default("false") boolean soulBound) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
     PersistHelper.setTradeLocked(stack, soulBound);

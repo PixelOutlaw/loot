@@ -8,8 +8,6 @@ SHIELD-ARMOR:
   per-rarity-multipler: 0.1
   stat-string: "+{} Armor"
   stat-prefix: "&a"
-  perfect-stat-prefix: "&c"
-  special-stat-prefix: "&b"
 SHIELD-HEALTH:
   min-base-value: 6
   max-base-value: 10
@@ -19,5 +17,3 @@ SHIELD-HEALTH:
   per-rarity-multipler: 0.1
   stat-string: "+{} Health"
   stat-prefix: "&a"
-  perfect-stat-prefix: "&c"
-  special-stat-prefix: "&b"

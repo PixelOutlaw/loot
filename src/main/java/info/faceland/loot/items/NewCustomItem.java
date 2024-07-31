@@ -24,7 +24,13 @@ import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
+import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY;
+import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY_SMALL;
+import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
+import static info.faceland.loot.utils.ItemStyleUtil.doNameThing;
+import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
+import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
@@ -32,17 +38,19 @@ import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.ItemStyleUtil;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import land.face.strife.data.LoreAbility;
 import land.face.strife.stats.StrifeStat;
-import land.face.strife.stats.StrifeTrait;
 import land.face.strife.util.StatUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemFlag;
@@ -68,8 +76,10 @@ public class NewCustomItem {
   private boolean large;
   private Tier tier;
   private int itemLevel;
+  private int quality;
   private List<UniqueItemStat> coreStats = new ArrayList<>();
   private List<UniqueItemStat> bonusStats = new ArrayList<>();
+  private List<String> jokeStats = new ArrayList<>();
 
   private boolean enchantable = false;
 
@@ -81,6 +91,7 @@ public class NewCustomItem {
 
   private List<String> styling = new ArrayList<>();
   private List<String> flavorText = new ArrayList<>();
+  private List<String> rawFlavorText = new ArrayList<>();
 
   private Set<ItemFlag> flags;
 
@@ -91,29 +102,82 @@ public class NewCustomItem {
   private int dropLevel;
   private int dropRange;
 
+  private List<String> rightClickActions = new ArrayList<>();
+  private Map<StrifeStat, Float> overrideStats = new HashMap<>();
+
+  private ItemStack cachedStack;
+
   public NewCustomItem(String id, Material material) {
     this.id = id;
     this.material = material;
   }
 
   public ItemStack item() {
-    ItemStack stack = new ItemStack(material);
-    ItemMeta meta = stack.getItemMeta();
     if (tier == null) {
+      if (cachedStack != null) {
+        return cachedStack.clone();
+      }
+      cachedStack = new ItemStack(material);
+      ItemMeta meta = cachedStack.getItemMeta();
+
+      String name = ChatColor.stripColor(itemName);
+      List<String> lore = new ArrayList<>();
+      if (StringUtils.isNotBlank(plateString)) {
+        lore.add(PaletteUtil.color(plateString));
+      } else {
+        lore.add(PaletteUtil.color("|ns|\uF808丄\uF808\uF801"));
+      }
+      if (printName) {
+        if (large) {
+          lore.add(HALFWAY + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doNameThing(name) + "\uF80C");
+        } else {
+          lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C");
+        }
+      } else {
+        lore.add("");
+      }
+      lore.addAll(flavorText);
+
+      meta.setDisplayName(color + itemName);
+      meta.setCustomModelData(customDataNumber);
+      meta.setLore(lore);
+
       PersistentDataContainer pdc = meta.getPersistentDataContainer();
       pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
       pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, "unique");
       pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, id);
+
+      cachedStack.setItemMeta(meta);
+      ItemRenderer.applyCommonFlags(cachedStack);
+      return cachedStack.clone();
     } else {
+      ItemStack stack = new ItemStack(material);
+      ItemMeta meta = stack.getItemMeta();
       PersistentDataContainer pdc = meta.getPersistentDataContainer();
       pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
       pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, "equipment");
       pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, id);
       pdc.set(ITEM_DATA_KEY, ITEM_DATA_CLASS, new EquipmentData());
+      stack.setItemMeta(meta);
+      ItemRenderer.applyCommonFlags(stack);
+      ItemRenderer.renderItem(stack, true);
+      return stack;
     }
-    stack.setItemMeta(meta);
-    ItemRenderer.renderItem(stack, true);
-    return stack;
+  }
+
+  public void setFlavorText(List<String> lore) {
+    rawFlavorText = new ArrayList<>(lore);
+    this.flavorText = new ArrayList<>();
+    for (String s : lore) {
+      this.flavorText.add(ItemStyleUtil.centerText(s, large));
+    }
+    /*
+    lore = ItemStyleUtil.breakText(StringUtils.join(lore, " "), large);
+    this.flavorText = new ArrayList<>();
+    for (String s : lore) {
+      this.flavorText.add(ItemStyleUtil.centerText(s, large));
+    }
+    */
   }
 
   public static NewCustomItem fromConfigSection(LootPlugin plugin, String key, ConfigurationSection section) {
@@ -130,6 +194,7 @@ public class NewCustomItem {
     ci.setCustomDataNumber(section.getInt("model-data", 0));
     ci.setItemLevel(section.getInt("item-level", 1));
     ci.setTier(Tier.get(section.getString("tier")));
+    ci.setQuality(section.getInt("quality", 1));
     ci.setPlateString(section.getString("nameplate", ""));
     ci.setColor(FaceColor.valueOf(section.getString("color", "ORANGE")));
     ci.setPrintName(section.getBoolean("print-name", true));
@@ -141,6 +206,7 @@ public class NewCustomItem {
     ci.setExtendSlots(section.getInt("extend-slots"));
     ci.setStyling(PaletteUtil.color(section.getStringList("styling")));
     ci.setFlavorText(PaletteUtil.color(section.getStringList("flavor-text")));
+    ci.setJokeStats(PaletteUtil.color(section.getStringList("joke-stats")));
     ci.getCoreStats().clear();
     for (String s : section.getStringList("core-stats")) {
       ci.getCoreStats().add(getOrCreateStat(plugin, key, s, true));
@@ -155,6 +221,9 @@ public class NewCustomItem {
     ci.setDropRange(section.getInt("drop-range", 1));
     ci.setBroadcast(section.getBoolean("broadcast", false));
     ci.setExport(section.getBoolean("export", ci.getWeight() > 0));
+
+    ci.setRightClickActions(section.getStringList("rightclick-actions"));
+    ci.setOverrideStats(StatUtil.getStatMapFromSection(section.getConfigurationSection("override-stats")));
 
     return ci;
   }
@@ -185,7 +254,6 @@ public class NewCustomItem {
       itemStat.setMaxBrightness(core ?  0.67843f : 1.0f);
       itemStat.setStat(stat);
       itemStat.setPercentage(percent);
-      itemStat.setHide(hide);
       itemStat.calcColorRange();
       if (StringUtils.isBlank(stat.getName())) {
         itemStat.setStatString("+{} Unknown Stat");

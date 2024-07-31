@@ -19,6 +19,7 @@
 package info.faceland.loot.listeners;
 
 import info.faceland.loot.LootPlugin;
+import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.data.pdc.StoredStat;
 import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.items.UpgradeScroll;
@@ -100,18 +101,21 @@ public final class ItemListListener implements Listener {
       event.getListing().setFlagB(FilterFlagB.ALL);
       return;
     }
-    Tier tier = PersistHelper.getEquipmentData(stack).getTier();
-    if (tier != null) {
-      event.getListing().setCategory(Category.CATEGORY_1);
-      event.getListing().setFlagA(tier.getFilterFlag());
-      int index = 1 + (MaterialUtil.getLevelRequirement(stack) - 1) / 10;
-      for (FilterFlagB b : MarketManager.FILTER_BS) {
-        if (b.ordinal() == index) {
-          event.getListing().setFlagB(b);
-          break;
+    EquipmentData data = PersistHelper.getEquipmentData(stack);
+    if (data != null) {
+      Tier tier = PersistHelper.getEquipmentData(stack).getTier();
+      if (tier != null) {
+        event.getListing().setCategory(Category.CATEGORY_1);
+        event.getListing().setFlagA(tier.getFilterFlag());
+        int index = 1 + (MaterialUtil.getLevelRequirement(stack) - 1) / 10;
+        for (FilterFlagB b : MarketManager.FILTER_BS) {
+          if (b.ordinal() == index) {
+            event.getListing().setFlagB(b);
+            break;
+          }
         }
+        return;
       }
-      return;
     }
     if (CraftMaterial.VALID_MATS.contains(stack.getType()) && stack.hasItemMeta()) {
       event.getListing().setCategory(Category.CATEGORY_4);

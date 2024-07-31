@@ -1,5 +1,6 @@
 package info.faceland.loot.data;
 
+import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.utils.MaterialUtil;
 import info.faceland.loot.utils.ModifyEquipmentUtil;
 import lombok.Getter;
@@ -19,23 +20,34 @@ public class CraftResultData {
 
   public CraftResultData(ItemStack[] craftMatrix, ItemStack resultStack) {
     int numMaterials = 0;
-    float totalRarity = 0;
+    float totalStars = 0;
     float totalItemLevel = 0;
     for (ItemStack is : craftMatrix) {
       if (is == null || is.getType() == Material.AIR || is.getType() == resultStack.getType()) {
         continue;
       }
       ItemStack loopItem = new ItemStack(is);
-      totalItemLevel += ModifyEquipmentUtil.getItemLevel(loopItem);
+      if (loopItem == null || loopItem.getType() == Material.AIR) {
+        totalItemLevel += 1;
+        totalStars += 1;
+      } else {
+        CraftMaterial cr = CraftMaterial.get(loopItem);
+        if (cr == null) {
+          totalItemLevel += 1;
+          totalStars += 1;
+        } else {
+          totalItemLevel += cr.getItemLevel();
+          totalStars += cr.getQuality();
+        }
+      }
       numMaterials++;
-      totalRarity += (float) MaterialUtil.getRarity(loopItem).getPower();
     }
 
     this.numMaterials = numMaterials;
-    this.totalRarity = totalRarity;
+    this.totalRarity = totalStars;
     this.totalItemLevel = totalItemLevel;
     this.itemLevel = totalItemLevel / numMaterials;
-    this.rarity = totalRarity / numMaterials;
+    this.rarity = totalStars / numMaterials;
   }
 
   public float openSlotChance(float levelAdvantage) {

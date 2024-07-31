@@ -29,6 +29,7 @@ import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
+import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import java.util.List;
 import org.bukkit.Material;
@@ -71,6 +72,7 @@ public final class PerfectSphere {
     pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, TYPE_KEY);
 
     item.setItemMeta(meta);
+    ItemRenderer.applyCommonFlags(item);
   }
 
   public static ItemStack item() {
@@ -82,8 +84,9 @@ public final class PerfectSphere {
   }
 
   public static void update(ItemStack stack) {
-    stack.setType(item.getType());
-    stack.setItemMeta(meta());
+    int amount = stack.getAmount();
+    ItemRenderer.replace(stack, item.clone());
+    stack.setAmount(amount);
   }
 
   public static boolean matches(ItemStack stack) {

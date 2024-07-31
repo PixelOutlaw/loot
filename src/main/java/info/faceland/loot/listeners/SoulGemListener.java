@@ -21,7 +21,7 @@ public class SoulGemListener implements Listener {
           "&d&lYour Soul Grows Stronger! &dSoul Gem slot unlocked!");
       event.getData().setGemSlots(event.getData().getGemSlots() + 1);
       for (ItemStack stack : event.getData().getPlayer().getInventory().getContents()) {
-        if (stack != null && SocketExtender.isSimilar(stack)) {
+        if (stack != null && (SocketExtender.matches(stack) || SocketExtender.isSimilar(stack))) {
           if (stack.getAmount() > amount) {
             stack.setAmount(stack.getAmount() - amount);
             break;

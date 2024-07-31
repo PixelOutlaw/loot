@@ -25,6 +25,7 @@ import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.BuiltItem;
 import info.faceland.loot.data.CraftResultData;
+import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.events.LootCraftEvent;
 import info.faceland.loot.items.Tier;
 import info.faceland.loot.utils.CraftingUtil;
@@ -108,7 +109,7 @@ public final class CraftingListener implements Listener {
   @EventHandler(priority = EventPriority.LOWEST)
   public void onSpecialCraftEquipment(CraftItemEvent event) {
     ItemStack resultStack = event.getCurrentItem();
-    if (PersistHelper.getEquipmentData(resultStack).getTier() == null) {
+    if (Tier.determine(resultStack) == null) {
       return;
     }
 
@@ -152,7 +153,7 @@ public final class CraftingListener implements Listener {
       if (is == null) {
         continue;
       }
-      if (is.getType() == Material.PRISMARINE_SHARD || isDyeEvent(is.getType(), resultStack.getType())) {
+      if (is.getType() == Material.GHAST_TEAR || isDyeEvent(is.getType(), resultStack.getType())) {
         return;
       }
     }
@@ -160,7 +161,7 @@ public final class CraftingListener implements Listener {
 
     Player player = (Player) event.getWhoClicked();
 
-    Tier tier = PersistHelper.getEquipmentData(resultStack).getTier();
+    Tier tier = Tier.determine(resultStack);
     if (tier == null) {
       Bukkit.getLogger().warning("[Loot] Attempted to craft item with unknown tier... " + resultStack.getType());
       return;
@@ -238,7 +239,7 @@ public final class CraftingListener implements Listener {
       if (is == null) {
         continue;
       }
-      if (is.getType() == Material.PRISMARINE_SHARD) {
+      if (is.getType() == Material.GHAST_TEAR) {
         Bukkit.getScheduler().runTaskLater(plugin, () -> plugin.getStrifePlugin()
             .getSkillExperienceManager().addExperience((Player) event.getWhoClicked(),
                 LifeSkillType.CRAFTING, 25, false, false), 0L);
