@@ -4,7 +4,6 @@ import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.utils.ItemStyleUtil.CORRUPTION;
 import static info.faceland.loot.utils.ItemStyleUtil.ENCHANT_CHARS;
 import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY;
-import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY_SMALL;
 import static info.faceland.loot.utils.ItemStyleUtil.UNTRADEABLE_NORMAL;
 import static info.faceland.loot.utils.ItemStyleUtil.UNTRADEABLE_SMALL;
 import static info.faceland.loot.utils.ItemStyleUtil.centerLargeText;
@@ -13,7 +12,6 @@ import static info.faceland.loot.utils.ItemStyleUtil.countSubtitleSize;
 import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
 import static info.faceland.loot.utils.ItemStyleUtil.doNameThing;
 import static info.faceland.loot.utils.ItemStyleUtil.doPrefix;
-import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 import static info.faceland.loot.utils.ItemStyleUtil.doSuffix;
 
 import com.sentropic.guiapi.gui.GUI;
@@ -27,6 +25,7 @@ import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.StatResponse;
 import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.data.pdc.StoredStat;
+import info.faceland.loot.events.ExternalRenderEvent;
 import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.items.EnchantmentTome;
 import info.faceland.loot.items.NewCustomItem;
@@ -35,13 +34,16 @@ import info.faceland.loot.items.SoulGem;
 import info.faceland.loot.items.Tier;
 import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
+import info.faceland.loot.items.prefabs.AwakeningStone;
 import info.faceland.loot.items.prefabs.DivineHammer;
+import info.faceland.loot.items.prefabs.MissingStat;
 import info.faceland.loot.items.prefabs.NormalItem;
 import info.faceland.loot.items.prefabs.OrbOfManyFaces;
 import info.faceland.loot.items.prefabs.PerfectSphere;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
+import info.faceland.loot.items.prefabs.TooltipPaint;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,6 +56,7 @@ import land.face.strife.StrifePlugin;
 import land.face.strife.data.LoreAbility;
 import land.face.strife.stats.StrifeStat;
 import land.face.strife.stats.StrifeTrait;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -92,9 +95,14 @@ public class ItemRenderer {
       case "purity" -> PurifyingScroll.update(stack);
       case "material" -> CraftMaterial.update(stack);
       case "soulgem" -> SoulGem.update(stack);
+      case TooltipPaint.TYPE_KEY -> TooltipPaint.update(stack);
+      case AwakeningStone.TYPE_KEY -> AwakeningStone.update(stack);
+      case MissingStat.TYPE_KEY -> MissingStat.update(stack);
       case "essence" -> renderEssence(stack, null);
       default -> ConversionUtil.attemptToAbsorbItem(stack);
     }
+    ExternalRenderEvent craftEvent = new ExternalRenderEvent(stack);
+    Bukkit.getPluginManager().callEvent(craftEvent);
     applyCommonFlags(stack);
   }
 
@@ -137,7 +145,7 @@ public class ItemRenderer {
       return;
     }
     int amount = stack.getAmount();
-    replace(stack, customItem.item());
+    replace(stack, customItem.item(), customItem.isLarge());
     stack.setAmount(amount);
   }
 
@@ -291,19 +299,19 @@ public class ItemRenderer {
           lore.add(centerLargeText(sr.getStatString() + corruptStr));
         }
       }
+      if (!data.isEnchanted()) {
+        lore.add("");
+      }
     } else {
       //debug only lore.add(FaceColor.GRAY + "No bonus stats...");
     }
     if (unique != null) {
       lore.addAll(unique.getJokeStats());
     }
-    if (data.isEnchantable()) {
+    if (data.hasEnchantmentSlot()) {
       if (data.getEnchantment() == null) {
-        if (!data.getBonusStats().isEmpty()) {
-          // No extra buffer needed if bonus stats is empty!
-          lore.add("");
-        }
         lore.add(FaceColor.NO_SHADOW + "\uF805严\uF80A");
+        lore.add("");
       } else {
         boolean enhanced = data.isEnhanced();
         lore.add((enhanced ? FaceColor.RED : FaceColor.WHITE) + "\uF805" + selectEnchantChar(data) + "\uF80A");
@@ -318,18 +326,19 @@ public class ItemRenderer {
         );
         enchantmentStat.setCachedValue(sr.getValue());
         lore.add(centerLargeText(sr.getStatString()));
+        lore.add("");
       }
     }
 
-    renderEquipmentTraits(data, lore);
+    boolean hasTraits = renderEquipmentTraits(data, lore);
+    if (hasTraits) {
+      lore.add("");
+    }
 
     String gemPrefix = "";
     int totalGemSlots = data.getSockets().size() + data.getEmptyGemSlots() + data.getEmptyExtendSlots();
+    boolean socketBuffer = false;
     if (totalGemSlots > 0) {
-      if (data.isEnchantable()) {
-        // Don't add extra space if it's not even enchantable
-        lore.add("");
-      }
       if (!data.getSocketGems().isEmpty()) {
         int gemPrefixData = 0;
         for (String socketStr : data.getSockets()) {
@@ -375,16 +384,13 @@ public class ItemRenderer {
       }
       lore.add(FaceColor.TRUE_WHITE +
           ItemStyleUtil.generateGemString(totalGemSlots, data.getEmptyExtendSlots(), data.getSocketGems()));
+      lore.add("");
     }
 
     if (unique != null && !unique.getFlavorText().isEmpty()) {
-      lore.add("");
       lore.addAll(unique.getFlavorText());
     } else if (StringUtils.isNotBlank(data.getString("craftedBy"))) {
-      lore.add("");
       lore.add(centerLargeText(FaceColor.GRAY + "Crafted By: " + data.getString("craftedBy")));
-    } else {
-      lore.add("");
     }
     List<String> prefixThings = new ArrayList<>();
     if (!gemPrefix.isBlank()) {
@@ -448,7 +454,6 @@ public class ItemRenderer {
       traits.add(StrifeTrait.valueOf(s));
     }
     if (!(loreAbilities.isEmpty() && traits.isEmpty())) {
-      lore.add("");
       for (LoreAbility loreAbility : loreAbilities) {
         for (var s : loreAbility.getDescription()) {
           lore.add(centerLargeText(s));
@@ -516,10 +521,21 @@ public class ItemRenderer {
   }
 
   public static void replace(ItemStack stack, ItemStack template) {
+    replace(stack, template, false);
+  }
+
+  public static void replace(ItemStack stack, ItemStack template, boolean large) {
+    boolean isTradeLocked = PersistHelper.isTradeLocked(stack);
     stack.setType(template.getType());
     stack.setData(template.getData());
     stack.setDurability(template.getDurability());
     stack.setItemMeta(template.getItemMeta());
+    if (isTradeLocked) {
+      PersistHelper.setTradeLocked(stack, true);
+      var lore = stack.getItemMeta().getLore();
+      ItemRenderer.applyUntradeable(stack, lore, large);
+      TextUtils.setLore(stack, lore, false);
+    }
   }
 
 }

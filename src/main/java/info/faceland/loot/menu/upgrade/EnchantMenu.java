@@ -29,15 +29,18 @@ import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.AspectOfPerfection;
+import info.faceland.loot.items.prefabs.AwakeningStone;
 import info.faceland.loot.items.prefabs.DistortionCell;
 import info.faceland.loot.items.prefabs.DivineHammer;
 import info.faceland.loot.items.prefabs.ManaCrystal;
+import info.faceland.loot.items.prefabs.MissingStat;
 import info.faceland.loot.items.prefabs.NormalItem;
 import info.faceland.loot.items.prefabs.OrbOfManyFaces;
 import info.faceland.loot.items.prefabs.PerfectSphere;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
+import info.faceland.loot.items.prefabs.TooltipPaint;
 import info.faceland.loot.managers.StatManager.RollStyle;
 import info.faceland.loot.utils.EnchantUtil;
 import info.faceland.loot.utils.MaterialUtil;
@@ -230,6 +233,9 @@ public class EnchantMenu extends ItemMenu {
       case ManaCrystal.TYPE_KEY -> updateRefillDisplay(lore);
       case DistortionCell.TYPE_KEY -> updateDistortDisplay();
       case NormalItem.TYPE_KEY -> updateNormalDisplay();
+      case AwakeningStone.TYPE_KEY -> updateAwakenDisplay();
+      case MissingStat.TYPE_KEY -> updateAwakenDisplay(); // TODO: this is generic make it better
+      case TooltipPaint.TYPE_KEY -> updateRarityUpDisplay();
       default -> {
         // NOTHING
       }
@@ -354,6 +360,30 @@ public class EnchantMenu extends ItemMenu {
             "|lgray|This will make stats in the random",
             "|lgray|section stronger, but flip one",
             "|lgray|to a negative value!"
+        )),
+        60
+    );
+  }
+
+  private void updateAwakenDisplay() {
+    updateConfirmDisplay(
+        PaletteUtil.color("|crimson|Awaken Item"),
+        PaletteUtil.color(List.of(
+            "",
+            "|lgray|This will add a stat to a",
+            "|lgray|non-unique item!"
+        )),
+        60
+    );
+  }
+
+  private void updateRarityUpDisplay() {
+    updateConfirmDisplay(
+        PaletteUtil.color("|rainbow|Paint Item"),
+        PaletteUtil.color(List.of(
+            "",
+            "|lgray|This increases the rarity of",
+            "|lgray|a non-unique item!"
         )),
         60
     );
@@ -598,6 +628,24 @@ public class EnchantMenu extends ItemMenu {
       }
       case NormalItem.TYPE_KEY -> {
         MaterialUtil.doNormalEffects(plugin, selectedEquipment, selectedUpgradeItem, player);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case AwakeningStone.TYPE_KEY -> {
+        MaterialUtil.doAwakeningEffects(plugin, selectedEquipment, selectedUpgradeItem, player);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case MissingStat.TYPE_KEY -> {
+        MaterialUtil.doAddStat(plugin, selectedEquipment, selectedUpgradeItem, player);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case TooltipPaint.TYPE_KEY -> {
+        MaterialUtil.doRarityIncrease(plugin, selectedEquipment, selectedUpgradeItem, player);
         setSelectedUpgradeItem(player, selectedUpgradeItem);
         setSelectedEquipment(player, selectedEquipment);
         return true;

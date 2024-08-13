@@ -64,10 +64,7 @@ public final class Tier {
   private FilterFlagA filterFlag;
   private Map<String, Integer> statCategoryLimits = new HashMap<>();
 
-  private int minimumSockets;
-  private int maximumSockets;
-  private int minimumExtendSlots;
-  private int maximumExtendSlots;
+  private int extraSockets;
 
   private List<Material> craftMaterials;
 
@@ -180,10 +177,7 @@ public final class Tier {
         tier.setIdentifyWeight(cs.getDouble("identify-weight"));
         tier.setCustomDataStart(cs.getInt("base-custom-data", -1));
         tier.setCustomDataInterval(cs.getInt("custom-data-level-interval", 200));
-        tier.setMinimumSockets(cs.getInt("min-sockets", 0));
-        tier.setMaximumSockets(cs.getInt("max-sockets", 1));
-        tier.setMinimumExtendSlots(cs.getInt("min-extends", 0));
-        tier.setMaximumExtendSlots(cs.getInt("max-extends", 1));
+        tier.setExtraSockets(cs.getInt("extra-sockets", 0));
         List<Material> mats = new ArrayList<>();
         for (var s : cs.getStringList("craft-materials")) {
           try {

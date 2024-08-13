@@ -41,7 +41,8 @@ public class DropUtil implements Listener {
 
   private static double customizedTierChance, normalDropChance, scrollDropChance, socketDropChance, tomeDropChance,
       enhancerDropChance, tinkerGearDropChance, faceOrbDropChance, hypercubeDropChance, purityDropChance,
-      normalItemDropChance, distortDropChance, soulGemDropChance;
+      normalItemDropChance, distortDropChance, soulGemDropChance, rarityPaintDropChance, awakenerDropChance,
+      missingStatDropChance;
 
   private static final RandomSound distortedDropSound =
       new RandomSound(SoundCategory.MASTER, Sound.ENTITY_ENDERMAN_HURT, 4f, 1f, 0.05f);
@@ -76,11 +77,17 @@ public class DropUtil implements Listener {
     scrollDropChance = plugin.getSettings().getDouble("config.drops.upgrade-scroll", 0D);
     socketDropChance = plugin.getSettings().getDouble("config.drops.socket-gem", 0D);
     tomeDropChance = plugin.getSettings().getDouble("config.drops.enchant-gem", 0D);
+
     enhancerDropChance = plugin.getSettings().getDouble("config.drops.arcane-enhancer", 0D);
+
     tinkerGearDropChance = plugin.getSettings().getDouble("config.drops.tinker-gear", 0D);
     faceOrbDropChance = plugin.getSettings().getDouble("config.drops.face-orb", 0D);
     hypercubeDropChance = plugin.getSettings().getDouble("config.drops.hypercube", 0D);
     distortDropChance = plugin.getSettings().getDouble("config.drops.distort", 0D);
+    awakenerDropChance = plugin.getSettings().getDouble("config.drops.awakener", 0D);
+    missingStatDropChance = plugin.getSettings().getDouble("config.drops.missing-stat", 0D);
+    rarityPaintDropChance = plugin.getSettings().getDouble("config.drops.raritypaint", 0D);
+
     purityDropChance = plugin.getSettings().getDouble("config.drops.purity-scroll", 0D);
     normalItemDropChance = plugin.getSettings().getDouble("config.drops.normal-item", 0D);
     soulGemDropChance = plugin.getSettings().getDouble("config.drops.soul-gem", 0.0001D);
@@ -198,33 +205,9 @@ public class DropUtil implements Listener {
           es.isBroadcast() ? FaceColor.BLUE.getRawColor() : null,
           es.isBroadcast() ? ChatColor.BLUE : null, rs);
     }
-    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * enhancerDropChance) {
-      dropItem(event.getLocation(), ArcaneEnhancer.get(), killer, 0, true,
-          FaceColor.RED.getRawColor(), ChatColor.DARK_PURPLE, arcaneDropSound);
-    }
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * purityDropChance) {
       dropItem(event.getLocation(), PurifyingScroll.get(), killer, 0, false,
           FaceColor.WHITE.getRawColor(), ChatColor.WHITE, purifyDropSound);
-    }
-    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * tinkerGearDropChance) {
-      dropItem(event.getLocation(), TinkerersGear.get(), killer, 0, true,
-          FaceColor.RED.getRawColor(), ChatColor.RED, tinkerDropSound);
-    }
-    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * faceOrbDropChance) {
-      dropItem(event.getLocation(), OrbOfManyFaces.item(), killer, 0, true,
-          FaceColor.RED.getRawColor(), ChatColor.RED, tinkerDropSound);
-    }
-    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * hypercubeDropChance) {
-      dropItem(event.getLocation(), PerfectSphere.item(), killer, 0, true,
-          FaceColor.RED.getRawColor(), ChatColor.RED, tinkerDropSound);
-    }
-    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * normalItemDropChance) {
-      dropItem(event.getLocation(), NormalItem.item(), killer, 0, false,
-          FaceColor.BLUE.getRawColor(), ChatColor.BLUE, purifyDropSound);
-    }
-    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * distortDropChance) {
-      dropItem(event.getLocation(), DistortionCell.item(), killer, 0, true,
-          FaceColor.BLACK.getRawColor(), ChatColor.BLACK, tinkerDropSound);
     }
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * soulGemDropChance) {
       if (killer != null && killer.getLevel() > 25) {
@@ -255,11 +238,52 @@ public class DropUtil implements Listener {
           broadcast ? FaceColor.ORANGE.getRawColor() : null,
           broadcast ? ChatColor.GOLD : null, rs);
     }
-    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * plugin.getSettings()
-        .getDouble("config.drops.socket-extender", 0D)) {
-      ItemStack his = SocketExtender.EXTENDER.clone();
-      dropItem(event.getLocation(), his, killer, 0, true,
-          FaceColor.TEAL.getRawColor(), ChatColor.AQUA, extenderDropSound);
+
+
+    // RARE LOOT TABLE
+    if (LootPlugin.RNG.nextDouble() < 0.01) {
+      if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * enhancerDropChance) {
+        dropItem(event.getLocation(), ArcaneEnhancer.get(), killer, 0, true,
+            FaceColor.RED.getRawColor(), ChatColor.DARK_PURPLE, arcaneDropSound);
+      }
+      if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * tinkerGearDropChance) {
+        dropItem(event.getLocation(), TinkerersGear.get(), killer, 0, true,
+            FaceColor.RED.getRawColor(), ChatColor.RED, tinkerDropSound);
+      }
+      if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * faceOrbDropChance) {
+        dropItem(event.getLocation(), OrbOfManyFaces.item(), killer, 0, true,
+            FaceColor.RED.getRawColor(), ChatColor.RED, tinkerDropSound);
+      }
+      if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * hypercubeDropChance) {
+        dropItem(event.getLocation(), PerfectSphere.item(), killer, 0, true,
+            FaceColor.RED.getRawColor(), ChatColor.RED, tinkerDropSound);
+      }
+      if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * normalItemDropChance) {
+        dropItem(event.getLocation(), NormalItem.item(), killer, 0, false,
+            FaceColor.BLUE.getRawColor(), ChatColor.BLUE, purifyDropSound);
+      }
+      if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * distortDropChance) {
+        dropItem(event.getLocation(), DistortionCell.item(), killer, 0, true,
+            FaceColor.BLACK.getRawColor(), ChatColor.BLACK, tinkerDropSound);
+      }
+      if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * awakenerDropChance) {
+        dropItem(event.getLocation(), AwakeningStone.item(), killer, 0, true,
+            FaceColor.RED.getRawColor(), ChatColor.RED, tinkerDropSound);
+      }
+      if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * missingStatDropChance) {
+        dropItem(event.getLocation(), MissingStat.item(), killer, 0, true,
+            FaceColor.RED.getRawColor(), ChatColor.RED, tinkerDropSound);
+      }
+      if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * rarityPaintDropChance) {
+        dropItem(event.getLocation(), TooltipPaint.item(), killer, 0, true,
+            FaceColor.RED.getRawColor(), ChatColor.RED, tinkerDropSound);
+      }
+      if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * plugin.getSettings()
+          .getDouble("config.drops.socket-extender", 0D)) {
+        ItemStack his = SocketExtender.EXTENDER.clone();
+        dropItem(event.getLocation(), his, killer, 0, true,
+            FaceColor.TEAL.getRawColor(), ChatColor.AQUA, extenderDropSound);
+      }
     }
   }
 

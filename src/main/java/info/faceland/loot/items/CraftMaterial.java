@@ -94,7 +94,7 @@ public class CraftMaterial {
     CraftMaterial mat = get(stack);
     if (mat != null) {
       int amount = stack.getAmount();
-      ItemRenderer.replace(stack, mat.cachedStack.clone());
+      ItemRenderer.replace(stack, mat.cachedStack.clone(), false);
       stack.setAmount(amount);
     }
   }

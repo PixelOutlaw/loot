@@ -122,7 +122,7 @@ public class EnchantmentTome {
     EnchantmentTome item = EnchantmentTome.get(stack);
     if (item != null) {
       int amount = stack.getAmount();
-      ItemRenderer.replace(stack, item.builtItem.clone());
+      ItemRenderer.replace(stack, item.builtItem.clone(), false);
       stack.setAmount(amount);
     }
   }

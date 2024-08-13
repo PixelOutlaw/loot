@@ -185,17 +185,15 @@ public final class CraftingListener implements Listener {
     float rarityBonus = 1 + (craftBonus / 50) + (crData.getRarity() / 10);
 
     BuiltItem builtItem = plugin.getNewItemBuilder()
+        .withItemGenerationReason(ItemGenerationReason.CRAFTING)
         .withTier(tier)
         .withRarity(plugin.getRarityManager().getRandomRarity(rarityBonus, minRarity))
         .withSlotScore(crData.openSlotChance(Math.max(0, effectiveLevelAdvantage)))
         .withEnchantable(SkillRank.isRank(rank, SkillRank.APPRENTICE) || LootPlugin.RNG.nextFloat() < 0.15)
-        .withExtendSlots(LootPlugin.RNG.nextFloat() < MaterialUtil.getExtendChance(rank) ? 1 : 0)
         .withAlwaysEssence(SkillRank.isRank(rank, SkillRank.MASTER))
         .withCraftBonusStats(SkillRank.isRank(rank, SkillRank.EXPERT)? 0 : -1)
-        .withSockets(MaterialUtil.getSockets(minRarity, rank))
         .withLevel(itemLevel)
         .withCreator(player)
-        .withItemGenerationReason(ItemGenerationReason.CRAFTING)
         .build();
 
     ItemStack newResult = builtItem.getStack();

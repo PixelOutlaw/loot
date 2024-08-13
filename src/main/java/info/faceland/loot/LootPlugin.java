@@ -28,6 +28,7 @@ import info.faceland.loot.commands.UpdateItemCommand;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.MobLootTable;
 import info.faceland.loot.data.pdc.EquipmentDetailsType;
+import info.faceland.loot.data.pdc.GenericStatsType;
 import info.faceland.loot.groups.ItemGroup;
 import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.items.EnchantmentTome;
@@ -85,11 +86,13 @@ public final class LootPlugin extends FacePlugin {
 
   public static NamespacedKey ITEM_TYPE_KEY;
   public static NamespacedKey ITEM_EXTRA_KEY;
+  public static NamespacedKey ITEM_GENERIC_STATS_KEY;
   public static NamespacedKey ITEM_DATA_KEY;
   public static NamespacedKey ITEM_VERSION_KEY;
   public static NamespacedKey ITEM_NO_TRADE;
 
   public static EquipmentDetailsType ITEM_DATA_CLASS = new EquipmentDetailsType();
+  public static GenericStatsType ITEM_STATS_CLASS = new GenericStatsType();
 
   @Getter
   private MasterConfiguration settings;
@@ -152,6 +155,7 @@ public final class LootPlugin extends FacePlugin {
     ITEM_DATA_KEY = new NamespacedKey(this, "loot.item_data");
     ITEM_TYPE_KEY = new NamespacedKey(this, "loot.type");
     ITEM_EXTRA_KEY = new NamespacedKey(this, "loot.item_id");
+    ITEM_GENERIC_STATS_KEY = new NamespacedKey(this, "loot.generic_stats");
     ITEM_VERSION_KEY = new NamespacedKey(this, "loot.item_version");
     ITEM_NO_TRADE = new NamespacedKey(this, "loot.no_trade");
 
@@ -231,6 +235,9 @@ public final class LootPlugin extends FacePlugin {
     DivineHammer.rebuild();
     PerfectSphere.rebuild();
     AspectOfPerfection.rebuild();
+    TooltipPaint.rebuild();
+    AwakeningStone.rebuild();
+    MissingStat.rebuild();
 
     tradeMenuManager.loadVillagerTrades(defaultLoadConfig("trades.yml").getConfigurationSection("trades"));
 
@@ -438,12 +445,13 @@ public final class LootPlugin extends FacePlugin {
       rarity.setWeight(cs.getDouble("weight"));
       rarity.setPower(cs.getDouble("power"));
       rarity.setMinimumBonusStats(cs.getInt("min-bonus-stats"));
-      rarity.setMaximumBonusStats(cs.getInt("max-bonus-stats") + 1);
+      rarity.setMaximumBonusStats(cs.getInt("max-bonus-stats"));
       rarity.setEnchantments(cs.getInt("enchantments"));
       rarity.setSocketChance(cs.getDouble("socket-chance"));
       rarity.setExtenderChance(cs.getDouble("extend-chance"));
       rarity.setMinimumSockets(cs.getInt("minimum-sockets"));
       rarity.setMaximumSockets(cs.getInt("maximum-sockets"));
+      rarity.setBonusExtenders(cs.getInt("bonus-extenders", 0));
       rarity.setLivedTicks(cs.getInt("base-ticks-lived", 0));
       getRarityManager().addRarity(key, rarity);
     }

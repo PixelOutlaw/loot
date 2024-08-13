@@ -130,7 +130,7 @@ public final class SocketGem {
     SocketGem gemb = LootPlugin.getInstance().getSocketGemManager().getSocketGem(PersistHelper.getItemId(stack));
     if (gemb != null) {
       int amount = stack.getAmount();
-      ItemRenderer.replace(stack, gemb.builtItem.clone());
+      ItemRenderer.replace(stack, gemb.builtItem.clone(), false);
       stack.setAmount(amount);
     }
   }

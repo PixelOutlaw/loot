@@ -113,7 +113,7 @@ public final class SoulGem  {
     SoulGem s = get(stack);
     if (s != null) {
       int amount = stack.getAmount();
-      ItemRenderer.replace(stack, s.builtItem.clone());
+      ItemRenderer.replace(stack, s.builtItem.clone(), false);
       stack.setAmount(amount);
     }
   }

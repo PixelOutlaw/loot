@@ -25,6 +25,7 @@ public class ItemRarity {
   private int enchantments;
   private int minimumSockets;
   private int maximumSockets;
+  private int bonusExtenders;
   private double socketChance;
   private double extenderChance;
   private int livedTicks;

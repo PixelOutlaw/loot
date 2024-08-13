@@ -2,7 +2,7 @@ package info.faceland.loot.data.pdc;
 
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemRarity;
-import info.faceland.loot.items.CustomItem;
+import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.items.NewCustomItem;
 import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.Tier;
@@ -92,6 +92,7 @@ public class EquipmentData implements Serializable {
       }
       try {
         itemDetails.getTraits().add(StrifeTrait.valueOf(s));
+        continue;
       } catch (Exception ignored) {
         // Nothing
       }
@@ -325,7 +326,7 @@ public class EquipmentData implements Serializable {
 
   public boolean enhance() {
     if (isEnchanted() && !isEnhanced()) {
-      doubleData.put("enhancement", 1 + 0.3 * Math.pow(Math.random(), 2));
+      doubleData.put("enhancement", 1 + 0.1 + 0.2 * Math.pow(Math.random(), 2));
       return true;
     }
     return false;
@@ -365,6 +366,50 @@ public class EquipmentData implements Serializable {
       b.setStatRoll(b.getStatRoll() + (improvementRemaining * percentImprovement));
     }
     sortBonusStats();
+  }
+
+  public boolean canAddBonusStat(int leeway) {
+    return bonusStats.size() < getItemRarity().getMaximumBonusStats() + leeway;
+  }
+
+  public boolean addBonusStat() {
+    List<ItemStat> tierStats = new ArrayList<>(getTier().getBonusStats());
+    Map<String, Integer> categoryCount = new HashMap<>();
+    for (var ts : tierStats) {
+      if (ts.getCategory() != null) {
+        categoryCount.put(ts.getCategory(), categoryCount.getOrDefault(ts.getCategory(), 0) + 1);
+      }
+    }
+    tierStats.removeIf(stat -> {
+      if (!categoryCount.isEmpty() && stat.getCategory() != null) {
+        if (getTier().getStatCategoryLimits().containsKey(stat.getCategory())) {
+          if (getTier().getStatCategoryLimits().get(stat.getCategory()) <= categoryCount.get(stat.getCategory())) {
+            return true;
+          }
+        }
+      }
+      for (var bonusStat : bonusStats) {
+        if (bonusStat.getStat() == null) {
+          return false;
+        }
+        if (bonusStat.getStat() == stat || bonusStat.getStat().getStat() == stat.getStat()) {
+          return true;
+        }
+      }
+      return false;
+    });
+    if (tierStats.isEmpty()) {
+      return false;
+    }
+    Collections.shuffle(tierStats);
+    var selectedStat = tierStats.get(0);
+    StoredStat ss = new StoredStat(selectedStat.getId(), Math.pow(Math.random(), 2.2));
+    if (isDistorted()) {
+      ss.setDistorted(true);
+    }
+    bonusStats.add(ss);
+    sortBonusStats();
+    return true;
   }
 
   public boolean isDistorted() {
@@ -437,7 +482,7 @@ public class EquipmentData implements Serializable {
   }
 
   public boolean enchant(StoredStat storedStat, int maxEnchantment) {
-    if (!isEnchantable()) {
+    if (!canBeEnchanted()) {
       return false;
     }
     enchantment = storedStat;
@@ -455,8 +500,12 @@ public class EquipmentData implements Serializable {
     return enchantment != null && doubleData.getOrDefault("enhancement", 0D) > 0;
   }
 
-  public boolean isEnchantable() {
+  public boolean canBeEnchanted() {
     return booleanData.getOrDefault("enchantable", false) && enchantment == null;
+  }
+
+  public boolean hasEnchantmentSlot() {
+    return booleanData.getOrDefault("enchantable", false);
   }
 
   public void setEnchantable(boolean enchantable) {

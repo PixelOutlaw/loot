@@ -3,7 +3,9 @@ package info.faceland.loot.utils;
 import static info.faceland.loot.LootPlugin.ITEM_DATA_CLASS;
 import static info.faceland.loot.LootPlugin.ITEM_DATA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
+import static info.faceland.loot.LootPlugin.ITEM_GENERIC_STATS_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_NO_TRADE;
+import static info.faceland.loot.LootPlugin.ITEM_STATS_CLASS;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
@@ -11,6 +13,7 @@ import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 import com.tealcube.minecraft.bukkit.shade.google.gson.Gson;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.pdc.EquipmentData;
+import info.faceland.loot.data.pdc.GenericItemStats;
 import info.faceland.loot.data.pdc.StoredStat;
 import info.faceland.loot.items.NewCustomItem;
 import info.faceland.loot.items.UniqueItemStat;
@@ -151,6 +154,19 @@ public class PersistHelper {
     }
   }
 
+  public static GenericItemStats getGenericStats(ItemStack stack) {
+    if (stack == null || stack.getType() == Material.AIR) {
+      //System.out.println("invalid material for data");
+      return null;
+    }
+    ItemMeta meta = stack.getItemMeta();
+    PersistentDataContainer pdc = meta.getPersistentDataContainer();
+    if (!pdc.has(ITEM_GENERIC_STATS_KEY)) {
+      return null;
+    }
+    return pdc.get(ITEM_GENERIC_STATS_KEY, ITEM_STATS_CLASS);
+  }
+
   public static void syncUniqueEquipment(ItemStack stack, EquipmentData data, NewCustomItem ci) {
     stack.setType(ci.getMaterial());
     ItemStackExtensionsKt.setCustomModelData(stack, ci.getCustomDataNumber());
@@ -239,7 +255,7 @@ public class PersistHelper {
 
   public static boolean isEnchantable(ItemStack stack) {
     EquipmentData data = getEquipmentData(stack);
-    return data != null && data.isEnchantable();
+    return data != null && data.canBeEnchanted();
   }
 
   public static int getMissingEnchantPower(ItemStack stack) {

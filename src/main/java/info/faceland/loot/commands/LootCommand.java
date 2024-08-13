@@ -623,6 +623,36 @@ public class LootCommand extends BaseCommand {
           new String[][]{{"%amount%", amount + ""}});
     }
 
+    @Subcommand("awaken")
+    @CommandCompletion("@players @range:1-100")
+    public void awkenerrr(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(AwakeningStone.item());
+      }
+      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
+          new String[][]{{"%amount%", amount + ""}});
+    }
+
+    @Subcommand("missing")
+    @CommandCompletion("@players @range:1-100")
+    public void missin(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(MissingStat.item());
+      }
+      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
+          new String[][]{{"%amount%", amount + ""}});
+    }
+
+    @Subcommand("raritypaint")
+    @CommandCompletion("@players @range:1-100")
+    public void painer(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(TooltipPaint.item());
+      }
+      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
+          new String[][]{{"%amount%", amount + ""}});
+    }
+
     @Subcommand("purity|purify")
     @CommandCompletion("@players @range:1-100")
     public void givePurity(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
@@ -688,7 +718,9 @@ public class LootCommand extends BaseCommand {
       PaletteUtil.sendMessage(target.getPlayer(), "|yellow|Your crafting level is too low to use this!");
       return;
     }
-    plugin.getSalvageMenu().setTool(target.getPlayer(), target.getPlayer().getEquipment().getItemInMainHand());
+    if (target.getPlayer().getEquipment().getItemInMainHand().getType() == Material.NETHER_BRICK) {
+      plugin.getSalvageMenu().setTool(target.getPlayer(), target.getPlayer().getEquipment().getItemInMainHand());
+    }
     plugin.getSalvageMenu().setEquipment(target.getPlayer(), null);
     plugin.getSalvageMenu().open(target.getPlayer());
   }

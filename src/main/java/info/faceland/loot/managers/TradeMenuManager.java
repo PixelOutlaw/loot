@@ -8,6 +8,8 @@ import info.faceland.loot.items.EnchantmentTome;
 import info.faceland.loot.items.NewCustomItem;
 import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.UpgradeScroll;
+import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.PersistHelper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -56,6 +58,8 @@ public class TradeMenuManager {
             continue;
           }
           stack1.setAmount(quantityOne);
+          PersistHelper.setTradeLocked(stack1, section.getBoolean(key + ".trade-locked-one", false));
+          ItemRenderer.renderItem(stack1, true);
 
           String optionTwo = section.getString(key + ".item-two");
           int quantityTwo = section.getInt(key + ".quantity-two", 0);
@@ -64,6 +68,8 @@ public class TradeMenuManager {
             stack2 = getStack(key, optionTwo);
             if (stack2 != null) {
               stack2.setAmount(quantityTwo);
+              PersistHelper.setTradeLocked(stack2, section.getBoolean(key + ".trade-locked-two", false));
+              ItemRenderer.renderItem(stack2, true);
             }
           }
 
@@ -79,6 +85,8 @@ public class TradeMenuManager {
             continue;
           }
           resulttem.setAmount(resultQuantity);
+          PersistHelper.setTradeLocked(resulttem, section.getBoolean(key + ".result-trade-locked", false));
+          ItemRenderer.renderItem(resulttem, true);
           if (stack2 == null) {
             trades.add(new VillagerTrade(stack1, resulttem, 9999));
           } else {

@@ -25,15 +25,18 @@ import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.AspectOfPerfection;
+import info.faceland.loot.items.prefabs.AwakeningStone;
 import info.faceland.loot.items.prefabs.DistortionCell;
 import info.faceland.loot.items.prefabs.DivineHammer;
 import info.faceland.loot.items.prefabs.ManaCrystal;
+import info.faceland.loot.items.prefabs.MissingStat;
 import info.faceland.loot.items.prefabs.NormalItem;
 import info.faceland.loot.items.prefabs.OrbOfManyFaces;
 import info.faceland.loot.items.prefabs.PerfectSphere;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
+import info.faceland.loot.items.prefabs.TooltipPaint;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.utils.PersistHelper;
 import ninja.amp.ampmenus.menus.MenuHolder;
@@ -86,9 +89,10 @@ public final class EnchantMenuListener implements Listener {
       // common, and I'd rather do it before 20 string compares
       case "", "unknown" -> false;
       case SocketGem.TYPE_KEY, EnchantmentTome.TYPE_KEY, PurifyingScroll.TYPE_KEY, ArcaneEnhancer.TYPE_KEY,
-          SocketExtender.TYPE_KEY, TinkerersGear.TYPE_KEY, OrbOfManyFaces.TYPE_KEY, UpgradeScroll.TYPE_KEY,
-          PerfectSphere.TYPE_KEY, DivineHammer.TYPE_KEY, ManaCrystal.TYPE_KEY, DistortionCell.TYPE_KEY,
-          AspectOfPerfection.TYPE_KEY, NormalItem.TYPE_KEY-> true;
+           SocketExtender.TYPE_KEY, TinkerersGear.TYPE_KEY, OrbOfManyFaces.TYPE_KEY, UpgradeScroll.TYPE_KEY,
+           PerfectSphere.TYPE_KEY, DivineHammer.TYPE_KEY, ManaCrystal.TYPE_KEY, DistortionCell.TYPE_KEY,
+           AspectOfPerfection.TYPE_KEY, NormalItem.TYPE_KEY, AwakeningStone.TYPE_KEY, TooltipPaint.TYPE_KEY,
+           MissingStat.TYPE_KEY -> true;
       default -> false;
     };
     if (select) {

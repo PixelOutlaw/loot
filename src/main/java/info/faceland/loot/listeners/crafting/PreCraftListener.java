@@ -167,7 +167,7 @@ public final class PreCraftListener implements Listener {
     }
 
     int itemLevel = data.getLevel();
-    int essenceLevel = stat.getLevel();
+    int essenceLevel = stat.getEssenceLevel(stat.getLevel());
     int craftingLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.CRAFTING);
     double levelAdvantage = craftingLevel + 10 - itemLevel;
     if (levelAdvantage < 0) {
@@ -185,7 +185,7 @@ public final class PreCraftListener implements Listener {
     List<StoredStat> existingStats = data.getNormalStats();
 
     // TODO: use tier limits on stat combos
-    for(var s : existingStats) {
+    for (var s : existingStats) {
       if (s.getStat() == stat.getStat()) {
         craftingInventory.getResult().setType(Material.BARRIER);
         craftingInventory.getResult().setItemMeta(dupeStatMeta);
@@ -225,7 +225,8 @@ public final class PreCraftListener implements Listener {
     ItemStack result = recipe.getResult().clone();
 
     SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
-    SkillRank rank = SkillRank.getRank(plugin.getStrifePlugin().getChampionManager().getChampion(player), LifeSkillType.CRAFTING);
+    SkillRank rank = SkillRank.getRank(plugin.getStrifePlugin().getChampionManager().getChampion(player),
+        LifeSkillType.CRAFTING);
     int craftingLevel = data.getLevel();
     double effectiveCraftLevel = data.getLevelWithBonus();
     CraftResultData crData = new CraftResultData(craftingInventory.getMatrix(), result);
@@ -273,7 +274,7 @@ public final class PreCraftListener implements Listener {
     float minRarity = CraftingUtil.getMinimumRarity(crData.getRarity(), rank, effectiveLevelAdvantage);
 
     int minSockets = MaterialUtil.getMinSockets(rank);
-    int maxSockets = MaterialUtil.getMaxSockets(minRarity);
+    int maxSockets = MaterialUtil.getMaxSockets(minRarity) + tier.getExtraSockets();
     int extendChance = (int) (100 * MaterialUtil.getExtendChance(rank));
     float slotScore = crData.openSlotChance(Math.max(0, effectiveLevelAdvantage));
 
@@ -324,26 +325,26 @@ public final class PreCraftListener implements Listener {
     newLore.add(FaceColor.TRUE_WHITE + "傜" + FaceColor.BLUE +
         (craftingLevel >= 10 ? " (100%)" : " (15%)"));
     newLore.add("");
-    if (tier.getMaximumSockets() > 0) {
-      if (minSockets > 0) {
-        newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + "Socket (100%)");
-      } else {
-        newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + "Socket (50%)");
-      }
+
+
+    if (minSockets > 0) {
+      newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + "Socket (100%)");
+    } else {
+      newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + "Socket (50%)");
     }
-    if (tier.getMaximumSockets() > 1) {
-      if (maxSockets > 1 || minSockets > 1) {
-        newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + "Socket (100%)");
-      } else {
-        newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + "Socket (12%)");
-      }
+
+    if (maxSockets > 1 || minSockets > 1) {
+      newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + "Socket (100%)");
+    } else {
+      newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + "Socket (12%)");
     }
-    if (tier.getMaximumExtendSlots() > 0) {
+
+    if (extendChance > 0) {
       newLore.add(FaceColor.TRUE_WHITE + "品 " + FaceColor.TEAL + "Socket (" + extendChance + "%)");
     }
-    if (tier.getMaximumSockets() > 0 || tier.getMaximumExtendSlots() > 0) {
-      newLore.add("");
-    }
+
+    newLore.add("");
+
     newLore.add(FaceColor.YELLOW.shaded(ShaderStyle.BOUNCE) + "Use /skills for more info!");
 
     TextUtils.setLore(craftingInventory.getResult(), newLore, false);

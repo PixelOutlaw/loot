@@ -79,7 +79,7 @@ public final class ArcaneEnhancer {
 
   public static void update(ItemStack stack) {
     int amount = stack.getAmount();
-    ItemRenderer.replace(stack, item.clone());
+    ItemRenderer.replace(stack, item.clone(), false);
     stack.setAmount(amount);
   }
 

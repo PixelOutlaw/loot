@@ -44,6 +44,8 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.StringUtil;
+import org.codehaus.plexus.util.StringUtils;
 
 public final class MaterialUtil {
 
@@ -466,6 +468,85 @@ public final class MaterialUtil {
     plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player,
         LifeSkillType.ENCHANTING, 200, false, false);
     rerollOrb.setAmount(rerollOrb.getAmount() - 1);
+  }
+
+  public static void doAwakeningEffects(LootPlugin plugin, ItemStack equipmentItem, ItemStack rarityUpgrade, Player player) {
+    EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
+    if (data == null) {
+      PaletteUtil.sendMessage(player, "|yellow|Only equipment items can be awakened!");
+      return;
+    }
+    String id = PersistHelper.getItemId(equipmentItem);
+    if (StringUtils.isNotBlank(id)) {
+      PaletteUtil.sendMessage(player, "|yellow|This item cannot be used on uniques!");
+      return;
+    }
+    if (!data.canAddBonusStat(1)) {
+      PaletteUtil.sendMessage(player, "|yellow|This equipment already has the max number of stats!");
+      return;
+    }
+    data.addBonusStat();
+    PersistHelper.setEquipmentData(equipmentItem, data);
+    player.playSound(player.getEyeLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1F, 1F);
+    plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player, LifeSkillType.ENCHANTING, 200, false, false);
+    rarityUpgrade.setAmount(rarityUpgrade.getAmount() - 1);
+  }
+
+  public static void doAddStat(LootPlugin plugin, ItemStack equipmentItem, ItemStack rarityUpgrade, Player player) {
+    EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
+    if (data == null) {
+      PaletteUtil.sendMessage(player, "|yellow|Only equipment items have a stat added!");
+      return;
+    }
+    String id = PersistHelper.getItemId(equipmentItem);
+    if (StringUtils.isNotBlank(id)) {
+      PaletteUtil.sendMessage(player, "|yellow|This item cannot be used on uniques!");
+      return;
+    }
+    if (!data.canAddBonusStat(0)) {
+      PaletteUtil.sendMessage(player, "|yellow|This equipment already has the max number of stats!");
+      return;
+    }
+    data.addBonusStat();
+    PersistHelper.setEquipmentData(equipmentItem, data);
+    player.playSound(player.getEyeLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1F, 1F);
+    plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player, LifeSkillType.ENCHANTING, 200, false, false);
+    rarityUpgrade.setAmount(rarityUpgrade.getAmount() - 1);
+  }
+
+  public static void doRarityIncrease(LootPlugin plugin, ItemStack equipmentItem, ItemStack rarityUpgrade, Player player) {
+    EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
+    if (data == null) {
+      PaletteUtil.sendMessage(player, "|yellow|Only equipment can have their rarity increased!");
+      return;
+    }
+    String id = PersistHelper.getItemId(equipmentItem);
+    if (StringUtils.isNotBlank(id)) {
+      PaletteUtil.sendMessage(player, "|yellow|This item cannot be used on uniques!");
+      return;
+    }
+    ItemRarity rarity = data.getItemRarity();
+    switch (rarity.getId()) {
+      case "COMMON" -> data.setRarity("UNCOMMON");
+      case "UNCOMMON" -> data.setRarity("RARE");
+      case "RARE" -> data.setRarity("EPIC");
+      case "EPIC" -> {
+        PaletteUtil.sendMessage(player, "|yellow|This item is as rare as it gets!!");
+        return;
+      }
+    }
+    if (data.getBonusStats().size() < data.getItemRarity().getMinimumBonusStats()) {
+      // TODO: could maybe be more??
+      data.addBonusStat();
+    }
+    if (data.getSockets().size() + data.getEmptyExtendSlots() <
+        rarity.getMinimumSockets() + rarity.getBonusExtenders() + data.getTier().getExtraSockets()) {
+      data.setEmptyExtendSlots(data.getEmptyExtendSlots() + 1);
+    }
+    PersistHelper.setEquipmentData(equipmentItem, data);
+    player.playSound(player.getEyeLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1F, 1F);
+    plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player, LifeSkillType.ENCHANTING, 200, false, false);
+    rarityUpgrade.setAmount(rarityUpgrade.getAmount() - 1);
   }
 
   public static void doDistortEffects(LootPlugin plugin, ItemStack distortItem, ItemStack equipmentItem, Player player) {

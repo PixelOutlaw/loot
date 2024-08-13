@@ -37,7 +37,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -45,6 +47,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+@Getter
+@Setter
 public final class ItemBuilder {
 
   public static final String SOCKET_BASE = "|none|哀\uF822|orange|Socket";
@@ -54,8 +58,6 @@ public final class ItemBuilder {
   public static final String EXTEND = PaletteUtil.color(EXTEND_BASE);
   public static final String EXTEND_S = ChatColor.stripColor(EXTEND);
 
-  @Getter
-  private boolean built = false;
   private Tier tier;
   private ItemRarity rarity;
   private int level;
@@ -66,10 +68,10 @@ public final class ItemBuilder {
   private boolean soulbound = false;
   private boolean enchantable = true;
   private boolean alwaysEssence = false;
-  private int sockets = -1;
-  private int extendSlots = -1;
   private int craftBonusStats = 0;
   private ItemGenerationReason itemGenerationReason = ItemGenerationReason.MONSTER;
+
+  private boolean built = false;
 
   public ItemBuilder withRarity(ItemRarity r) {
     rarity = r;
@@ -88,16 +90,6 @@ public final class ItemBuilder {
 
   public ItemBuilder withPlus(int l) {
     plus = l;
-    return this;
-  }
-
-  public ItemBuilder withSockets(int l) {
-    sockets = l;
-    return this;
-  }
-
-  public ItemBuilder withExtendSlots(int l) {
-    extendSlots = l;
     return this;
   }
 
@@ -172,7 +164,7 @@ public final class ItemBuilder {
     List<ItemStat> bonusStatList = new ArrayList<>(tier.getBonusStats());
     bonusStatList.removeIf(stat -> level < stat.getMinimumItemLevel());
 
-    int bonusStats = LootPlugin.RNG.nextInt(rarity.getMinimumBonusStats(), rarity.getMaximumBonusStats());
+    int bonusStats = LootPlugin.RNG.nextInt(rarity.getMinimumBonusStats(), rarity.getMaximumBonusStats() + 1);
     if (itemGenerationReason == ItemGenerationReason.CRAFTING) {
       bonusStats += craftBonusStats;
     }
@@ -208,21 +200,29 @@ public final class ItemBuilder {
 
     data.setEnchantable(enchantable);
 
-    int sockets = this.sockets == -1 ? rarity.getMinimumSockets() : this.sockets;
-    sockets = Math.min(sockets, tier.getMaximumSockets());
-    int maxSockets = Math.min(rarity.getMaximumSockets(), tier.getMaximumSockets());
-    while (sockets < maxSockets && LootPlugin.RNG.nextFloat() < rarity.getSocketChance()) {
-      sockets++;
+    int extenders = 0;
+    int sockets = rarity.getMinimumSockets();
+    int maxSockets = rarity.getMaximumSockets() + tier.getExtraSockets();
+    if (maxSockets > 0) {
+      int failures = 0;
+      while (failures + sockets + extenders < maxSockets) {
+        if (LootPlugin.RNG.nextFloat() > rarity.getSocketChance()) {
+          failures++;
+          continue;
+        }
+        if (LootPlugin.RNG.nextFloat() < rarity.getExtenderChance()) {
+          extenders++;
+        } else {
+          sockets++;
+        }
+      }
+      extenders += rarity.getBonusExtenders();
+    } else {
+      sockets = 0;
     }
 
-    int minExtenders = this.extendSlots == -1 ? tier.getMinimumExtendSlots() : this.extendSlots;
-    int extenders = Math.min(minExtenders, tier.getMaximumExtendSlots());
-    while (extenders < tier.getMaximumExtendSlots() && LootPlugin.RNG.nextFloat() < rarity.getExtenderChance()) {
-      extenders++;
-    }
-
-    data.setEmptyGemSlots(sockets);
-    data.setEmptyExtendSlots(extenders);
+    data.setEmptyGemSlots(Math.max(0, sockets));
+    data.setEmptyExtendSlots(Math.max(0, extenders));
 
     if (crafted && creator != null) {
       data.setString("craftedBy", creator.getName());

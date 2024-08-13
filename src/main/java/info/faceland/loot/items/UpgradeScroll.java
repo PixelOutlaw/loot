@@ -101,7 +101,7 @@ public final class UpgradeScroll {
     UpgradeScroll item = UpgradeScroll.get(stack);
     if (item != null) {
       int amount = stack.getAmount();
-      ItemRenderer.replace(stack, item.stack.clone());
+      ItemRenderer.replace(stack, item.stack.clone(), false);
       stack.setAmount(amount);
     }
   }
