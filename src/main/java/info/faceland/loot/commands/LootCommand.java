@@ -718,10 +718,13 @@ public class LootCommand extends BaseCommand {
       PaletteUtil.sendMessage(target.getPlayer(), "|yellow|Your crafting level is too low to use this!");
       return;
     }
+    plugin.getSalvageMenu().setEquipment(target.getPlayer(), null);
+    plugin.getSalvageMenu().setTool(target.getPlayer(), null);
+    /*
     if (target.getPlayer().getEquipment().getItemInMainHand().getType() == Material.NETHER_BRICK) {
       plugin.getSalvageMenu().setTool(target.getPlayer(), target.getPlayer().getEquipment().getItemInMainHand());
     }
-    plugin.getSalvageMenu().setEquipment(target.getPlayer(), null);
+    */
     plugin.getSalvageMenu().open(target.getPlayer());
   }
 
