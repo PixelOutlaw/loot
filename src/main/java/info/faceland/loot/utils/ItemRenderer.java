@@ -1,6 +1,8 @@
 package info.faceland.loot.utils;
 
+import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
+import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 import static info.faceland.loot.utils.ItemStyleUtil.CORRUPTION;
 import static info.faceland.loot.utils.ItemStyleUtil.ENCHANT_CHARS;
 import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY;
@@ -61,6 +63,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 public class ItemRenderer {
 
@@ -159,7 +164,7 @@ public class ItemRenderer {
     Tier tier = Tier.get(stat.getOriginTier());
     StatResponse sr = buildStatResponse(
         LootPlugin.getInstance(),
-        stat.getEssenceLevel(stat.getLevel()),
+        stat.getLevel(),
         0,
         0,
         stat,
@@ -175,8 +180,13 @@ public class ItemRenderer {
       statText = centerSmallText(sr.getStatString());
     }
 
-    ItemStackExtensionsKt.setDisplayName(stack, FaceColor.CYAN + "Item Essence (" + tier.getPlainName() + ")");
-    List<String> lore = List.of(
+    int modelId = 100000;
+    modelId += 1000 * tier.getEssenceId();
+    modelId += Math.min(100, stat.getEssenceLevel(stat.getLevel()));
+
+    ItemMeta meta = stack.getItemMeta();
+    meta.setDisplayName(FaceColor.CYAN + "Item Essence (" + tier.getPlainName() + ")");
+    meta.setLore(List.of(
         PaletteUtil.color("|ns|\uF808万\uF808\uF801"),
         FaceColor.WHITE + centerSmallText("Item Type: " + FaceColor.CYAN + tier.getPlainName()),
         FaceColor.WHITE + centerSmallText("Essence Level: " + FaceColor.LIGHT_GREEN + stat.getEssenceLevel(stat.getLevel())),
@@ -186,9 +196,11 @@ public class ItemRenderer {
         FaceColor.LIGHT_GRAY + centerSmallText("Craft this together with"),
         FaceColor.LIGHT_GRAY + centerSmallText("an unfinished item with"),
         FaceColor.LIGHT_GRAY + centerSmallText("an empty stat slot!")
-    );
-    ItemStackExtensionsKt.setCustomModelData(stack, 200);
-    TextUtils.setLore(stack, lore, false);
+    ));
+    meta.setCustomModelData(modelId);
+    PersistentDataContainer pdc = meta.getPersistentDataContainer();
+    pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
+    stack.setItemMeta(meta);
   }
 
   protected static void renderEquipmentItem(LootPlugin plugin, ItemStack stack, EquipmentData data) {
@@ -299,14 +311,16 @@ public class ItemRenderer {
           lore.add(centerLargeText(sr.getStatString() + corruptStr));
         }
       }
+      if (unique != null) {
+        for (String s : unique.getJokeStats()) {
+          lore.add(centerLargeText(s));
+        }
+      }
       if (!data.isEnchanted()) {
         lore.add("");
       }
     } else {
       //debug only lore.add(FaceColor.GRAY + "No bonus stats...");
-    }
-    if (unique != null) {
-      lore.addAll(unique.getJokeStats());
     }
     if (data.hasEnchantmentSlot()) {
       if (data.getEnchantment() == null) {

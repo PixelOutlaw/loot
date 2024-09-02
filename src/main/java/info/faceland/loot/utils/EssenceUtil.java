@@ -35,10 +35,13 @@ public class EssenceUtil {
     } else {
       PersistHelper.setEquipmentData(stack, data);
     }
-    if (p != null && popOffStat) {
-      ItemStack essence = fromStoredStat(storedStat, data.getTier().getId(), data.getLevel(),
-          data.getItemRarity().getPower());
-      ItemUtils.giveOrDrop(p, essence);
+    if (p != null) {
+      //p.sendMessage("Testresmoved: " + storedStat.toString());
+      if (popOffStat) {
+        ItemStack essence = fromStoredStat(storedStat, data.getTier().getId(), data.getLevel(),
+            data.getItemRarity().getPower());
+        ItemUtils.giveOrDrop(p, essence);
+      }
     }
     return true;
   }
@@ -68,7 +71,9 @@ public class EssenceUtil {
     stat.setLevel(Math.max(1, level));
     stat.setEssenceLevel(Math.max(1, level - 10 + LootPlugin.RNG.nextInt(8)));
     stat.setRarityPower(rarityPower);
+    //System.out.println("roll1: " + stat.getStatRoll());
     stat.setStatRoll((0.5 + Math.random() * 0.5) * stat.getStatRoll());
+    //System.out.println("roll2: " + stat.getStatRoll());
     PersistHelper.storeEssenceStat(essenceItem, stat);
     ItemRenderer.renderEssence(essenceItem, stat);
     return essenceItem;

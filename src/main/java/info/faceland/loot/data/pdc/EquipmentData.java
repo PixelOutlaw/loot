@@ -425,6 +425,9 @@ public class EquipmentData implements Serializable {
         continue;
       }
       b.setDistorted(true);
+      if (b.getCachedValue() < 0) {
+        continue;
+      }
       eligibileStats.add(b);
     }
     if (eligibileStats.isEmpty()) {

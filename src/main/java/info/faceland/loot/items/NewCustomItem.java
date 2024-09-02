@@ -45,6 +45,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import land.face.strife.StrifePlugin;
 import land.face.strife.stats.StrifeStat;
 import land.face.strife.util.StatUtil;
 import lombok.EqualsAndHashCode;
@@ -101,6 +102,8 @@ public class NewCustomItem {
   private double weight;
   private int dropLevel;
   private int dropRange;
+
+  private String petId, mountId;
 
   private List<String> rightClickActions = new ArrayList<>();
   private Map<StrifeStat, Float> overrideStats = new HashMap<>();
@@ -221,6 +224,9 @@ public class NewCustomItem {
     ci.setDropRange(section.getInt("drop-range", 1));
     ci.setBroadcast(section.getBoolean("broadcast", false));
     ci.setExport(section.getBoolean("export", ci.getWeight() > 0));
+
+    ci.setPetId(section.getString("pet-id", null));
+    ci.setMountId(section.getString("mount-id", null));
 
     ci.setRightClickActions(section.getStringList("rightclick-actions"));
     ci.setOverrideStats(StatUtil.getStatMapFromSection(section.getConfigurationSection("override-stats")));

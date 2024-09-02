@@ -82,6 +82,7 @@ public class StatManager {
       component.setColor(InventoryUtil.getRollColor(itemStat, scaledRoll));
       response.setStatRoll(statRoll);
     }
+    float rawStatValue = statValue;
     statValue = (int) (((float) statValue * multiplier) + flatBonus);
     statValue = statValue == 0 ? 1 : statValue;
 

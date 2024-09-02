@@ -7,6 +7,7 @@ import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.StringUtils;
 import info.faceland.loot.LootPlugin;
@@ -31,11 +32,29 @@ import org.bukkit.persistence.PersistentDataType;
 
 public class ConversionUtil {
 
+  private static final List<String> OLD_UNTRADES = List
+      .of("Soulbound", "Untradeable", "[Untradeable]", "[ Untradeable ]", "傝", "俎");
+
   protected static void attemptToAbsorbItem(ItemStack stack) {
     String type = PersistHelper.getItemType(stack);
     if (!type.isEmpty() && !"unknown".equals(type)) {
       //System.out.println("-- WEIRD UPDATE SCENARIO ABORTING AAAA");
       return;
+    }
+    try {
+      boolean locked = stack.getItemMeta().getLore().stream().anyMatch(s -> {
+        for (var ss : OLD_UNTRADES) {
+          if (s.contains(ss)) {
+            return true;
+          }
+        }
+        return false;
+      });
+      if (locked) {
+        PersistHelper.setTradeLocked(stack, true);
+      }
+    } catch (Exception ignored) {
+
     }
     SocketGem gem = LootPlugin.getInstance().getSocketGemManager().getSocketGem(stack);
     if (gem != null) {
@@ -89,6 +108,21 @@ public class ConversionUtil {
       stack = soulGem.item();
       stack.setAmount(amount);
       return;
+    }
+    if (stack.getType() == Material.SADDLE) {
+      int modelData = ItemUtils.getModelData(stack);
+      for (var nci : LootPlugin.getInstance().getCustomItemManager().getCustomItems()) {
+        if (nci.getMaterial() == Material.SADDLE && nci.getCustomDataNumber() == modelData) {
+          ItemMeta meta = stack.getItemMeta();
+          PersistentDataContainer pdc = meta.getPersistentDataContainer();
+          pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
+          pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, "unique");
+          pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, nci.getId());
+          stack.setItemMeta(meta);
+          ItemRenderer.renderItem(stack, true);
+          return;
+        }
+      }
     }
     String name = ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack));
     if (StringUtils.isNotBlank(name) && !name.contains("Potion") && !name.contains(" Key")) {

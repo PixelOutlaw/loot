@@ -110,17 +110,14 @@ public class PersistHelper {
   }
 
   public static void storeEssenceStat(ItemStack stack, StoredStat storedStat) {
-    if (getItemType(stack).isEmpty()) {
-      try {
-        ItemMeta meta = stack.getItemMeta();
-        PersistentDataContainer pdc = meta.getPersistentDataContainer();
-        pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
-        pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, "essence");
-        pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, gson.toJson(storedStat));
-        stack.setItemMeta(meta);
-      } catch (Exception ignored) {
+    try {
+      ItemMeta meta = stack.getItemMeta();
+      PersistentDataContainer pdc = meta.getPersistentDataContainer();
+      pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, "essence");
+      pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, gson.toJson(storedStat));
+      stack.setItemMeta(meta);
+    } catch (Exception ignored) {
 
-      }
     }
   }
 

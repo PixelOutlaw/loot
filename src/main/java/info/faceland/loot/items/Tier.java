@@ -56,11 +56,13 @@ public final class Tier {
   private List<ItemStat> bonusStats;
   private Map<StrifeStat, Float> hiddenStats;
   private Map<StrifeStat, Float> weaponMods;
+  private List<String> essenceGroup;
   private int upgradeScale;
   private double spawnWeight;
   private double identifyWeight;
   private int customDataStart;
   private int customDataInterval;
+  private int essenceId;
   private FilterFlagA filterFlag;
   private Map<String, Integer> statCategoryLimits = new HashMap<>();
 
@@ -177,6 +179,8 @@ public final class Tier {
         tier.setIdentifyWeight(cs.getDouble("identify-weight"));
         tier.setCustomDataStart(cs.getInt("base-custom-data", -1));
         tier.setCustomDataInterval(cs.getInt("custom-data-level-interval", 200));
+        tier.setEssenceId(cs.getInt("essence-id", 0));
+        tier.setEssenceGroup(cs.getStringList("essence-group"));
         tier.setExtraSockets(cs.getInt("extra-sockets", 0));
         List<Material> mats = new ArrayList<>();
         for (var s : cs.getStringList("craft-materials")) {

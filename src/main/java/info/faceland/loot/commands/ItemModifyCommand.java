@@ -86,6 +86,11 @@ public class ItemModifyCommand extends BaseCommand {
     player.sendMessage("reeee: " + PersistHelper.getItemId(player.getItemInHand()));
     player.sendMessage("reeee2: " + PersistHelper.getItemType(player.getItemInHand()));
     ItemRenderer.renderItem(stack, false);
+    StoredStat ss = PersistHelper.getEssenceStat(stack);
+    if (ss != null) {
+      player.sendMessage(ss.toString());
+      return;
+    }
     EquipmentData data = validateItemData(player, stack);
     if (data == null) {
       return;

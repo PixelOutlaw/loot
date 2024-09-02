@@ -23,9 +23,8 @@ public class CraftingUtil {
   }
 
   public static float getRarityUpChance(double levelAdvantage, int quality) {
-    float chance = (float) (levelAdvantage / 100);
-    float rarityStep = (1 - chance) / 10;
-    chance += rarityStep * (quality - 1);
+    float chance = quality * 0.2f;
+    chance += (float) (levelAdvantage / 200f);
     return chance;
   }
 

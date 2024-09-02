@@ -155,9 +155,11 @@ public final class PreCraftListener implements Listener {
       return;
     }
     if (!data.getTier().getId().equals(stat.getOriginTier())) {
-      craftingInventory.getResult().setType(Material.BARRIER);
-      craftingInventory.getResult().setItemMeta(wrongTypeMeta);
-      return;
+      if (!data.getTier().getEssenceGroup().contains(stat.getOriginTier())) {
+        craftingInventory.getResult().setType(Material.BARRIER);
+        craftingInventory.getResult().setItemMeta(wrongTypeMeta);
+        return;
+      }
     }
 
     if (!data.hasCraftSlot()) {

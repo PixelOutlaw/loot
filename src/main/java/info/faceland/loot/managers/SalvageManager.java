@@ -65,15 +65,12 @@ public class SalvageManager {
     ItemStack materialDetectionItem = selectedStack.clone();
     materialDetectionItem.setDurability((short) 0);
     Tier tier = PersistHelper.getEquipmentData(selectedStack).getTier();
-    // TODO: Roll random
     Material material = tier.getCraftMaterials().get(LootPlugin.RNG.nextInt(tier.getCraftMaterials().size()));
     if (material == null) {
       sendMessage(player, plugin.getSettings().getString("language.craft.no-materials", ""));
       return;
     }
-
     int rarity = (int) MaterialUtil.getRarity(selectedStack).getPower();
-
     float rarityUpChance = CraftingUtil.getRarityUpChance(effectiveLevelAdvantage, tool.getQuality());
     while (LootPlugin.RNG.nextFloat() < rarityUpChance && rarity < 3) {
       rarity++;
