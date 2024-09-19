@@ -16,6 +16,9 @@
  */
 package info.faceland.loot;
 
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketListenerCommon;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.tealcube.minecraft.bukkit.facecore.logging.PluginLogger;
 import com.tealcube.minecraft.bukkit.facecore.plugin.FacePlugin;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
@@ -26,6 +29,7 @@ import info.faceland.loot.commands.ItemModifyCommand;
 import info.faceland.loot.commands.LootCommand;
 import info.faceland.loot.commands.UpdateItemCommand;
 import info.faceland.loot.data.ItemRarity;
+import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.MobLootTable;
 import info.faceland.loot.data.pdc.EquipmentDetailsType;
 import info.faceland.loot.data.pdc.GenericStatsType;
@@ -44,8 +48,10 @@ import info.faceland.loot.listeners.crafting.PreCraftListener;
 import info.faceland.loot.listeners.sockets.CombinerListener;
 import info.faceland.loot.managers.*;
 import info.faceland.loot.menu.gemcutter.GemcutterMenu;
+import info.faceland.loot.menu.loreglass.LoreglassMenu;
 import info.faceland.loot.menu.mortar.MortarMenu;
 import info.faceland.loot.menu.salvage.SalvageMenu;
+import info.faceland.loot.menu.tomereader.ReaderMenu;
 import info.faceland.loot.utils.DropUtil;
 import info.faceland.loot.utils.EnchantUtil;
 import info.faceland.loot.utils.MaterialUtil;
@@ -58,12 +64,15 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.stats.StrifeStat;
 import lombok.Getter;
 import org.black_ixx.playerpoints.PlayerPoints;
 import org.black_ixx.playerpoints.PlayerPointsAPI;
@@ -78,6 +87,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 public final class LootPlugin extends FacePlugin {
 
+  @Getter
   private static LootPlugin instance;
   public static SecureRandom RNG;
   private PluginLogger debugPrinter;
@@ -139,13 +149,18 @@ public final class LootPlugin extends FacePlugin {
   @Getter
   private MortarMenu mortarMenu;
   @Getter
+  private LoreglassMenu loreglassMenu;
+  @Getter
   private SalvageMenu salvageMenu;
 
-  public static LootPlugin getInstance() {
-    return instance;
-  }
+  private PacketListenerCommon stackSanitizeListener;
 
   public LootPlugin() {
+    instance = this;
+  }
+
+  @Override
+  public void onLoad() {
     instance = this;
   }
 
@@ -194,10 +209,38 @@ public final class LootPlugin extends FacePlugin {
 
     gemcutterMenu = new GemcutterMenu(this);
     mortarMenu = new MortarMenu(this);
+    loreglassMenu = new LoreglassMenu(this);
     salvageMenu = new SalvageMenu(this);
     tradeMenuManager = new TradeMenuManager(this);
+    new ReaderMenu(this);
 
     strifePlugin = (StrifePlugin) Bukkit.getPluginManager().getPlugin("Strife");
+
+    ItemStat.LIMIT_CATEGORY_STATS.clear();
+    ItemStat.LIMIT_CATEGORY_IDS.clear();
+    var cs = configYAML.getConfigurationSection("stat-categories");
+    for (String key : cs.getKeys(false)) {
+      Set<StrifeStat> stats = new HashSet<>();
+      for (String s : cs.getStringList(key)) {
+        try {
+          stats.add(StrifeStat.valueOf(s));
+        } catch (Exception e) {
+          Bukkit.getLogger().warning("[Loot] Invalid category stat config'd! " + s);
+        }
+      }
+      ItemStat.LIMIT_CATEGORY_STATS.put(key, stats);
+      for (var stat : stats) {
+        ItemStat.LIMIT_CATEGORY_IDS.putIfAbsent(stat, new HashSet<>());
+        ItemStat.LIMIT_CATEGORY_IDS.get(stat).add(key);
+      }
+    }
+    Bukkit.getLogger().info("[Loot] Category debug output:");
+    for (var li : ItemStat.LIMIT_CATEGORY_STATS.entrySet()) {
+      Bukkit.getLogger().info("[Loot] Stats: " + li.getKey() + " - " + li.getValue().toString());
+    }
+    for (var li : ItemStat.LIMIT_CATEGORY_IDS.entrySet()) {
+      Bukkit.getLogger().info("[Loot] Ids: " + li.getKey() + " - " + li.getValue().toString());
+    }
 
     setupPlayerPoints();
 
@@ -236,6 +279,7 @@ public final class LootPlugin extends FacePlugin {
     PerfectSphere.rebuild();
     AspectOfPerfection.rebuild();
     TooltipPaint.rebuild();
+    UnidEnchant.rebuild();
     AwakeningStone.rebuild();
     MissingStat.rebuild();
 
@@ -260,6 +304,7 @@ public final class LootPlugin extends FacePlugin {
 
     Bukkit.getPluginManager().registerEvents(new EntityDeathListener(this), this);
     Bukkit.getPluginManager().registerEvents(new GayBoatFix(), this);
+    Bukkit.getPluginManager().registerEvents(new JoinListener(this), this);
     Bukkit.getPluginManager().registerEvents(new CombinerListener(this), this);
     Bukkit.getPluginManager().registerEvents(new InteractListener(this), this);
     Bukkit.getPluginManager().registerEvents(new CraftingListener(this), this);
@@ -276,17 +321,24 @@ public final class LootPlugin extends FacePlugin {
     Bukkit.getPluginManager().registerEvents(new SalvageMenuListener(this), this);
     Bukkit.getPluginManager().registerEvents(new ItemSpawnListener(), this);
     Bukkit.getPluginManager().registerEvents(new MortarListener(this), this);
+    Bukkit.getPluginManager().registerEvents(new LoreglassListener(this), this);
+
     if (strifePlugin != null) {
       Bukkit.getPluginManager().registerEvents(new StrifeListener(this), this);
       VagabondEquipListener vagabondEquipListener = new VagabondEquipListener(this);
       vagabondEquipListener.loadData(configYAML.getConfigurationSection("vagabonds"));
       Bukkit.getPluginManager().registerEvents(vagabondEquipListener, this);
     }
+
+    stackSanitizeListener = PacketEvents.getAPI().getEventManager()
+        .registerListener(new PacketCleaner(), PacketListenerPriority.NORMAL);
+
     debug("v" + getDescription().getVersion() + " enabled");
   }
 
   @Override
   public void disable() {
+    PacketEvents.getAPI().getEventManager().unregisterListener(stackSanitizeListener);
     checkDealsTask.cancel();
     HandlerList.unregisterAll(this);
     Bukkit.getScheduler().cancelTasks(this);

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import land.face.strife.stats.StrifeStat;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,6 +12,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ItemStat {
+
+  public static Map<StrifeStat, Set<String>> LIMIT_CATEGORY_IDS = new HashMap<>();
+  public static Map<String, Set<StrifeStat>> LIMIT_CATEGORY_STATS = new HashMap<>();
 
   private String id;
 
@@ -25,7 +29,6 @@ public class ItemStat {
   private final List<String> namePrefixes = new ArrayList<>();
   private int minimumItemLevel;
   private boolean hide;
-  private String category;
   private StrifeStat stat;
   private boolean percentage;
 
@@ -50,9 +53,9 @@ public class ItemStat {
   public float getValue(float level, float rarity, float roll) {
     float statValue = minBaseValue + roll * (maxBaseValue - minBaseValue);
     statValue += level * perLevelIncrease;
-    statValue += rarity * perRarityIncrease;
     float multiplier = 1 + (level * perLevelMultiplier) + (rarity * perRarityMultiplier);
     statValue *= multiplier;
+    statValue += rarity * perRarityIncrease;
     return statValue;
   }
 }

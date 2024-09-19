@@ -2,10 +2,10 @@ package info.faceland.loot.data.pdc;
 
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemRarity;
-import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.items.NewCustomItem;
 import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.Tier;
+import info.faceland.loot.utils.EssenceUtil;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -71,6 +71,10 @@ public class EquipmentData implements Serializable {
       if (s.isEssenceSlot()) {
         continue;
       }
+      if (s.getStat() == null) {
+        Bukkit.getLogger().severe("[Loot] Unknown stat on item!");
+        continue;
+      }
       StrifeStat stat = s.getStat().getStat();
       itemDetails.getStats().put(stat, itemDetails.getStats().getOrDefault(stat, 0f) + s.getCachedValue());
     }
@@ -119,6 +123,22 @@ public class EquipmentData implements Serializable {
 
   public int getLevel() {
     return intData.getOrDefault("level", 0);
+  }
+
+  public void setCreationDate(String creation) {
+    stringData.put("creation-date", creation);
+  }
+
+  public String getCreationDate() {
+    return stringData.getOrDefault("creation-date", "The Before Times");
+  }
+
+  public void setDiscoveredBy(String c) {
+    stringData.put("creator", c);
+  }
+
+  public String getDiscoveredBy() {
+    return stringData.getOrDefault("creator", "The Gods");
   }
 
   public void upgrade() {
@@ -332,18 +352,18 @@ public class EquipmentData implements Serializable {
     return false;
   }
 
-  public void reroll(double minimum) {
+  public void reroll(double minimum, double exponent) {
     for (StoredStat b : bonusStats) {
       if (b.isCrafted()) {
         continue;
       }
-      b.setStatRoll(Math.max(minimum, Math.pow(LootPlugin.RNG.nextFloat(), 2.75)));
+      b.setStatRoll(Math.max(minimum, Math.pow(LootPlugin.RNG.nextFloat(), exponent)));
     }
     sortBonusStats();
   }
 
   public void reroll() {
-    reroll(0);
+    reroll(0, 2.75);
   }
 
   public void forceRoll(double amount) {
@@ -373,31 +393,7 @@ public class EquipmentData implements Serializable {
   }
 
   public boolean addBonusStat() {
-    List<ItemStat> tierStats = new ArrayList<>(getTier().getBonusStats());
-    Map<String, Integer> categoryCount = new HashMap<>();
-    for (var ts : tierStats) {
-      if (ts.getCategory() != null) {
-        categoryCount.put(ts.getCategory(), categoryCount.getOrDefault(ts.getCategory(), 0) + 1);
-      }
-    }
-    tierStats.removeIf(stat -> {
-      if (!categoryCount.isEmpty() && stat.getCategory() != null) {
-        if (getTier().getStatCategoryLimits().containsKey(stat.getCategory())) {
-          if (getTier().getStatCategoryLimits().get(stat.getCategory()) <= categoryCount.get(stat.getCategory())) {
-            return true;
-          }
-        }
-      }
-      for (var bonusStat : bonusStats) {
-        if (bonusStat.getStat() == null) {
-          return false;
-        }
-        if (bonusStat.getStat() == stat || bonusStat.getStat().getStat() == stat.getStat()) {
-          return true;
-        }
-      }
-      return false;
-    });
+    var tierStats = EssenceUtil.generateValidStatList(getTier(), bonusStats);
     if (tierStats.isEmpty()) {
       return false;
     }
@@ -531,8 +527,9 @@ public class EquipmentData implements Serializable {
   }
 
   public void sortBonusStats() {
-    getBonusStats().sort(Comparator.comparingDouble(s ->
-        s.isInverted() ? 0 : s.isEssenceSlot() ? 0 : s.getSortOrder()));
+    getBonusStats().sort(Comparator
+        .comparing((StoredStat s) -> s.isInverted() ? 0 : s.isEssenceSlot() ? 0 : s.getSortOrder())
+        .thenComparing(StoredStat::getStatRoll));
     Collections.reverse(getBonusStats());
   }
 

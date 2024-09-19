@@ -103,7 +103,7 @@ public class NewCustomItem {
   private int dropLevel;
   private int dropRange;
 
-  private String petId, mountId;
+  private String mountId;
 
   private List<String> rightClickActions = new ArrayList<>();
   private Map<StrifeStat, Float> overrideStats = new HashMap<>();
@@ -225,7 +225,6 @@ public class NewCustomItem {
     ci.setBroadcast(section.getBoolean("broadcast", false));
     ci.setExport(section.getBoolean("export", ci.getWeight() > 0));
 
-    ci.setPetId(section.getString("pet-id", null));
     ci.setMountId(section.getString("mount-id", null));
 
     ci.setRightClickActions(section.getStringList("rightclick-actions"));

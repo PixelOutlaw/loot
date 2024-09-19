@@ -42,7 +42,7 @@ public class DropUtil implements Listener {
   private static double customizedTierChance, normalDropChance, scrollDropChance, socketDropChance, tomeDropChance,
       enhancerDropChance, tinkerGearDropChance, faceOrbDropChance, hypercubeDropChance, purityDropChance,
       normalItemDropChance, distortDropChance, soulGemDropChance, rarityPaintDropChance, awakenerDropChance,
-      missingStatDropChance;
+      missingStatDropChance, unidTomeDropChance;
 
   private static final RandomSound distortedDropSound =
       new RandomSound(SoundCategory.MASTER, Sound.ENTITY_ENDERMAN_HURT, 4f, 1f, 0.05f);
@@ -77,6 +77,7 @@ public class DropUtil implements Listener {
     scrollDropChance = plugin.getSettings().getDouble("config.drops.upgrade-scroll", 0D);
     socketDropChance = plugin.getSettings().getDouble("config.drops.socket-gem", 0D);
     tomeDropChance = plugin.getSettings().getDouble("config.drops.enchant-gem", 0D);
+    unidTomeDropChance = plugin.getSettings().getDouble("config.drops.unid-enchant-gem", 0D);
 
     enhancerDropChance = plugin.getSettings().getDouble("config.drops.arcane-enhancer", 0D);
 
@@ -204,6 +205,10 @@ public class DropUtil implements Listener {
       dropItem(event.getLocation(), his, killer, 0, es.isBroadcast(),
           es.isBroadcast() ? FaceColor.BLUE.getRawColor() : null,
           es.isBroadcast() ? ChatColor.BLUE : null, rs);
+    }
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * unidTomeDropChance) {
+      ItemStack his = UnidEnchant.item();
+      dropItem(event.getLocation(), his, killer, 0, false, null, null, null);
     }
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * purityDropChance) {
       dropItem(event.getLocation(), PurifyingScroll.get(), killer, 0, false,

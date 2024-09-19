@@ -94,8 +94,12 @@ public class ItemStyleUtil {
   }
 
   public static String centerLargeText(String s) {
+    return centerLargeText(s, "");
+  }
+
+  public static String centerLargeText(String s, String extra) {
     String stripped = ChatColor.stripColor(s);
-    return HALFWAY + GUI.spacesOf(-countNormalTextSize(stripped) / 2) + s + "\uF80B";
+    return HALFWAY + GUI.spacesOf(-countNormalTextSize(stripped) / 2) + s + extra + "\uF80B";
   }
 
   public static String centerSmallText(String s) {

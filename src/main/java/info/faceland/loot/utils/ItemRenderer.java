@@ -1,6 +1,5 @@
 package info.faceland.loot.utils;
 
-import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 import static info.faceland.loot.utils.ItemStyleUtil.CORRUPTION;
@@ -46,6 +45,8 @@ import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.items.prefabs.TooltipPaint;
+import info.faceland.loot.items.prefabs.UnidEnchant;
+import info.faceland.loot.menu.loreglass.LoreglassMenu;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,12 +55,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import land.face.foods.FoodsPlugin;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.LoreAbility;
+import land.face.strife.data.champion.SkillRank;
 import land.face.strife.stats.StrifeStat;
 import land.face.strife.stats.StrifeTrait;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -87,23 +91,26 @@ public class ItemRenderer {
     switch (type) {
       case "equipment" -> renderEquipmentItem(LootPlugin.getInstance(), stack, true);
       case "unique" -> renderUniqueItem(LootPlugin.getInstance(), stack);
+      case UnidEnchant.TYPE_KEY -> UnidEnchant.update(stack);
       case "socket" -> SocketGem.update(stack);
       case "tome" -> EnchantmentTome.update(stack);
       case "scroll" -> UpgradeScroll.update(stack);
+      case "material" -> CraftMaterial.update(stack);
+      case "purity" -> PurifyingScroll.update(stack);
+      case "pet" -> { /* do nothing, for now */ }
+      case "food" -> FoodsPlugin.getInstance().getFoodsManager().updateItem(stack);
       case "extender" -> SocketExtender.update(stack);
+      case "essence" -> renderEssence(stack, null);
+      case "enhancer" -> ArcaneEnhancer.update(stack);
       case "tinker" -> TinkerersGear.update(stack);
       case "reroll" -> OrbOfManyFaces.update(stack);
       case "reroll2" -> PerfectSphere.update(stack);
       case "reroll3" -> DivineHammer.update(stack);
       case "normal" -> NormalItem.update(stack);
-      case "enhancer" -> ArcaneEnhancer.update(stack);
-      case "purity" -> PurifyingScroll.update(stack);
-      case "material" -> CraftMaterial.update(stack);
       case "soulgem" -> SoulGem.update(stack);
       case TooltipPaint.TYPE_KEY -> TooltipPaint.update(stack);
       case AwakeningStone.TYPE_KEY -> AwakeningStone.update(stack);
       case MissingStat.TYPE_KEY -> MissingStat.update(stack);
-      case "essence" -> renderEssence(stack, null);
       default -> ConversionUtil.attemptToAbsorbItem(stack);
     }
     ExternalRenderEvent craftEvent = new ExternalRenderEvent(stack);
@@ -124,7 +131,7 @@ public class ItemRenderer {
       if (data == null) {
         return;
       }
-      renderEquipmentItem(plugin, stack, data);
+      renderEquipmentItem(plugin, stack, data, null);
       return;
     }
     NewCustomItem ci = plugin.getCustomItemManager().getUnique(extraContext);
@@ -140,7 +147,7 @@ public class ItemRenderer {
     if (versionChange) {
       PersistHelper.syncUniqueEquipment(stack, data, ci);
     }
-    renderEquipmentItem(plugin, stack, data);
+    renderEquipmentItem(plugin, stack, data, null);
   }
 
   public static void renderUniqueItem(LootPlugin plugin, ItemStack stack) {
@@ -203,7 +210,7 @@ public class ItemRenderer {
     stack.setItemMeta(meta);
   }
 
-  protected static void renderEquipmentItem(LootPlugin plugin, ItemStack stack, EquipmentData data) {
+  public static void renderEquipmentItem(LootPlugin plugin, ItemStack stack, EquipmentData data, SkillRank viewRank) {
     List<String> lore = new ArrayList<>();
 
     NewCustomItem unique = LootPlugin.getInstance().getCustomItemManager().getUnique(PersistHelper.getItemId(stack));
@@ -229,6 +236,12 @@ public class ItemRenderer {
     }
 
     stack.setType(tier.getMaterial());
+    if (tier.getMaterial() == Material.BOW) {
+      stack.addUnsafeEnchantment(Enchantment.ARROW_INFINITE, 11);
+    }
+    if (!tier.getDestroyKeys().isEmpty()) {
+      stack.editMeta(im -> im.setDestroyableKeys(new HashSet<>(tier.getDestroyKeys())));
+    }
 
     boolean distorted = data.getBoolean("distorted");
 
@@ -301,14 +314,26 @@ public class ItemRenderer {
         StatResponse sr = tempRollMap.get(stat);
         String corruptStr = distorted ? "" : (stat.isDistorted() ? ItemStyleUtil.getCorruptAddon() : "");
         if (stat.isInverted()) {
-          lore.add(
-              centerLargeText(FaceColor.RED + ChatColor.stripColor(sr.getStatString()).replace("+", "-") + corruptStr));
+          String viewThing = SkillRank.check(viewRank, data.getLevel()) ?
+              LoreglassMenu.getPercentText((float) stat.getStatRoll()) : "";
+          lore.add(centerLargeText(FaceColor.RED +
+              ChatColor.stripColor(sr.getStatString()).replace("+", "-") + corruptStr, viewThing));
         } else if (stat.isCrafted()) {
-          lore.add(centerLargeText(FaceColor.CYAN + ChatColor.stripColor(sr.getStatString()) + corruptStr));
+          String viewThing = SkillRank.check(viewRank, data.getLevel()) ?
+              LoreglassMenu.getPercentText((float) stat.getStatRoll()) : "";
+          lore.add(centerLargeText(FaceColor.CYAN + ChatColor.stripColor(sr.getStatString()) + corruptStr, viewThing));
+          if (!stat.getOriginUnique().isBlank() && SkillRank.isRank(viewRank, SkillRank.EXPERT)) {
+            var originUnique = plugin.getCustomItemManager().getUnique(stat.getOriginUnique());
+            if (originUnique != null) {
+              lore.add(centerLargeText(FaceColor.GRAY + "From: " + originUnique.getItemName()));
+            }
+          }
         } else if (stat.isEssenceSlot()) {
           lore.add(centerLargeText(FaceColor.GRAY + "< Empty Stat Slot >"));
         } else {
-          lore.add(centerLargeText(sr.getStatString() + corruptStr));
+          String viewThing = SkillRank.check(viewRank, data.getLevel()) ?
+              LoreglassMenu.getPercentText((float) stat.getStatRoll()) : "";
+          lore.add(centerLargeText(sr.getStatString() + corruptStr, viewThing));
         }
       }
       if (unique != null) {
@@ -319,8 +344,6 @@ public class ItemRenderer {
       if (!data.isEnchanted()) {
         lore.add("");
       }
-    } else {
-      //debug only lore.add(FaceColor.GRAY + "No bonus stats...");
     }
     if (data.hasEnchantmentSlot()) {
       if (data.getEnchantment() == null) {
@@ -339,7 +362,10 @@ public class ItemRenderer {
             enhanced ? 1 : 0
         );
         enchantmentStat.setCachedValue(sr.getValue());
-        lore.add(centerLargeText(sr.getStatString()));
+        String viewThing = SkillRank.check(viewRank, enchantmentStat.getLevel()) ?
+            LoreglassMenu.getPercentText((float) enchantmentStat.getStatRoll()) + FaceColor.BLUE +
+                " (" + enchantmentStat.getLevel() + ")": "";
+        lore.add(centerLargeText(sr.getStatString(), viewThing));
         lore.add("");
       }
     }
@@ -351,7 +377,6 @@ public class ItemRenderer {
 
     String gemPrefix = "";
     int totalGemSlots = data.getSockets().size() + data.getEmptyGemSlots() + data.getEmptyExtendSlots();
-    boolean socketBuffer = false;
     if (totalGemSlots > 0) {
       if (!data.getSocketGems().isEmpty()) {
         int gemPrefixData = 0;
@@ -404,7 +429,13 @@ public class ItemRenderer {
     if (unique != null && !unique.getFlavorText().isEmpty()) {
       lore.addAll(unique.getFlavorText());
     } else if (StringUtils.isNotBlank(data.getString("craftedBy"))) {
-      lore.add(centerLargeText(FaceColor.GRAY + "Crafted By: " + data.getString("craftedBy")));
+      lore.add(centerLargeText(FaceColor.GRAY + FaceColor.ITALIC.s() + "Crafter: " + data.getString("craftedBy")));
+    }
+    if (SkillRank.isRank(viewRank, SkillRank.NOVICE)) {
+      if (StringUtils.isBlank(data.getString("craftedBy"))) {
+        lore.add(centerLargeText(FaceColor.GRAY + FaceColor.ITALIC.s() + "Looter: " + data.getDiscoveredBy()));
+      }
+      lore.add(centerLargeText(FaceColor.GRAY + FaceColor.ITALIC.s() + "Date: " + data.getCreationDate()));
     }
     List<String> prefixThings = new ArrayList<>();
     if (!gemPrefix.isBlank()) {

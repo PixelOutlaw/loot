@@ -21,27 +21,21 @@ package info.faceland.loot.listeners;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
 import static info.faceland.loot.utils.MaterialUtil.FAILURE_BONUS;
 
-import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.items.NewCustomItem;
-import info.faceland.loot.items.UpgradeScroll;
-import info.faceland.loot.items.prefabs.ShardOfFailure;
+import info.faceland.loot.items.prefabs.UnidEnchant;
+import info.faceland.loot.menu.tomereader.ReaderMenu;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.utils.ItemRenderer;
-import info.faceland.loot.utils.MaterialUtil;
 import info.faceland.loot.utils.PersistHelper;
-import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
-import java.util.List;
 import land.face.strife.StrifePlugin;
+import ninja.amp.ampmenus.menus.MenuHolder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -50,13 +44,13 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EnchantingInventory;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 
 public final class InteractListener implements Listener {
 
@@ -100,6 +94,12 @@ public final class InteractListener implements Listener {
       } else {
         return;
       }
+      if (UnidEnchant.matches(stack)) {
+        ReaderMenu.generateOptions(plugin, event.getPlayer());
+        stack.setAmount(stack.getAmount() - 1);
+        ReaderMenu.show(event.getPlayer());
+        return;
+      }
       NewCustomItem nci = PersistHelper.getNonEquipmentUniqueItem(stack);
       if (nci == null || nci.getRightClickActions().isEmpty()) {
         return;
@@ -122,6 +122,12 @@ public final class InteractListener implements Listener {
     if (event.getClick() != ClickType.RIGHT || event.getCursor().getType() != Material.AIR) {
       return;
     }
+    if (UnidEnchant.matches(event.getCurrentItem())) {
+      ReaderMenu.generateOptions(plugin, (Player) event.getWhoClicked());
+      event.getCurrentItem().setAmount(event.getCurrentItem().getAmount() - 1);
+      ReaderMenu.show((Player) event.getWhoClicked());
+      return;
+    }
     NewCustomItem nci = PersistHelper.getNonEquipmentUniqueItem(event.getCurrentItem());
     if (nci == null || nci.getRightClickActions().isEmpty()) {
       return;
@@ -142,113 +148,20 @@ public final class InteractListener implements Listener {
     }
   }
 
-  @EventHandler(priority = EventPriority.HIGHEST)
-  public void onQuickShard(InventoryClickEvent event) {
-    if (event.getClick() != ClickType.SHIFT_RIGHT || !(event
-        .getClickedInventory() instanceof PlayerInventory)) {
+  @EventHandler(priority = EventPriority.LOW)
+  public void onClose(InventoryCloseEvent event) {
+    if (!(event.getInventory().getHolder() instanceof MenuHolder holder)) {
       return;
     }
-    if (event.getCurrentItem() == null || event.getCursor() == null
-        || event.getCurrentItem().getType() == Material.AIR
-        || event.getCursor().getType() == Material.AIR || !(event
-        .getWhoClicked() instanceof Player player)) {
+    if (!(holder.getMenu() instanceof ReaderMenu transmuteMenu)) {
       return;
     }
-
-    ItemStack targetItem = new ItemStack(event.getCurrentItem());
-    ItemStack cursor = new ItemStack(event.getCursor());
-    String cursorName = ItemStackExtensionsKt.getDisplayName(cursor);
-    int amount = cursor.getAmount();
-
-    if (StringUtils.isBlank(cursorName) || !ShardOfFailure.isSimilar(cursor)) {
-      return;
+    if (ReaderMenu.TOME_OPTIONS.containsKey(event.getPlayer().getUniqueId())) {
+      transmuteMenu.rewardOptions((Player) event.getPlayer(), -1);
     }
-
-    UpgradeScroll scroll = plugin.getScrollManager().getScroll(targetItem);
-    if (scroll == null) {
-      return;
-    }
-    if (targetItem.getAmount() > 1) {
-      sendMessage(player, plugin.getSettings().getString("language.augment.stack-size", ""));
-      return;
-    }
-    List<String> lore = TextUtils.getLore(targetItem);
-    int failureBonus = MaterialUtil.getFailureBonus(targetItem);
-    if (failureBonus > 0) {
-      lore.set(0, StringExtensionsKt.chatColorize(FAILURE_BONUS + " +" + (failureBonus + amount)));
-    } else {
-      lore.add(0, StringExtensionsKt.chatColorize(FAILURE_BONUS + " +" + amount));
-    }
-    TextUtils.setLore(targetItem, lore);
-    event.setCurrentItem(targetItem);
-    event.getCursor().setAmount(0);
-    event.setCancelled(true);
-    event.setResult(Event.Result.DENY);
-    player.updateInventory();
-
-    player.playSound(player.getEyeLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 1L, 2F);
   }
 
-
-  @EventHandler(priority = EventPriority.HIGHEST)
-  public void onRightClickUse(InventoryClickEvent event) {
-    if (event.getClick() != ClickType.RIGHT || !(event
-        .getClickedInventory() instanceof PlayerInventory)) {
-      return;
-    }
-    if (event.getCurrentItem() == null || event.getCursor() == null ||
-        event.getCurrentItem().getType() == Material.AIR ||
-        event.getCursor().getType() == Material.AIR ||
-        !(event.getWhoClicked() instanceof Player player)) {
-      return;
-    }
-
-    ItemStack targetItem = new ItemStack(event.getCurrentItem());
-    ItemStack cursor = new ItemStack(event.getCursor());
-    String cursorName = ItemStackExtensionsKt.getDisplayName(cursor);
-
-    if (StringUtils.isBlank(cursorName)) {
-      return;
-    }
-
-    if (ShardOfFailure.isSimilar(cursor)) {
-      UpgradeScroll scroll = plugin.getScrollManager().getScroll(targetItem);
-      if (scroll == null) {
-        return;
-      }
-      if (targetItem.getAmount() > 1) {
-        sendMessage(player, plugin.getSettings().getString("language.augment.stack-size", ""));
-        return;
-      }
-      List<String> lore = TextUtils.getLore(targetItem);
-      boolean hasFailureBonus = false;
-      for (String s : lore) {
-        if (s.startsWith(FAILURE_BONUS)) {
-          hasFailureBonus = true;
-          break;
-        }
-      }
-      if (hasFailureBonus) {
-        int oldAmount = MaterialUtil.getDigit(lore.get(0));
-        lore.set(0, TextUtils.color(FAILURE_BONUS + " +" + (oldAmount + 1)));
-      } else {
-        lore.add(0, TextUtils.color(FAILURE_BONUS + " +1"));
-      }
-      TextUtils.setLore(targetItem, lore);
-      event.setCurrentItem(targetItem);
-      cursor.setAmount(cursor.getAmount() - 1);
-      if (cursor.getAmount() == 0) {
-        event.getCursor().setAmount(0);
-      } else  {
-        TextUtils.setLore(event.getCursor(), TextUtils.getLore(cursor));
-        event.getCursor().setAmount(cursor.getAmount());
-      }
-      event.setCancelled(true);
-      event.setResult(Event.Result.DENY);
-      player.updateInventory();
-      player.playSound(player.getEyeLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 1L, 2F);
-    }
-  }
+  // See git history for shards of failure
 
   @EventHandler(priority = EventPriority.MONITOR)
   public void onItemPickupEvent(EntityPickupItemEvent event) {

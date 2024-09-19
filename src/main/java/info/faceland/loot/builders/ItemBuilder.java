@@ -33,11 +33,12 @@ import info.faceland.loot.data.pdc.StoredStat;
 import info.faceland.loot.items.Tier;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.ChatColor;
@@ -57,6 +58,8 @@ public final class ItemBuilder {
   public static final String EXTEND_BASE = "|none|品\uF822|teal|Socket";
   public static final String EXTEND = PaletteUtil.color(EXTEND_BASE);
   public static final String EXTEND_S = ChatColor.stripColor(EXTEND);
+
+  public static final SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd");
 
   private Tier tier;
   private ItemRarity rarity;
@@ -184,11 +187,13 @@ public final class ItemBuilder {
       data.addBonusStat(new StoredStat(stat.getId(), roll));
       bonusStatList.remove(stat);
 
-      if (stat.getCategory() != null) {
-        categoryCount.put(stat.getCategory(), categoryCount.getOrDefault(stat.getCategory(), 0) + 1);
-        if (categoryCount.get(stat.getCategory()) >= tier.getStatCategoryLimits().getOrDefault(stat.getCategory(), 100)) {
-          bonusStatList.removeIf(bs -> stat.getCategory().equals(bs.getCategory()));
-          categoryCount.remove(stat.getCategory());
+      if (ItemStat.LIMIT_CATEGORY_IDS.containsKey(stat.getStat())) {
+        for (var category : ItemStat.LIMIT_CATEGORY_IDS.get(stat.getStat())) {
+          categoryCount.put(category, categoryCount.getOrDefault(category, 0) + 1);
+          if (categoryCount.get(category) >= tier.getStatCategoryLimits().getOrDefault(category, 100)) {
+            bonusStatList.removeIf(bs -> ItemStat.LIMIT_CATEGORY_STATS.get(category).contains(bs.getStat()));
+            categoryCount.remove(category);
+          }
         }
       }
     }
@@ -227,6 +232,10 @@ public final class ItemBuilder {
     if (crafted && creator != null) {
       data.setString("craftedBy", creator.getName());
     }
+    if (creator != null) {
+      data.setDiscoveredBy(creator.getName());
+    }
+    data.setCreationDate(simpleFormat.format(new Date()));
 
     if (distorted) {
       data.distort();

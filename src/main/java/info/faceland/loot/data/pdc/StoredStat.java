@@ -2,11 +2,9 @@ package info.faceland.loot.data.pdc;
 
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemStat;
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -615,7 +615,7 @@ public class EnchantMenu extends ItemMenu {
         return true;
       }
       case AspectOfPerfection.TYPE_KEY -> {
-        MaterialUtil.doPolishEffects(plugin, selectedEquipment, selectedUpgradeItem, player);
+        MaterialUtil.doPolishEffects(plugin, selectedUpgradeItem, selectedEquipment, player);
         setSelectedUpgradeItem(player, selectedUpgradeItem);
         setSelectedEquipment(player, selectedEquipment);
         return true;

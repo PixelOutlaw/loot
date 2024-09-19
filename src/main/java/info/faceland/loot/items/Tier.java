@@ -18,6 +18,7 @@
  */
 package info.faceland.loot.items;
 
+import com.destroystokyo.paper.Namespaced;
 import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemRarity;
@@ -38,6 +39,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
@@ -56,6 +58,7 @@ public final class Tier {
   private List<ItemStat> bonusStats;
   private Map<StrifeStat, Float> hiddenStats;
   private Map<StrifeStat, Float> weaponMods;
+  private Set<Namespaced> destroyKeys;
   private List<String> essenceGroup;
   private int upgradeScale;
   private double spawnWeight;
@@ -182,6 +185,11 @@ public final class Tier {
         tier.setEssenceId(cs.getInt("essence-id", 0));
         tier.setEssenceGroup(cs.getStringList("essence-group"));
         tier.setExtraSockets(cs.getInt("extra-sockets", 0));
+        Set<Namespaced> breakSpaces = new HashSet<>();
+        for (String s : cs.getStringList("destroy-keys")) {
+          breakSpaces.add(NamespacedKey.minecraft(s));
+        }
+        tier.setDestroyKeys(breakSpaces);
         List<Material> mats = new ArrayList<>();
         for (var s : cs.getStringList("craft-materials")) {
           try {

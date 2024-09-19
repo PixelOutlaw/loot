@@ -62,9 +62,9 @@ public class StatManager {
     TextComponent component = new TextComponent();
     component.setItalic(false);
 
-    int minVal = (int) itemStat.getValue(level, rarity, 0);
-    int maxVal = (int) itemStat.getValue(level, rarity, 1);
-    int statValue = (int) itemStat.getValue(level, rarity, statRoll);
+    int minVal = (int) Math.floor(itemStat.getValue(level, rarity, 0));
+    int maxVal = (int) Math.floor(itemStat.getValue(level, rarity, 1));
+    int statValue = (int) Math.floor(itemStat.getValue(level, rarity, statRoll));
     statValue = statValue == 0 ? 1 : statValue;
 
     if (statValue < 0) {
@@ -83,7 +83,7 @@ public class StatManager {
       response.setStatRoll(statRoll);
     }
     float rawStatValue = statValue;
-    statValue = (int) (((float) statValue * multiplier) + flatBonus);
+    statValue = (int) Math.floor(((float) statValue * multiplier) + flatBonus);
     statValue = statValue == 0 ? 1 : statValue;
 
     String value = Integer.toString(statValue);
@@ -131,7 +131,6 @@ public class StatManager {
           stat.setMinimumItemLevel(cs.getInt("minimum-item-level", -10));
           stat.getNamePrefixes().clear();
           stat.getNamePrefixes().addAll(cs.getStringList("prefixes"));
-          stat.setCategory(cs.getString("category", null));
           String statStr = cs.getString("stat", "");
           if (!statStr.isEmpty()) {
             stat.setStat(StrifeStat.valueOf(statStr));

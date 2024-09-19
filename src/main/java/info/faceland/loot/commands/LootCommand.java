@@ -157,6 +157,12 @@ public class LootCommand extends BaseCommand {
     plugin.getMortarMenu().open(player.getPlayer());
   }
 
+  @Subcommand("loreglass")
+  @CommandPermission("loot.admin")
+  public void lorgrass(CommandSender sender, OnlinePlayer player) {
+    plugin.getLoreglassMenu().open(player.getPlayer());
+  }
+
   @Subcommand("trade")
   @CommandPermission("loot.admin")
   public void tradeOpen(CommandSender sender, OnlinePlayer player, String tradeId, String menuName) {
@@ -350,6 +356,13 @@ public class LootCommand extends BaseCommand {
       } else {
         sendMessage(sender, "Not a real material!!!");
       }
+    }
+
+    @Subcommand("unidTome")
+    @CommandCompletion("@players")
+    public void giveUnidTome(CommandSender sender, OnlinePlayer player) {
+      ItemUtils.giveOrDrop(player.getPlayer(), UnidEnchant.item());
+      sendMessage(sender, "Success!");
     }
 
     @Subcommand("soulgem")

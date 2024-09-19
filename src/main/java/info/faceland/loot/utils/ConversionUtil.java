@@ -23,6 +23,8 @@ import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.List;
+import land.face.foods.FoodsPlugin;
+import land.face.foods.objects.RpgFood;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -36,6 +38,9 @@ public class ConversionUtil {
       .of("Soulbound", "Untradeable", "[Untradeable]", "[ Untradeable ]", "傝", "俎");
 
   protected static void attemptToAbsorbItem(ItemStack stack) {
+    if (stack == null || stack.getType() == Material.AIR) {
+      return;
+    }
     String type = PersistHelper.getItemType(stack);
     if (!type.isEmpty() && !"unknown".equals(type)) {
       //System.out.println("-- WEIRD UPDATE SCENARIO ABORTING AAAA");
@@ -107,6 +112,11 @@ public class ConversionUtil {
       int amount = stack.getAmount();
       stack = soulGem.item();
       stack.setAmount(amount);
+      return;
+    }
+    RpgFood food = FoodsPlugin.getInstance().getFoodsManager().getFoodFromItem(stack);
+    if (food != null) {
+      RpgFood.syncStack(stack, food);
       return;
     }
     if (stack.getType() == Material.SADDLE) {

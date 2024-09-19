@@ -62,6 +62,7 @@ public final class PreCraftListener implements Listener {
   private final float MAX_QUALITY;
 
   private final ItemMeta dupeStatMeta;
+  private final ItemMeta unstableStatMeta;
   private final ItemMeta powerfulEssenceMeta;
   private final ItemMeta lowLevelMeta;
   private final ItemMeta invalidItemMeta;
@@ -85,6 +86,9 @@ public final class PreCraftListener implements Listener {
     dupeStatMeta = failStack.getItemMeta().clone();
     dupeStatMeta.setLore(ListExtensionsKt.chatColorize(
         plugin.getSettings().getStringList("language.essence.duplicate-stats")));
+    unstableStatMeta = failStack.getItemMeta().clone();
+    unstableStatMeta.setLore(ListExtensionsKt.chatColorize(
+        plugin.getSettings().getStringList("language.essence.unstable-stat")));
     powerfulEssenceMeta = failStack.getItemMeta().clone();
     powerfulEssenceMeta.setLore(ListExtensionsKt.chatColorize(
         plugin.getSettings().getStringList("language.essence.essence-strength")));
@@ -193,11 +197,23 @@ public final class PreCraftListener implements Listener {
         craftingInventory.getResult().setItemMeta(dupeStatMeta);
         return;
       }
+      if (s.getStat().getStat() == stat.getStat().getStat()) {
+        craftingInventory.getResult().setType(Material.BARRIER);
+        craftingInventory.getResult().setItemMeta(dupeStatMeta);
+        return;
+      }
     }
 
     // TODO: THIS IS LIKELY INEFFICIENT
     ItemStack newResult = equipmentItem.clone();
     EquipmentData newData = PersistHelper.getEquipmentData(newResult);
+
+    if (!EssenceUtil.canItemAcceptStat(stat, newData)) {
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(unstableStatMeta);
+      return;
+    }
+
     EssenceUtil.applyEssence(newData, stat);
     PersistHelper.setEquipmentData(newResult, newData);
 
