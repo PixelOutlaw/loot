@@ -21,6 +21,7 @@ package info.faceland.loot.menu.loreglass;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.pdc.EquipmentData;
+import info.faceland.loot.data.pdc.StoredStat;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -56,15 +57,18 @@ public class InspectIcon extends MenuItem {
     SkillRank rank = SkillRank.getRank(champion, LifeSkillType.LOREMASTER);
 
     ItemStack stack = menu.getSelectedStack(player).clone();
+
     EquipmentData data = PersistHelper.getEquipmentData(stack);
-
-    if (data == null) {
-      return new ItemStack(Material.AIR);
+    if (data != null) {
+      ItemRenderer.renderEquipmentItem(plugin, stack, data, rank);
+      return stack;
     }
-
-    ItemRenderer.renderEquipmentItem(plugin, stack, data, rank);
-
-    return stack;
+    StoredStat stat = PersistHelper.getEssenceStat(stack);
+    if (stat != null) {
+      ItemRenderer.renderEssence(stack, stat, rank);
+      return stack;
+    }
+    return new ItemStack(Material.AIR);
   }
 
   @Override

@@ -19,7 +19,9 @@
 package info.faceland.loot.listeners;
 
 import info.faceland.loot.LootPlugin;
+import info.faceland.loot.data.pdc.StoredStat;
 import info.faceland.loot.menu.loreglass.LoreglassMenu;
+import info.faceland.loot.utils.EssenceUtil;
 import info.faceland.loot.utils.PersistHelper;
 import ninja.amp.ampmenus.menus.MenuHolder;
 import org.bukkit.Material;
@@ -75,11 +77,16 @@ public record LoreglassListener(LootPlugin plugin) implements Listener {
         .getStrifePlugin().getAbilityIconManager().isAbilityIcon(stack)) {
       return;
     }
-    if (PersistHelper.getEquipmentData(stack) == null) {
+    if (PersistHelper.getEquipmentData(stack) != null) {
+      Player player = (Player) event.getWhoClicked();
+      lm.setSelectedItem(player, stack);
       return;
     }
-    Player player = (Player) event.getWhoClicked();
-    lm.setSelectedItem(player, stack);
+    if (PersistHelper.getEssenceStat(stack) != null) {
+      Player player = (Player) event.getWhoClicked();
+      lm.setSelectedItem(player, stack);
+      return;
+    }
   }
 
 }

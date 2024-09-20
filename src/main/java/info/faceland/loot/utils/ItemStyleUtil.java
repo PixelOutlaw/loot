@@ -97,14 +97,18 @@ public class ItemStyleUtil {
     return centerLargeText(s, "");
   }
 
+  public static String centerSmallText(String s) {
+    return centerSmallText(s, "");
+  }
+
   public static String centerLargeText(String s, String extra) {
     String stripped = ChatColor.stripColor(s);
     return HALFWAY + GUI.spacesOf(-countNormalTextSize(stripped) / 2) + s + extra + "\uF80B";
   }
 
-  public static String centerSmallText(String s) {
+  public static String centerSmallText(String s, String extra) {
     String stripped = ChatColor.stripColor(s);
-    return HALFWAY_SMALL + GUI.spacesOf(-countNormalTextSize(stripped) / 2) + s + "\uF80B";
+    return HALFWAY_SMALL + GUI.spacesOf(-countNormalTextSize(stripped) / 2) + s + extra + "\uF80B";
   }
 
   public static String generateGemString(int slots, int extendSlots, List<SocketGem> sockets) {

@@ -161,7 +161,11 @@ public class ItemRenderer {
     stack.setAmount(amount);
   }
 
-  protected static void renderEssence(ItemStack stack, StoredStat stat) {
+  public static void renderEssence(ItemStack stack, StoredStat stat) {
+    renderEssence(stack, stat, null);
+  }
+
+  public static void renderEssence(ItemStack stack, StoredStat stat, SkillRank rank) {
     if (stat == null) {
       stat = PersistHelper.getEssenceStat(stack);
       if (stat == null) {
@@ -178,13 +182,16 @@ public class ItemRenderer {
         0
     );
 
+    String viewThing = SkillRank.check(rank, stat.getLevel()) ?
+        LoreglassMenu.getPercentText((float) stat.getStatRoll()) : "";
+
     String statText;
     if (sr == null) {
       statText = centerSmallText(FaceColor.CRIMSON + "Missing stat :(");
     } else if (stat.isDistorted()) {
-      statText = centerSmallText(sr.getStatString() + ItemStyleUtil.getCorruptAddon());
+      statText = centerSmallText(sr.getStatString() + ItemStyleUtil.getCorruptAddon(), viewThing);
     } else {
-      statText = centerSmallText(sr.getStatString());
+      statText = centerSmallText(sr.getStatString(), viewThing);
     }
 
     int modelId = 100000;
