@@ -18,6 +18,8 @@
  */
 package info.faceland.loot.menu.salvage;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import ninja.amp.ampmenus.events.ItemClickEvent;
 import ninja.amp.ampmenus.items.MenuItem;
 import org.bukkit.Material;
@@ -38,7 +40,10 @@ public class ToolIcon extends MenuItem {
   @Override
   public ItemStack getFinalIcon(Player player) {
     if (menu.getTool(player) == null) {
-      return new ItemStack(Material.AIR);
+      ItemStack stack = new ItemStack(Material.BARRIER);
+      ItemStackExtensionsKt.setCustomModelData(stack, 50);
+      ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&eSelect a Salvage Kit!"));
+      return stack;
     }
     return menu.getTool(player).clone();
   }

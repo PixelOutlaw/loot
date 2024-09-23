@@ -733,6 +733,7 @@ public class LootCommand extends BaseCommand {
     }
     plugin.getSalvageMenu().setEquipment(target.getPlayer(), null);
     plugin.getSalvageMenu().setTool(target.getPlayer(), null);
+    plugin.getSalvageMenu().setResult(target.getPlayer(), null);
     /*
     if (target.getPlayer().getEquipment().getItemInMainHand().getType() == Material.NETHER_BRICK) {
       plugin.getSalvageMenu().setTool(target.getPlayer(), target.getPlayer().getEquipment().getItemInMainHand());

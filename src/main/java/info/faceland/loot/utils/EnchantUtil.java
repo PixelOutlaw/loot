@@ -160,6 +160,8 @@ public class EnchantUtil {
     }
 
     SkillLevelData enchantSkill = PlayerDataUtil.getSkillLevels(player, LifeSkillType.ENCHANTING, true);
+    var rank = SkillRank.getRank(
+        StrifePlugin.getInstance().getChampionManager().getChampion(player),LifeSkillType.ENCHANTING);
 
     int itemLevel = MaterialUtil.getLevelRequirement(targetItem);
     //System.out.println("enchanted item levle " + itemLevel);
@@ -168,7 +170,7 @@ public class EnchantUtil {
     float rarity = (float) getBaseEnchantBonus(enchantSkill.getLevelWithBonus());
     //System.out.println("rarity " + rarity);
 
-    boolean success = ModifyEquipmentUtil.enchant(targetItem, tome, (int) enchantPower, rarity);
+    boolean success = ModifyEquipmentUtil.enchant(targetItem, tome, (int) enchantPower, rarity, rank);
 
     if (!success) {
       return false;

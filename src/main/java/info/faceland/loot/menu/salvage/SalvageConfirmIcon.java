@@ -30,6 +30,7 @@ import info.faceland.loot.utils.CraftingUtil;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.data.champion.SkillRank;
@@ -57,7 +58,7 @@ public class SalvageConfirmIcon extends MenuItem {
     ItemStack stack = getIcon().clone();
     if (menu.getEquipment(player) == null || menu.getEquipment(player).getAmount() < 1 ||
         menu.getTool(player) == null || menu.getTool(player).getAmount() < 1) {
-      ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&7&lSelect Tools And Equipment"));
+      ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&6Select BOTH a tool and equipment!"));
       return stack;
     }
 
@@ -95,8 +96,9 @@ public class SalvageConfirmIcon extends MenuItem {
     }
 
     Tier tier = PersistHelper.getEquipmentData(menu.getEquipment(player)).getTier();
-    // TODO: Roll random
-    Material material = tier.getCraftMaterials().get(0);
+    var mats = new ArrayList<>(tier.getCraftMaterials());
+    Collections.shuffle(mats);
+    Material material = mats.get(0);
     if (material == null) {
       ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&e&lNo Known Materials"));
       lore.add(FaceColor.LIGHT_GRAY + "It appears as if this can't be salvaged...");

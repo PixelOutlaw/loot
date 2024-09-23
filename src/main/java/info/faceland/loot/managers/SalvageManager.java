@@ -29,10 +29,10 @@ public class SalvageManager {
     this.plugin = plugin;
   }
 
-  public void destroy(Player player, ItemStack selectedStack, ItemStack toolStack) {
+  public ItemStack destroy(Player player, ItemStack selectedStack, ItemStack toolStack) {
     if (selectedStack == null || toolStack == null || selectedStack.getAmount() < 1 || toolStack.getAmount() < 1) {
       player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
-      return;
+      return null;
     }
     int itemLevel = getLevelRequirement(selectedStack);
     SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
@@ -44,18 +44,18 @@ public class SalvageManager {
     if (itemLevel > maxSalvageLevel) {
       sendMessage(player, plugin.getSettings().getString("language.craft.low-level", ""));
       player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
-      return;
+      return null;
     }
 
     NewCustomItem tool = PersistHelper.getNonEquipmentUniqueItem(toolStack);
     if (tool == null) {
       player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
-      return;
+      return null;
     }
     if (craftingLevel < tool.getItemLevel()) {
       sendMessage(player, plugin.getSettings().getString("language.craft.low-level-tool", ""));
       player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
-      return;
+      return null;
     }
 
     float effectiveCraftLevel = data.getLevelWithBonus();
@@ -68,7 +68,7 @@ public class SalvageManager {
     Material material = tier.getCraftMaterials().get(LootPlugin.RNG.nextInt(tier.getCraftMaterials().size()));
     if (material == null) {
       sendMessage(player, plugin.getSettings().getString("language.craft.no-materials", ""));
-      return;
+      return null;
     }
     int rarity = (int) MaterialUtil.getRarity(selectedStack).getPower();
     float rarityUpChance = CraftingUtil.getRarityUpChance(effectiveLevelAdvantage, tool.getQuality());
@@ -95,6 +95,7 @@ public class SalvageManager {
     double exp = 5 + itemLevel * 1.1;
     plugin.getStrifePlugin().getSkillExperienceManager()
         .addExperience(player, LifeSkillType.CRAFTING, exp, false, false);
+    return craftMaterial.clone();
   }
   
 }

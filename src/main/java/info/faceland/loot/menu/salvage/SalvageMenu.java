@@ -32,6 +32,7 @@ public class SalvageMenu extends ItemMenu {
 
   private final Map<Player, ItemStack> tools = new WeakHashMap<>();
   private final Map<Player, ItemStack> equipment = new WeakHashMap<>();
+  private final Map<Player, ItemStack> result = new WeakHashMap<>();
 
   /*
   00 01 02 03 04 05 06 07 08
@@ -43,15 +44,16 @@ public class SalvageMenu extends ItemMenu {
   */
 
   public SalvageMenu(LootPlugin plugin) {
-    super(TextUtils.color(plugin.getSettings().getString("language.menu.salvage-name",
-        "&0&lSalvage")), Size.fit(18), plugin);
+    super(TextUtils.color(plugin.getSettings().getString("language.menu.salvage-name", "&0&lSalvage")), Size.FOUR_LINE, plugin);
     this.plugin = plugin;
 
-    setItem(2, new EquipmentIcon(this));
-    setItem(6, new ToolIcon(this));
+    setItem(11, new EquipmentIcon(this));
+    setItem(13, new ToolIcon(this));
+    setItem(15, new ResultIcon(this));
 
-    setItem(12, new SalvageConfirmIcon(this));
-    setItem(14, new CancelIcon());
+    setItem(30, new SalvageConfirmIcon(this));
+    setItem(31, new SalvageConfirmIcon(this));
+    setItem(32, new SalvageConfirmIcon(this));
   }
 
   public ItemStack getEquipment(Player player) {
@@ -62,19 +64,31 @@ public class SalvageMenu extends ItemMenu {
     return tools.get(player);
   }
 
+  public ItemStack getResult(Player player) {
+    return result.get(player);
+  }
+
   public void setEquipment(Player player, ItemStack item) {
     equipment.put(player, item);
+    result.put(player, null);
     update(player);
   }
 
   public void setTool(Player player, ItemStack item) {
     tools.put(player, item);
+    result.put(player, null);
+    update(player);
+  }
+
+  public void setResult(Player player, ItemStack item) {
+    result.put(player, item);
     update(player);
   }
 
   void doDestroy(Player player) {
     ItemStack selectedStack = equipment.get(player);
     ItemStack toolStack = tools.get(player);
-    plugin.getSalvageManager().destroy(player, selectedStack, toolStack);
+    ItemStack rs = plugin.getSalvageManager().destroy(player, selectedStack, toolStack);
+    result.put(player, rs);
   }
 }

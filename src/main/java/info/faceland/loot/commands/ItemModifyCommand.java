@@ -43,6 +43,7 @@ import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.ModifyEquipmentUtil;
 import info.faceland.loot.utils.PersistHelper;
 import land.face.strife.data.LoreAbility;
+import land.face.strife.data.champion.SkillRank;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -273,7 +274,7 @@ public class ItemModifyCommand extends BaseCommand {
   @CommandPermission("loot.editor")
   public void enchantItem(Player player, String tomeId) {
     ItemStack stack = player.getEquipment().getItemInMainHand();
-    ModifyEquipmentUtil.enchant(stack, EnchantmentTome.get(tomeId), player.getLevel(), 0.1f);
+    ModifyEquipmentUtil.enchant(stack, EnchantmentTome.get(tomeId), player.getLevel(), 0.1f, SkillRank.MASTER);
   }
 
   @Subcommand("edit enchant refill")

@@ -9,6 +9,7 @@ import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.Tier;
 import java.util.ArrayList;
 import java.util.List;
+import land.face.strife.data.champion.SkillRank;
 import org.bukkit.inventory.ItemStack;
 
 public class ModifyEquipmentUtil {
@@ -119,7 +120,7 @@ public class ModifyEquipmentUtil {
     }
   }
 
-  public static boolean enchant(ItemStack stack, EnchantmentTome tome, int level, float rarityPower) {
+  public static boolean enchant(ItemStack stack, EnchantmentTome tome, int level, float rarityPower, SkillRank rank) {
     EquipmentData data = PersistHelper.getEquipmentData(stack);
     if (data != null) {
       if (tome == null) {
@@ -132,7 +133,11 @@ public class ModifyEquipmentUtil {
       StoredStat storedStat = new StoredStat(tome.getStat(), Math.random());
       storedStat.setLevel(level);
       storedStat.setRarityPower(rarityPower);
-      boolean success = data.enchant(storedStat, 100);
+      int enchantPoints = 15 + LootPlugin.RNG.nextInt(25);
+      if (SkillRank.isRank(rank, SkillRank.APPRENTICE)) {
+        enchantPoints += 25;
+      }
+      boolean success = data.enchant(storedStat, enchantPoints);
       if (!success) {
         return false;
       }

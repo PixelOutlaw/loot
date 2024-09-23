@@ -6,6 +6,7 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.ItemGenerationReason;
+import info.faceland.loot.builders.ItemBuilder;
 import info.faceland.loot.data.BuiltItem;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.MobLootTable;
@@ -21,6 +22,7 @@ import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.Tier;
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import land.face.learnin.LearninBooksPlugin;
 import org.bukkit.Bukkit;
@@ -236,6 +238,13 @@ public class DropUtil implements Listener {
       NewCustomItem ci = plugin.getCustomItemManager().getRandomByLevel((int) mobLevel);
       assert ci != null;
       ItemStack stack = ci.item();
+
+      EquipmentData data = PersistHelper.getEquipmentData(stack);
+      if (data != null) {
+        data.setCreationDate(ItemBuilder.simpleFormat.format(new Date()));
+        data.setDiscoveredBy(killer.getName());
+      }
+      PersistHelper.setEquipmentData(stack, data);
 
       boolean broadcast = ci.isBroadcast();
       RandomSound rs = broadcast ? uniqueDropSound : null;
