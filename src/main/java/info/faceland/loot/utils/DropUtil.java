@@ -34,6 +34,7 @@ import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 
 public class DropUtil implements Listener {
 
@@ -236,21 +237,26 @@ public class DropUtil implements Listener {
     if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * plugin.getSettings()
         .getDouble("config.drops.custom-item", 0D)) {
       NewCustomItem ci = plugin.getCustomItemManager().getRandomByLevel((int) mobLevel);
-      assert ci != null;
-      ItemStack stack = ci.item();
+      try {
+        assert ci != null;
+        ItemStack stack = ci.item();
 
-      EquipmentData data = PersistHelper.getEquipmentData(stack);
-      if (data != null) {
-        data.setCreationDate(ItemBuilder.simpleFormat.format(new Date()));
-        data.setDiscoveredBy(killer.getName());
+        EquipmentData data = PersistHelper.getEquipmentData(stack);
+        if (data != null) {
+          data.setCreationDate(ItemBuilder.simpleFormat.format(new Date()));
+          data.setDiscoveredBy(killer.getName());
+          PersistHelper.setEquipmentData(stack, data);
+        }
+
+        boolean broadcast = ci.isBroadcast();
+        RandomSound rs = broadcast ? uniqueDropSound : null;
+        dropItem(event.getLocation(), stack, killer, 0, broadcast,
+            broadcast ? FaceColor.ORANGE.getRawColor() : null,
+            broadcast ? ChatColor.GOLD : null, rs);
+      } catch (Exception e) {
+        Bukkit.getLogger().warning("[Loot] Failed to drop item " + ci.getId());
+        e.printStackTrace();
       }
-      PersistHelper.setEquipmentData(stack, data);
-
-      boolean broadcast = ci.isBroadcast();
-      RandomSound rs = broadcast ? uniqueDropSound : null;
-      dropItem(event.getLocation(), stack, killer, 0, broadcast,
-          broadcast ? FaceColor.ORANGE.getRawColor() : null,
-          broadcast ? ChatColor.GOLD : null, rs);
     }
 
 

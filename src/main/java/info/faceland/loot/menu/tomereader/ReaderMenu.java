@@ -112,13 +112,13 @@ public class ReaderMenu extends ItemMenu {
       TOME_OPTIONS.remove(player.getUniqueId());
       ItemUtils.giveOrDrop(player, tome.item());
       plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player,
-          LifeSkillType.LOREMASTER, 8, false, false);
+          LifeSkillType.LOREMASTER, 16, false, false);
       return;
     }
     var tome = TOME_OPTIONS.get(player.getUniqueId()).get(pick);
     ItemUtils.giveOrDrop(player, tome.item());
     plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player,
-        LifeSkillType.LOREMASTER, 8, false, false);
+        LifeSkillType.LOREMASTER, 16, false, false);
     TOME_OPTIONS.remove(player.getUniqueId());
   }
 

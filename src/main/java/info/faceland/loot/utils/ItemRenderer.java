@@ -37,6 +37,7 @@ import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.AwakeningStone;
 import info.faceland.loot.items.prefabs.DivineHammer;
+import info.faceland.loot.items.prefabs.ManaCrystal;
 import info.faceland.loot.items.prefabs.MissingStat;
 import info.faceland.loot.items.prefabs.NormalItem;
 import info.faceland.loot.items.prefabs.OrbOfManyFaces;
@@ -97,6 +98,7 @@ public class ItemRenderer {
       case "scroll" -> UpgradeScroll.update(stack);
       case "material" -> CraftMaterial.update(stack);
       case "purity" -> PurifyingScroll.update(stack);
+      case ManaCrystal.TYPE_KEY -> ManaCrystal.update(stack);
       case "pet" -> { /* do nothing, for now */ }
       case "food" -> FoodsPlugin.getInstance().getFoodsManager().updateItem(stack);
       case "extender" -> SocketExtender.update(stack);
