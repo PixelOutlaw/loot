@@ -166,6 +166,7 @@ public final class SoulGem  {
       lore.add(centerSmallText(s) + "\uF80B");
     }
     meta.setLore(lore);
+    meta.setMaxStackSize(99);
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);

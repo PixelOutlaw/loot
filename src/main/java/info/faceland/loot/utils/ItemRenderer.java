@@ -63,6 +63,8 @@ import land.face.strife.data.LoreAbility;
 import land.face.strife.data.champion.SkillRank;
 import land.face.strife.stats.StrifeStat;
 import land.face.strife.stats.StrifeTrait;
+import me.elsiff.morefish.MoreFish;
+import me.elsiff.morefish.pojo.CustomFish;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -108,6 +110,7 @@ public class ItemRenderer {
       case ManaCrystal.TYPE_KEY -> ManaCrystal.update(stack);
       case "pet" -> { /* do nothing, for now */ }
       case "food" -> FoodsPlugin.getInstance().getFoodsManager().updateItem(stack);
+      case "fish" -> CustomFish.update(stack);
       case "extender" -> SocketExtender.update(stack);
       case "essence" -> renderEssence(stack, null);
       case "enhancer" -> ArcaneEnhancer.update(stack);

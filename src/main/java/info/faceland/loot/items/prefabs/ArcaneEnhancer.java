@@ -51,6 +51,7 @@ public final class ArcaneEnhancer {
     String name = "Arcane Enhancer";
     meta.setDisplayName(FaceColor.PURPLE + name);
     meta.setCustomModelData(79);
+    meta.setMaxStackSize(99);
     meta.setLore(List.of(
         PaletteUtil.color("|ns|\uF808丏\uF808\uF801"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",

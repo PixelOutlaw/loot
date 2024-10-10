@@ -77,6 +77,7 @@ public class NewCustomItem {
   private boolean large;
   private Tier tier;
   private int itemLevel;
+  private int stackSize;
   private int quality;
   private List<UniqueItemStat> coreStats = new ArrayList<>();
   private List<UniqueItemStat> bonusStats = new ArrayList<>();
@@ -144,6 +145,11 @@ public class NewCustomItem {
       meta.setDisplayName(color + itemName);
       meta.setCustomModelData(customDataNumber);
       meta.setLore(lore);
+      if (stackSize != -1) {
+        meta.setMaxStackSize(stackSize);
+      } else if (material.getMaxStackSize() > 1) {
+        meta.setMaxStackSize(99);
+      }
 
       PersistentDataContainer pdc = meta.getPersistentDataContainer();
       pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
@@ -196,6 +202,7 @@ public class NewCustomItem {
     ci.setItemName(PaletteUtil.color(section.getString("name", "changeme")));
     ci.setCustomDataNumber(section.getInt("model-data", 0));
     ci.setItemLevel(section.getInt("item-level", 1));
+    ci.setStackSize(section.getInt("stack-size", -1));
     ci.setTier(Tier.get(section.getString("tier")));
     ci.setQuality(section.getInt("quality", 1));
     ci.setPlateString(section.getString("nameplate", ""));

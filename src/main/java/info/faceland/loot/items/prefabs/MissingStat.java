@@ -50,6 +50,7 @@ public final class MissingStat {
     String name = "Missing Stat";
     meta.setDisplayName(FaceColor.PURPLE + name);
     meta.setCustomModelData(3002);
+    meta.setMaxStackSize(99);
     List<String> lore = List.of(
         PaletteUtil.color("|ns|\uF808丏\uF808\uF801"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",

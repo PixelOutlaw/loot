@@ -53,6 +53,7 @@ public final class TinkerersGear {
     String name = "Tinkerer's Gear";
     meta.setDisplayName(FaceColor.RED + name);
     meta.setCustomModelData(15);
+    meta.setMaxStackSize(99);
     List<String> lore = List.of(
         PaletteUtil.color("|ns|\uF808丌\uF808\uF801"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",

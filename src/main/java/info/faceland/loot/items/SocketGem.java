@@ -189,6 +189,7 @@ public final class SocketGem {
 
     meta.setDisplayName(FaceColor.LIME + name);
     meta.setCustomModelData(customModelData);
+    meta.setMaxStackSize(99);
     meta.setLore(lore);
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();

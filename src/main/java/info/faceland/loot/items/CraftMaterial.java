@@ -212,6 +212,7 @@ public class CraftMaterial {
       lore.add(centerSmallText(s));
     }
     meta.setLore(lore);
+    meta.setMaxStackSize(99);
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);

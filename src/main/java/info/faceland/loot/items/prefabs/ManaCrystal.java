@@ -50,6 +50,7 @@ public final class ManaCrystal {
     String name = "Mana Crystal";
     meta.setDisplayName(FaceColor.BLUE + name);
     meta.setCustomModelData(20);
+    meta.setMaxStackSize(99);
     meta.setLore(List.of(
         PaletteUtil.color("|ns|\uF808与\uF808\uF801"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",

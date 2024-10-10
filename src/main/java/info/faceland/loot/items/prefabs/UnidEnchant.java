@@ -50,6 +50,7 @@ public final class UnidEnchant {
     String name = "Unknown Enchantment";
     meta.setDisplayName(FaceColor.BLUE + name);
     meta.setCustomModelData(5);
+    meta.setMaxStackSize(99);
     List<String> lore = List.of(
         PaletteUtil.color("|ns|\uF808俋\uF808\uF801"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",

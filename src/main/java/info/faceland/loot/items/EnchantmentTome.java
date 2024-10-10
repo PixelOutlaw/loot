@@ -148,6 +148,7 @@ public class EnchantmentTome {
     );
     meta.setDisplayName(FaceColor.BLUE + name);
     meta.setLore(lore);
+    meta.setMaxStackSize(99);
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);

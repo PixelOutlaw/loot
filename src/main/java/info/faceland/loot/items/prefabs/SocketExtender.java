@@ -80,6 +80,7 @@ public final class SocketExtender {
     );
     meta.setLore(lore);
     meta.setCustomModelData(10);
+    meta.setMaxStackSize(99);
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);

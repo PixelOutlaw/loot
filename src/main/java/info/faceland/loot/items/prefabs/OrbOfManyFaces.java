@@ -50,6 +50,7 @@ public final class OrbOfManyFaces {
     String name = "Orb Of Many Faces";
     meta.setDisplayName(FaceColor.RED + name);
     meta.setCustomModelData(11);
+    meta.setMaxStackSize(99);
     List<String> lore = List.of(
         PaletteUtil.color("|ns|\uF808丌\uF808\uF801"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",

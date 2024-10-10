@@ -153,6 +153,7 @@ public final class UpgradeScroll {
     lore.remove(2);
     meta.setDisplayName(net.md_5.bungee.api.ChatColor.of(new Color(122, 101, 215)) + name);
     meta.setCustomModelData(customData);
+    meta.setMaxStackSize(99);
     meta.setLore(lore);
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();

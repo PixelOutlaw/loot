@@ -50,6 +50,7 @@ public final class AspectOfPerfection {
     String name = "Trace Of Perfection";
     meta.setDisplayName(FaceColor.WHITE + name);
     meta.setCustomModelData(14);
+    meta.setMaxStackSize(99);
     List<String> lore = List.of(
         PaletteUtil.color("|ns|\uF808丌\uF808\uF801"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
