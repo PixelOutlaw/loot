@@ -7,7 +7,6 @@ import static info.faceland.loot.LootPlugin.ITEM_GENERIC_STATS_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_NO_TRADE;
 import static info.faceland.loot.LootPlugin.ITEM_STATS_CLASS;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
-import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 
 import com.tealcube.minecraft.bukkit.shade.google.gson.Gson;

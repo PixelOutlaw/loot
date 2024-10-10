@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import land.face.dinvy.DeluxeInvyPlugin;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.StrifeMob;
 import land.face.strife.events.VagabondEquipEvent;
@@ -75,6 +76,9 @@ public final class VagabondEquipListener implements Listener {
     }
     VagabondData data = vagabondData.get(event.getCombatClass());
     for (EquipmentSlot slot : EquipmentSlot.values()) {
+      if (slot == EquipmentSlot.BODY) {
+        continue;
+      }
       int upgradeLevel = 3;
       while (upgradeLevel < 15 && LootPlugin.RNG.nextFloat() < 0.5) {
         upgradeLevel++;
@@ -96,7 +100,7 @@ public final class VagabondEquipListener implements Listener {
             .withItemGenerationReason(ItemGenerationReason.MONSTER)
             .withTier(tier)
             .withRarity(rarity)
-            .withPlus(upgradeLevel)
+            .withPlus(upgradeLevel / tier.getUpgradeScale())
             .withLevel(event.getLevel())
             .withDistortion(LootPlugin.RNG.nextFloat() < 0.05)
             .withCreator(null)
@@ -128,6 +132,9 @@ public final class VagabondEquipListener implements Listener {
     }
 
     for (EquipmentSlot slot : EquipmentSlot.values()) {
+      if (slot == EquipmentSlot.BODY) {
+        continue;
+      }
       ItemStack stack = event.getEntity().getEquipment().getItem(slot);
       if (stack == null || stack.getType() == Material.AIR) {
         continue;

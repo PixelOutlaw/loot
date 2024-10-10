@@ -2,6 +2,7 @@ package info.faceland.loot.listeners;
 
 import com.github.retrooper.packetevents.event.PacketListener;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Server;
 import com.github.retrooper.packetevents.protocol.player.User;
@@ -36,7 +37,8 @@ public class PacketCleaner implements PacketListener {
       if (packet.getEntityMetadata().isEmpty()) {
         return;
       }
-      var entityData = packet.getEntityMetadata().stream().filter(e -> e.getIndex() == 54).findFirst();
+      var entityData = packet.getEntityMetadata().stream()
+          .filter(e -> e.getType() == EntityDataTypes.ITEMSTACK).findFirst();
       entityData.ifPresent(item -> {
         var player = event.getPlayer();
         if (player instanceof Player p && p.hasPermission("bukkit.command.gamemode")) {

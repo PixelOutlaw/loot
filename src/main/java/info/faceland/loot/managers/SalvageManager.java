@@ -8,6 +8,7 @@ import info.faceland.loot.LootPlugin;
 import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.items.NewCustomItem;
 import info.faceland.loot.items.Tier;
+import info.faceland.loot.items.prefabs.DistortionCell;
 import info.faceland.loot.utils.CraftingUtil;
 import info.faceland.loot.utils.EssenceUtil;
 import info.faceland.loot.utils.MaterialUtil;
@@ -64,16 +65,27 @@ public class SalvageManager {
 
     ItemStack materialDetectionItem = selectedStack.clone();
     materialDetectionItem.setDurability((short) 0);
-    Tier tier = PersistHelper.getEquipmentData(selectedStack).getTier();
+    var equipmentData = PersistHelper.getEquipmentData(selectedStack);
+    var tier = equipmentData.getTier();
     Material material = tier.getCraftMaterials().get(LootPlugin.RNG.nextInt(tier.getCraftMaterials().size()));
     if (material == null) {
       sendMessage(player, plugin.getSettings().getString("language.craft.no-materials", ""));
       return null;
     }
+
+    double exp = 5;
     int rarity = (int) MaterialUtil.getRarity(selectedStack).getPower();
     float rarityUpChance = CraftingUtil.getRarityUpChance(effectiveLevelAdvantage, tool.getQuality());
     while (LootPlugin.RNG.nextFloat() < rarityUpChance && rarity < 3) {
       rarity++;
+    }
+
+    if (equipmentData.isDistorted() && LootPlugin.RNG.nextDouble() < 0.005) {
+      try {
+        player.playSound(player.getEyeLocation(), Sound.BLOCK_SCULK_SHRIEKER_SHRIEK, 1F, 2.0F);
+        exp += 1000;
+        ItemUtils.giveOrDrop(player, DistortionCell.item());
+      } catch (Exception ignored) {}
     }
 
     ItemStack craftMaterial = CraftMaterial.get(material, itemLevel, rarity).item();
@@ -92,7 +104,8 @@ public class SalvageManager {
 
     ItemUtils.giveOrDrop(player, craftMaterial);
 
-    double exp = 5 + itemLevel * 1.1;
+    exp += itemLevel * 1.1;
+
     plugin.getStrifePlugin().getSkillExperienceManager()
         .addExperience(player, LifeSkillType.CRAFTING, exp, false, false);
     return craftMaterial.clone();

@@ -1,20 +1,18 @@
 /**
  * The MIT License Copyright (c) 2015 Teal Cube Games
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
- * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * <p>
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package info.faceland.loot.menu.transmute;
 
@@ -39,7 +37,8 @@ import org.bukkit.inventory.ItemStack;
 public class ResultIcon extends MenuItem {
 
   private final TransmuteMenu menu;
-  @Getter @Setter
+  @Getter
+  @Setter
   private ItemStack stack;
   private final ItemStack ready;
 
@@ -100,12 +99,9 @@ public class ResultIcon extends MenuItem {
   private void playTransmuteEffects(Player player) {
     MessageUtils.sendMessage(player,
         LootPlugin.getInstance().getSettings().getString("language.socket.transmute-success", ""));
-    player.getWorld()
-        .spawnParticle(Particle.ENCHANTMENT_TABLE, player.getLocation().clone().add(0, 1, 0), 30, 5,
-            5, 5);
+    player.getWorld().spawnParticle(Particle.ENCHANT, player.getLocation().clone().add(0, 1, 0), 30, 5, 5, 5);
     player.getWorld().playSound(player.getLocation().clone(), Sound.BLOCK_GLASS_BREAK, 1.0f, 1.0f);
-    player.getWorld()
-        .playSound(player.getLocation().clone(), Sound.BLOCK_END_GATEWAY_SPAWN, 1.0f, 2f);
+    player.getWorld().playSound(player.getLocation().clone(), Sound.BLOCK_END_GATEWAY_SPAWN, 1.0f, 2f);
   }
 
 }

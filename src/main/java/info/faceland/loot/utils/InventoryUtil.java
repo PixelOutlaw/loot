@@ -18,6 +18,7 @@
  */
 package info.faceland.loot.utils;
 
+import com.google.gson.Gson;
 import com.loohp.interactivechat.api.InteractiveChatAPI;
 import com.loohp.interactivechat.libs.net.kyori.adventure.text.Component;
 import com.loohp.interactivechat.libs.net.kyori.adventure.text.TextComponent;
@@ -61,19 +62,35 @@ public final class InventoryUtil {
 
   public static void sendToDiscord(Player player, ItemStack item, String format, boolean sendToAll) {
 
+    /*
+    format = format.replace("%player%", player.getName());
+    format = format.replace("%item%", "[item]");
+    ICPlayer icPlayer = InteractiveChatAPI.getICPlayer(player);
+    TextComponent textComponent = Component.text(TextUtils.color(format));
+    ItemStack finalItem = item.clone();
+    */
+
     format = format.replace("%player%", player.getName());
     String[] splitFormat = format.split("%item%", 2);
 
     ICPlayer icPlayer = InteractiveChatAPI.getICPlayer(player);
 
-    ItemStack finalItem = item.clone();
+    ItemStack chatItem = new ItemStack(item.getType());
+    chatItem.editMeta(m -> {
+      m.setItemName(item.getItemMeta().getDisplayName());
+      m.setLore(item.getItemMeta().getLore());
+    });
+    ItemRenderer.applyCommonFlags(chatItem);
+
     TextComponent textComponent;
     if (splitFormat.length == 2) {
       Component itemComponent = Component.text("");
       try {
-        itemComponent = InteractiveChatAPI.createItemDisplayComponent(player, finalItem);
-      } catch (Exception ignored) {
-
+        itemComponent = InteractiveChatAPI.createItemDisplayComponent(player, chatItem);
+        //Gson g = new Gson();
+        //Bukkit.getLogger().info("[Loot] Drop: " + g.toJson(itemComponent.toString()));
+      } catch (Exception e) {
+        e.printStackTrace();
       }
       textComponent = Component.text(TextUtils.color(splitFormat[0]))
           .append(itemComponent)
@@ -84,23 +101,23 @@ public final class InventoryUtil {
 
     if (sendToAll) {
       for (Player p : Bukkit.getOnlinePlayers()) {
-        InteractiveChatAPI.sendMessage(p, textComponent);
+        InteractiveChatAPI.sendMessageUnprocessed(p, textComponent);
       }
       String finalFormat = ChatColor.stripColor(StringExtensionsKt.chatColorize(format));
       Bukkit.getScheduler().runTaskAsynchronously(InteractiveChatDiscordSrvAddon.plugin, () -> {
         try {
           List<DiscordMessageContent> contents = new ArrayList<>();
-          BufferedImage image = ImageGeneration.getItemStackImage(finalItem, InteractiveChatAPI.getICPlayer(player));
+          BufferedImage image = ImageGeneration.getItemStackImage(item, InteractiveChatAPI.getICPlayer(player));
           ByteArrayOutputStream itemOs = new ByteArrayOutputStream();
           ImageIO.write(image, "png", itemOs);
 
-          String name = ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(finalItem));
-          Color color = DiscordItemStackUtils.getDiscordColor(finalItem);
+          String name = ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(item));
+          Color color = DiscordItemStackUtils.getDiscordColor(item);
           DiscordMessageContent content = new DiscordMessageContent(name,"attachment://Item.png", color);
           content.addAttachment("Item.png", itemOs.toByteArray());
           contents.add(content);
 
-          DiscordToolTip discordToolTip = DiscordItemStackUtils.getToolTip(finalItem, icPlayer);
+          DiscordToolTip discordToolTip = DiscordItemStackUtils.getToolTip(item, icPlayer);
           if (!discordToolTip.isBaseItem()
               || InteractiveChatDiscordSrvAddon.plugin.itemUseTooltipImageOnBaseItem) {
             BufferedImage tooltip = ImageGeneration.getToolTipImage(discordToolTip.getComponents());
@@ -115,6 +132,7 @@ public final class InventoryUtil {
 
         } catch (Exception e) {
           Bukkit.getLogger().warning("[Loot] Failed to send dang son to discord");
+          e.printStackTrace();
         }
       });
     } else {

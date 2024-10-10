@@ -15,6 +15,7 @@ import static info.faceland.loot.utils.ItemStyleUtil.doNameThing;
 import static info.faceland.loot.utils.ItemStyleUtil.doPrefix;
 import static info.faceland.loot.utils.ItemStyleUtil.doSuffix;
 
+import com.google.common.collect.Multimap;
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
@@ -65,6 +66,9 @@ import land.face.strife.stats.StrifeTrait;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -73,6 +77,9 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 public class ItemRenderer {
+
+  private static Multimap<Attribute, AttributeModifier> BS_MAP = excreteBullshit();
+  private static String FIXED_WIDTH_BUFFER = "\uF82C\uF829\uF825";
 
   public static void renderItem(ItemStack stack, boolean force) {
     //System.out.println("ITEM RENDER START");
@@ -120,10 +127,38 @@ public class ItemRenderer {
     applyCommonFlags(stack);
   }
 
+  private static Multimap<Attribute, AttributeModifier> excreteBullshit() {
+    ItemStack stack = new ItemStack(Material.WOODEN_SWORD);
+    stack.editMeta(m -> {
+      m.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+          new AttributeModifier(new NamespacedKey(LootPlugin.getInstance(), "GENERIC_ATTACK_DAMAGE"), 0.002,
+              AttributeModifier.Operation.ADD_NUMBER));
+      m.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,
+          new AttributeModifier(new NamespacedKey(LootPlugin.getInstance(), "GENERIC_ARMOR_TOUGHNESS"), 0.002,
+              AttributeModifier.Operation.ADD_NUMBER));
+    });
+    return stack.getItemMeta().getAttributeModifiers();
+  }
+
+  private static void applyBullshit(ItemStack stack) {
+    stack.editMeta(itemMeta -> {
+      itemMeta.removeItemFlags(stack.getItemFlags().toArray(new ItemFlag[0]));
+      itemMeta.setAttributeModifiers(BS_MAP);
+      itemMeta.addItemFlags(
+          ItemFlag.HIDE_ADDITIONAL_TOOLTIP,
+          ItemFlag.HIDE_ITEM_SPECIFICS,
+          ItemFlag.HIDE_ARMOR_TRIM,
+          ItemFlag.HIDE_ATTRIBUTES,
+          ItemFlag.HIDE_DESTROYS,
+          ItemFlag.HIDE_DYE,
+          ItemFlag.HIDE_ENCHANTS,
+          ItemFlag.HIDE_UNBREAKABLE
+      );
+    });
+  }
+
   public static void applyCommonFlags(ItemStack stack) {
-    stack.removeItemFlags(stack.getItemFlags().toArray(new ItemFlag[0]));
-    stack.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ITEM_SPECIFICS, ItemFlag.HIDE_ARMOR_TRIM,
-        ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_DYE);
+    applyBullshit(stack);
   }
 
   private static void renderEquipmentItem(LootPlugin plugin, ItemStack stack, boolean versionChange) {
@@ -246,11 +281,12 @@ public class ItemRenderer {
 
     stack.setType(tier.getMaterial());
     if (tier.getMaterial() == Material.BOW) {
-      stack.addUnsafeEnchantment(Enchantment.ARROW_INFINITE, 11);
+      stack.addUnsafeEnchantment(Enchantment.INFINITY, 11);
     }
     if (!tier.getDestroyKeys().isEmpty()) {
       stack.editMeta(im -> im.setDestroyableKeys(new HashSet<>(tier.getDestroyKeys())));
     }
+    stack.editMeta(m -> m.setMaxStackSize(1));
 
     boolean distorted = data.getBoolean("distorted");
 
@@ -300,9 +336,9 @@ public class ItemRenderer {
     } else {
       lore.add(FaceColor.GRAY + "No core stats...");
     }
-    lore.add("\uF82C\uF829\uF825");
     String statPrefix = "";
     if (!data.getBonusStats().isEmpty()) {
+      lore.add(FIXED_WIDTH_BUFFER);
       data.updateUniqueMultipliers(unique);
       Map<StoredStat, StatResponse> tempRollMap = new HashMap<>();
       for (StoredStat stat : data.getBonusStats()) {
@@ -350,12 +386,10 @@ public class ItemRenderer {
           lore.add(centerLargeText(s));
         }
       }
-      if (!data.isEnchanted()) {
-        lore.add("");
-      }
     }
     if (data.hasEnchantmentSlot()) {
       if (data.getEnchantment() == null) {
+        lore.add(FIXED_WIDTH_BUFFER);
         lore.add(FaceColor.NO_SHADOW + "\uF805严\uF80A");
         lore.add("");
       } else {
@@ -375,8 +409,10 @@ public class ItemRenderer {
             LoreglassMenu.getPercentText((float) enchantmentStat.getStatRoll()) + FaceColor.BLUE +
                 " (" + enchantmentStat.getLevel() + ")": "";
         lore.add(centerLargeText(sr.getStatString(), viewThing));
-        lore.add("");
+        lore.add(FIXED_WIDTH_BUFFER);
       }
+    } else {
+      lore.add(FIXED_WIDTH_BUFFER);
     }
 
     boolean hasTraits = renderEquipmentTraits(data, lore);
@@ -487,9 +523,9 @@ public class ItemRenderer {
     TextUtils.setLore(stack, lore, false);
 
     if (data.getUpgradeLevel() * tier.getUpgradeScale() >= 10) {
-      stack.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
+      stack.addUnsafeEnchantment(Enchantment.UNBREAKING, 1);
     } else {
-      stack.removeEnchantment(Enchantment.DURABILITY);
+      stack.removeEnchantment(Enchantment.UNBREAKING);
     }
 
     PersistHelper.setEquipmentData(stack, data, false);

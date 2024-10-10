@@ -146,8 +146,9 @@ public final class SocketGem {
 
     List<String> lore = new ArrayList<>();
     lore.add(PaletteUtil.color("|ns|\uF808丈\uF808\uF801"));
-    lore.add(HALFWAY_SMALL +
-        GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C");
+    // Todo: remove manual character replace
+    lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK +
+        doSmallNameThing(name.replace("â", "a")) + "\uF80C");
     lore.add(centerSmallText(FaceColor.WHITE + "Usable On: " + FaceColor.CYAN + itemGroup.getName()));
     lore.add("");
     for (var stuff : percentStats.entrySet()) {

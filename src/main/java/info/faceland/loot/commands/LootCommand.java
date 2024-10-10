@@ -119,7 +119,7 @@ public class LootCommand extends BaseCommand {
   @CommandPermission("loot.deco")
   public void decoDelete(Player sender) {
     RayTraceResult result = sender.getWorld().rayTraceEntities(sender.getEyeLocation(),
-        sender.getLocation().getDirection(), 20, e -> e.getType() == EntityType.DROPPED_ITEM);
+        sender.getLocation().getDirection(), 20, e -> e.getType() == EntityType.ITEM);
     if (result == null || result.getHitEntity() == null) {
       MessageUtils.sendMessage(sender, "&eNo target found...");
       return;
