@@ -303,13 +303,11 @@ public final class PreCraftListener implements Listener {
     newLore.add("");
     newLore.add(FaceColor.LIGHT_GRAY + "+X Primary Stat");
     for (ItemStat s : tier.getPrimaryStats()) {
-      newLore.add(FaceColor.GRAY + " " + s.getStatString()
-          .replace("+{}% ", "").replace("+{} ", "") + "?");
+      newLore.add(FaceColor.GRAY + " +X" + (s.isPercentage() ? "% " : " ") + s.getStat().getName() + "?");
     }
     newLore.add(FaceColor.LIGHT_GRAY + "+X Secondary Stat");
     for (ItemStat s : tier.getSecondaryStats()) {
-      newLore.add(FaceColor.GRAY + " " + s.getStatString()
-          .replace("+{}% ", "").replace("+{} ", "") + "?");
+      newLore.add(FaceColor.GRAY + " +X" + (s.isPercentage() ? "% " : " ") + s.getStat().getName() + "?");
     }
     newLore.add("");
     newLore.add(FaceColor.RAINBOW + "Stat⇒Essence Slot: (" + Math.round(100 * slotScore * 0.2) + "%)");

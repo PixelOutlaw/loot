@@ -45,7 +45,7 @@ public class DropUtil implements Listener {
   private static double customizedTierChance, normalDropChance, scrollDropChance, socketDropChance, tomeDropChance,
       enhancerDropChance, tinkerGearDropChance, faceOrbDropChance, hypercubeDropChance, purityDropChance,
       normalItemDropChance, distortDropChance, soulGemDropChance, rarityPaintDropChance, awakenerDropChance,
-      missingStatDropChance, unidTomeDropChance;
+      missingStatDropChance, unidTomeDropChance, trashDropChance, flipDropChance;
 
   private static final RandomSound distortedDropSound =
       new RandomSound(SoundCategory.MASTER, Sound.ENTITY_ENDERMAN_HURT, 4f, 1f, 0.05f);
@@ -85,6 +85,8 @@ public class DropUtil implements Listener {
     enhancerDropChance = plugin.getSettings().getDouble("config.drops.arcane-enhancer", 0D);
 
     tinkerGearDropChance = plugin.getSettings().getDouble("config.drops.tinker-gear", 0D);
+    trashDropChance = plugin.getSettings().getDouble("config.drops.trash", 0D);
+    flipDropChance = plugin.getSettings().getDouble("config.drops.flip", 0D);
     faceOrbDropChance = plugin.getSettings().getDouble("config.drops.face-orb", 0D);
     hypercubeDropChance = plugin.getSettings().getDouble("config.drops.hypercube", 0D);
     distortDropChance = plugin.getSettings().getDouble("config.drops.distort", 0D);
@@ -277,6 +279,14 @@ public class DropUtil implements Listener {
       if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * hypercubeDropChance) {
         dropItem(event.getLocation(), PerfectSphere.item(), killer, 0, true,
             FaceColor.RED.getRawColor(), ChatColor.RED, tinkerDropSound);
+      }
+      if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * flipDropChance) {
+        dropItem(event.getLocation(), OrbOfOscillation.item(), killer, 0, true,
+            FaceColor.BLACK.getRawColor(), ChatColor.BLACK, tinkerDropSound);
+      }
+      if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * trashDropChance) {
+        dropItem(event.getLocation(), TraceOfTrash.item(), killer, 0, true,
+            FaceColor.BROWN.getRawColor(), ChatColor.GRAY, tinkerDropSound);
       }
       if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * normalItemDropChance) {
         dropItem(event.getLocation(), NormalItem.item(), killer, 0, false,

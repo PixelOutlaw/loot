@@ -24,7 +24,6 @@ public class ItemStat {
   private float perLevelMultiplier;
   private float perRarityIncrease;
   private float perRarityMultiplier;
-  private String statString;
 
   private final List<String> namePrefixes = new ArrayList<>();
   private int minimumItemLevel;

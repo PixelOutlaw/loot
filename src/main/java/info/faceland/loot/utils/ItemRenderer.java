@@ -36,17 +36,21 @@ import info.faceland.loot.items.SoulGem;
 import info.faceland.loot.items.Tier;
 import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
+import info.faceland.loot.items.prefabs.AspectOfPerfection;
 import info.faceland.loot.items.prefabs.AwakeningStone;
+import info.faceland.loot.items.prefabs.DistortionCell;
 import info.faceland.loot.items.prefabs.DivineHammer;
 import info.faceland.loot.items.prefabs.ManaCrystal;
 import info.faceland.loot.items.prefabs.MissingStat;
 import info.faceland.loot.items.prefabs.NormalItem;
 import info.faceland.loot.items.prefabs.OrbOfManyFaces;
+import info.faceland.loot.items.prefabs.OrbOfOscillation;
 import info.faceland.loot.items.prefabs.PerfectSphere;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.items.prefabs.TooltipPaint;
+import info.faceland.loot.items.prefabs.TraceOfTrash;
 import info.faceland.loot.items.prefabs.UnidEnchant;
 import info.faceland.loot.menu.loreglass.LoreglassMenu;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -74,6 +78,7 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -102,26 +107,30 @@ public class ItemRenderer {
       case "equipment" -> renderEquipmentItem(LootPlugin.getInstance(), stack, true);
       case "unique" -> renderUniqueItem(LootPlugin.getInstance(), stack);
       case UnidEnchant.TYPE_KEY -> UnidEnchant.update(stack);
-      case "socket" -> SocketGem.update(stack);
-      case "tome" -> EnchantmentTome.update(stack);
-      case "scroll" -> UpgradeScroll.update(stack);
-      case "material" -> CraftMaterial.update(stack);
-      case "purity" -> PurifyingScroll.update(stack);
+      case SocketGem.TYPE_KEY -> SocketGem.update(stack);
+      case EnchantmentTome.TYPE_KEY -> EnchantmentTome.update(stack);
+      case UpgradeScroll.TYPE_KEY -> UpgradeScroll.update(stack);
+      case CraftMaterial.TYPE_KEY -> CraftMaterial.update(stack);
+      case PurifyingScroll.TYPE_KEY -> PurifyingScroll.update(stack);
       case ManaCrystal.TYPE_KEY -> ManaCrystal.update(stack);
       case "pet" -> { /* do nothing, for now */ }
       case "food" -> FoodsPlugin.getInstance().getFoodsManager().updateItem(stack);
       case "fish" -> CustomFish.update(stack);
-      case "extender" -> SocketExtender.update(stack);
+      case SocketExtender.TYPE_KEY -> SocketExtender.update(stack);
       case "essence" -> renderEssence(stack, null);
-      case "enhancer" -> ArcaneEnhancer.update(stack);
-      case "tinker" -> TinkerersGear.update(stack);
-      case "reroll" -> OrbOfManyFaces.update(stack);
-      case "reroll2" -> PerfectSphere.update(stack);
-      case "reroll3" -> DivineHammer.update(stack);
-      case "normal" -> NormalItem.update(stack);
-      case "soulgem" -> SoulGem.update(stack);
+      case ArcaneEnhancer.TYPE_KEY -> ArcaneEnhancer.update(stack);
+      case TinkerersGear.TYPE_KEY -> TinkerersGear.update(stack);
+      case OrbOfManyFaces.TYPE_KEY -> OrbOfManyFaces.update(stack);
+      case PerfectSphere.TYPE_KEY -> PerfectSphere.update(stack);
+      case DivineHammer.TYPE_KEY -> DivineHammer.update(stack);
+      case NormalItem.TYPE_KEY -> NormalItem.update(stack);
+      case SoulGem.TYPE_KEY -> SoulGem.update(stack);
       case TooltipPaint.TYPE_KEY -> TooltipPaint.update(stack);
       case AwakeningStone.TYPE_KEY -> AwakeningStone.update(stack);
+      case AspectOfPerfection.TYPE_KEY -> AspectOfPerfection.update(stack);
+      case TraceOfTrash.TYPE_KEY -> TraceOfTrash.update(stack);
+      case OrbOfOscillation.TYPE_KEY -> OrbOfOscillation.update(stack);
+      case DistortionCell.TYPE_KEY -> DistortionCell.update(stack);
       case MissingStat.TYPE_KEY -> MissingStat.update(stack);
       default -> ConversionUtil.attemptToAbsorbItem(stack);
     }
@@ -289,7 +298,11 @@ public class ItemRenderer {
     if (!tier.getDestroyKeys().isEmpty()) {
       stack.editMeta(im -> im.setDestroyableKeys(new HashSet<>(tier.getDestroyKeys())));
     }
-    stack.editMeta(m -> m.setMaxStackSize(1));
+    stack.editMeta(m -> {
+      m.setMaxStackSize(1);
+      ((Damageable) m).setMaxDamage(1000);
+      //m.get
+    });
 
     boolean distorted = data.getBoolean("distorted");
 

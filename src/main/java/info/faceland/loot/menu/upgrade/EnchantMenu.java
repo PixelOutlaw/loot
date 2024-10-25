@@ -36,11 +36,13 @@ import info.faceland.loot.items.prefabs.ManaCrystal;
 import info.faceland.loot.items.prefabs.MissingStat;
 import info.faceland.loot.items.prefabs.NormalItem;
 import info.faceland.loot.items.prefabs.OrbOfManyFaces;
+import info.faceland.loot.items.prefabs.OrbOfOscillation;
 import info.faceland.loot.items.prefabs.PerfectSphere;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.items.prefabs.TooltipPaint;
+import info.faceland.loot.items.prefabs.TraceOfTrash;
 import info.faceland.loot.managers.StatManager.RollStyle;
 import info.faceland.loot.utils.EnchantUtil;
 import info.faceland.loot.utils.MaterialUtil;
@@ -62,6 +64,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 
 public class EnchantMenu extends ItemMenu {
 
@@ -236,6 +239,8 @@ public class EnchantMenu extends ItemMenu {
       case AwakeningStone.TYPE_KEY -> updateAwakenDisplay();
       case MissingStat.TYPE_KEY -> updateAwakenDisplay(); // TODO: this is generic make it better
       case TooltipPaint.TYPE_KEY -> updateRarityUpDisplay();
+      case OrbOfOscillation.TYPE_KEY -> updateFlipDisplay();
+      case TraceOfTrash.TYPE_KEY -> updateTrashDisplay();
       default -> {
         // NOTHING
       }
@@ -377,6 +382,30 @@ public class EnchantMenu extends ItemMenu {
     );
   }
 
+  private void updateFlipDisplay() {
+    updateConfirmDisplay(
+        PaletteUtil.color("|pink|Flip Item"),
+        PaletteUtil.color(List.of(
+            "",
+            "|lgray|This will flip the rolls",
+            "|lgray|on randomized stats!"
+        )),
+        60
+    );
+  }
+
+  private void updateTrashDisplay() {
+    updateConfirmDisplay(
+        PaletteUtil.color("|brown|Worsen Item"),
+        PaletteUtil.color(List.of(
+            "",
+            "|lgray|This will lower the randomized",
+            "|lgray|rolls on your item??"
+        )),
+        60
+    );
+  }
+
   private void updateRarityUpDisplay() {
     updateConfirmDisplay(
         PaletteUtil.color("|rainbow|Paint Item"),
@@ -461,13 +490,13 @@ public class EnchantMenu extends ItemMenu {
         selectedUpgradeItem,
         scroll)
     );
-    double maxDura = selectedEquipment.getType().getMaxDurability();
+    double maxDura = ((Damageable) selectedEquipment.getItemMeta()).getMaxDamage();
     double damage;
     if (maxDura <= 1) {
       maxDura = 100;
       damage = 0;
     } else {
-      damage = selectedEquipment.getDurability();
+      damage = ((Damageable) selectedEquipment.getItemMeta()).getDamage();
     }
     int itemLevel = MaterialUtil.getLevelRequirement(selectedEquipment);
     double maxPercent = MaterialUtil.getMaxFailureDamagePercent(scroll, itemLevel, newPlus);
@@ -646,6 +675,18 @@ public class EnchantMenu extends ItemMenu {
       }
       case TooltipPaint.TYPE_KEY -> {
         MaterialUtil.doRarityIncrease(plugin, selectedEquipment, selectedUpgradeItem, player);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case OrbOfOscillation.TYPE_KEY -> {
+        MaterialUtil.doFlipEffects(plugin, selectedEquipment, selectedUpgradeItem, player);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case TraceOfTrash.TYPE_KEY -> {
+        MaterialUtil.doWorsenEffects(plugin, selectedEquipment, selectedUpgradeItem, player);
         setSelectedUpgradeItem(player, selectedUpgradeItem);
         setSelectedEquipment(player, selectedEquipment);
         return true;

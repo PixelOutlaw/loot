@@ -278,6 +278,8 @@ public final class LootPlugin extends FacePlugin {
     DivineHammer.rebuild();
     PerfectSphere.rebuild();
     AspectOfPerfection.rebuild();
+    TraceOfTrash.rebuild();
+    OrbOfOscillation.rebuild();
     TooltipPaint.rebuild();
     UnidEnchant.rebuild();
     AwakeningStone.rebuild();

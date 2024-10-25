@@ -388,6 +388,28 @@ public class EquipmentData implements Serializable {
     sortBonusStats();
   }
 
+  public void shitify() {
+    for (StoredStat b : bonusStats) {
+      if (b.isCrafted()) {
+        continue;
+      }
+      double newValue = b.getStatRoll() * (0.4 + LootPlugin.RNG.nextDouble() * 0.4);
+      b.setStatRoll(newValue);
+    }
+    sortBonusStats();
+  }
+
+  public void invertRandomRolls() {
+    for (StoredStat b : bonusStats) {
+      if (b.isCrafted()) {
+        continue;
+      }
+      double newValue = 1.0 - b.getStatRoll();
+      b.setStatRoll(newValue);
+    }
+    sortBonusStats();
+  }
+
   public boolean canAddBonusStat(int leeway) {
     return bonusStats.size() < getItemRarity().getMaximumBonusStats() + leeway;
   }

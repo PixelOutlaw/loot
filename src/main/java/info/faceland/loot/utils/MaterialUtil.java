@@ -44,6 +44,7 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.util.StringUtil;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -88,7 +89,8 @@ public final class MaterialUtil {
         .getString("language.broadcast.upgraded-item");
   }
 
-  public static double getSuccessChance(Champion champion, int targetPlus, ItemStack scrollStack, UpgradeScroll scroll) {
+  public static double getSuccessChance(Champion champion, int targetPlus, ItemStack scrollStack,
+      UpgradeScroll scroll) {
     double success = scroll.getBaseSuccess();
     success -= scroll.getFlatDecay() * targetPlus;
     success *= 1 - (scroll.getPercentDecay() * targetPlus);
@@ -137,11 +139,7 @@ public final class MaterialUtil {
     int itemUpgradeLevel = data.getUpgradeLevel() * data.getTier().getUpgradeScale();
     int targetLevel = itemUpgradeLevel;
     int scrollShards = getFailureBonus(scrollStack);
-    if (stack.getType().getMaxDurability() < 5) {
-      targetLevel += 3;
-    } else {
-      targetLevel += 1;
-    }
+    targetLevel += data.getTier().getUpgradeScale();
     targetLevel = Math.min(targetLevel, 15);
 
     Champion champion = LootPlugin.getInstance().getStrifePlugin().getChampionManager().getChampion(player);
@@ -171,29 +169,23 @@ public final class MaterialUtil {
     // DAMAGED
     int itemLevel = MaterialUtil.getLevelRequirement(stack);
     double damagePercentage = getUpgradeFailureDamagePercent(scroll, itemLevel, targetLevel);
-    double currentDamagePercentage = ((double) stack.getDurability()) / stack.getType().getMaxDurability();
-    short damage;
+    int maxDamage = ((Damageable) stack.getItemMeta()).getMaxDamage();
+    int currentDamage = ((Damageable) stack.getItemMeta()).getDamage();
+    double currentDamagePercentage = ((double) currentDamage / maxDamage);
+    int damage;
 
-    // Offhand Upgrade
-    if (stack.getType().getMaxDurability() <= 1) {
-      if (damagePercentage < 1) {
-        sendMessage(player, upgradeItemNoDamageMsg);
-        int newShards = (int) (rollShards(itemLevel, itemUpgradeLevel, (float) MaterialUtil.getRarity(stack).getPower()) / 2f);
-        distributeShards(player, scrollShards + newShards);
-        return;
-      }
-      damage = Short.MAX_VALUE;
-    } else {
-      double totalPercentage = damagePercentage + currentDamagePercentage;
-      double rawDamage = Math.floor(totalPercentage * (double) stack.getType().getMaxDurability());
-      double repairMod = 100;
-      rawDamage /= repairMod / 100;
-      damage = (short) rawDamage;
-    }
+    double totalPercentage = damagePercentage + currentDamagePercentage;
+    double rawDamage = Math.floor(totalPercentage * (double) maxDamage);
+    // TODO: reimpl
+    /*
+    double repairMod = 100;
+    rawDamage /= repairMod / 100;
+    */
+    damage = (int) rawDamage;
 
-    if (damage >= stack.getType().getMaxDurability()) {
+    if (damage >= maxDamage) {
       if (SkillRank.isRank(champion, LifeSkillType.ENCHANTING, SkillRank.MASTER) && LootPlugin.RNG.nextFloat() < 0.1) {
-        damage = (short) (stack.getType().getMaxDurability() - 1);
+        damage = (short) (maxDamage - 1);
         player.playSound(player.getEyeLocation(), Sound.ENTITY_ITEM_BREAK, 1F, 1.5F);
         sendMessage(player, upgradeItemDestroyMsg);
         sendMessage(player, FaceColor.YELLOW + FaceColor.ITALIC.s() + "Except not rlly???");
@@ -211,7 +203,8 @@ public final class MaterialUtil {
     }
     int newShards = rollShards(itemLevel, itemUpgradeLevel, (float) MaterialUtil.getRarity(stack).getPower());
     distributeShards(player, scrollShards + newShards);
-    stack.setDurability(damage);
+    int finalDamage = damage;
+    stack.editMeta(m -> ((Damageable) m).setDamage(finalDamage));
     sendMessage(player, upgradeItemDamageMsg);
   }
 
@@ -390,7 +383,8 @@ public final class MaterialUtil {
     boolean extracted = EssenceUtil.extract(player, targetItem, false, false, true);
 
     player.playSound(player.getEyeLocation(), Sound.BLOCK_PISTON_EXTEND, 1F, 1.5F);
-    plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player, LifeSkillType.CRAFTING, 200, false, false);
+    plugin.getStrifePlugin().getSkillExperienceManager()
+        .addExperience(player, LifeSkillType.CRAFTING, 200, false, false);
     tinkerGear.setAmount(tinkerGear.getAmount() - 1);
   }
 
@@ -408,7 +402,8 @@ public final class MaterialUtil {
     rerollOrb.setAmount(rerollOrb.getAmount() - 1);
   }
 
-  public static void doPerfectSphereEffects(LootPlugin plugin, ItemStack rerollOrb, ItemStack equipmentItem, Player player) {
+  public static void doPerfectSphereEffects(LootPlugin plugin, ItemStack rerollOrb, ItemStack equipmentItem,
+      Player player) {
     EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
     if (data == null) {
       PaletteUtil.sendMessage(player, "|yellow|Only equipment can be rerolled!");
@@ -422,7 +417,8 @@ public final class MaterialUtil {
     rerollOrb.setAmount(rerollOrb.getAmount() - 1);
   }
 
-  public static void doDivineHammerEffects(LootPlugin plugin, ItemStack rerollOrb, ItemStack equipmentItem, Player player) {
+  public static void doDivineHammerEffects(LootPlugin plugin, ItemStack rerollOrb, ItemStack equipmentItem,
+      Player player) {
     EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
     if (data == null) {
       PaletteUtil.sendMessage(player, "|yellow|Only equipment can be rerolled!");
@@ -455,6 +451,34 @@ public final class MaterialUtil {
     polishItem.setAmount(polishItem.getAmount() - 1);
   }
 
+  public static void doWorsenEffects(LootPlugin plugin, ItemStack shitItem, ItemStack equipmentItem, Player player) {
+    EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
+    if (data == null) {
+      PaletteUtil.sendMessage(player, "|yellow|Only equipment can be worsened!");
+      return;
+    }
+    data.shitify();
+    PersistHelper.setEquipmentData(equipmentItem, data);
+    player.playSound(player.getEyeLocation(), Sound.ENTITY_LLAMA_SPIT, 1F, 1F);
+    plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player,
+        LifeSkillType.ENCHANTING, 200, false, false);
+    shitItem.setAmount(shitItem.getAmount() - 1);
+  }
+
+  public static void doFlipEffects(LootPlugin plugin, ItemStack flipItem, ItemStack equipmentItem, Player player) {
+    EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
+    if (data == null) {
+      PaletteUtil.sendMessage(player, "|yellow|Only equipment can have stats flipped!");
+      return;
+    }
+    data.invertRandomRolls();
+    PersistHelper.setEquipmentData(equipmentItem, data);
+    player.playSound(player.getEyeLocation(), Sound.ITEM_BUNDLE_DROP_CONTENTS, 1F, 1F);
+    plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player,
+        LifeSkillType.ENCHANTING, 700, false, false);
+    flipItem.setAmount(flipItem.getAmount() - 1);
+  }
+
   public static void doNormalEffects(LootPlugin plugin, ItemStack equipmentItem, ItemStack rerollOrb, Player player) {
     EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
     if (data == null) {
@@ -470,7 +494,8 @@ public final class MaterialUtil {
     rerollOrb.setAmount(rerollOrb.getAmount() - 1);
   }
 
-  public static void doAwakeningEffects(LootPlugin plugin, ItemStack equipmentItem, ItemStack rarityUpgrade, Player player) {
+  public static void doAwakeningEffects(LootPlugin plugin, ItemStack equipmentItem, ItemStack rarityUpgrade,
+      Player player) {
     EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
     if (data == null) {
       PaletteUtil.sendMessage(player, "|yellow|Only equipment items can be awakened!");
@@ -488,7 +513,8 @@ public final class MaterialUtil {
     data.addBonusStat();
     PersistHelper.setEquipmentData(equipmentItem, data);
     player.playSound(player.getEyeLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1F, 1F);
-    plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player, LifeSkillType.ENCHANTING, 200, false, false);
+    plugin.getStrifePlugin().getSkillExperienceManager()
+        .addExperience(player, LifeSkillType.ENCHANTING, 200, false, false);
     rarityUpgrade.setAmount(rarityUpgrade.getAmount() - 1);
   }
 
@@ -510,11 +536,13 @@ public final class MaterialUtil {
     data.addBonusStat();
     PersistHelper.setEquipmentData(equipmentItem, data);
     player.playSound(player.getEyeLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1F, 1F);
-    plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player, LifeSkillType.ENCHANTING, 200, false, false);
+    plugin.getStrifePlugin().getSkillExperienceManager()
+        .addExperience(player, LifeSkillType.ENCHANTING, 200, false, false);
     rarityUpgrade.setAmount(rarityUpgrade.getAmount() - 1);
   }
 
-  public static void doRarityIncrease(LootPlugin plugin, ItemStack equipmentItem, ItemStack rarityUpgrade, Player player) {
+  public static void doRarityIncrease(LootPlugin plugin, ItemStack equipmentItem, ItemStack rarityUpgrade,
+      Player player) {
     EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
     if (data == null) {
       PaletteUtil.sendMessage(player, "|yellow|Only equipment can have their rarity increased!");
@@ -545,11 +573,13 @@ public final class MaterialUtil {
     }
     PersistHelper.setEquipmentData(equipmentItem, data);
     player.playSound(player.getEyeLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1F, 1F);
-    plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player, LifeSkillType.ENCHANTING, 200, false, false);
+    plugin.getStrifePlugin().getSkillExperienceManager()
+        .addExperience(player, LifeSkillType.ENCHANTING, 200, false, false);
     rarityUpgrade.setAmount(rarityUpgrade.getAmount() - 1);
   }
 
-  public static void doDistortEffects(LootPlugin plugin, ItemStack distortItem, ItemStack equipmentItem, Player player) {
+  public static void doDistortEffects(LootPlugin plugin, ItemStack distortItem, ItemStack equipmentItem,
+      Player player) {
     EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
     if (data == null) {
       PaletteUtil.sendMessage(player, "|yellow|Only equipment can be distorted!");

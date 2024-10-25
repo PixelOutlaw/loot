@@ -32,7 +32,7 @@ public final class GayBoatFix implements Listener {
 
   @EventHandler(priority = EventPriority.HIGHEST)
   public void onSpawnBoat(EntitySpawnEvent event) {
-    if (event.getEntityType() == EntityType.BOAT) {
+    if (event.getEntity() instanceof Boat) {
       if (!event.getEntity().hasMetadata("NPC")) {
         event.setCancelled(true);
         event.getEntity().remove();
@@ -42,7 +42,7 @@ public final class GayBoatFix implements Listener {
 
   @EventHandler(priority = EventPriority.HIGHEST)
   public void onSpawnBoat(VehicleCreateEvent event) {
-    if (event.getVehicle().getType() == EntityType.BOAT) {
+    if (event.getVehicle() instanceof Boat) {
       if (!event.getVehicle().hasMetadata("NPC")) {
         event.setCancelled(true);
         event.getVehicle().remove();

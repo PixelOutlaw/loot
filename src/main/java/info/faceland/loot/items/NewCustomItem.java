@@ -267,11 +267,6 @@ public class NewCustomItem {
       itemStat.setStat(stat);
       itemStat.setPercentage(percent);
       itemStat.calcColorRange();
-      if (StringUtils.isBlank(stat.getName())) {
-        itemStat.setStatString("+{} Unknown Stat");
-      } else {
-        itemStat.setStatString("+{}" + (percent ? "% " : " ") + stat.getName());
-      }
       plugin.getStatManager().addStat(trueStatId, itemStat);
       return new UniqueItemStat(itemStat, 1f);
     } else {

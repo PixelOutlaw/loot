@@ -112,8 +112,8 @@ public class CraftMaterial {
   public static void buildGeneric() {
     buildGenericMaterial(Material.STICK, "Wood");
     buildGenericMaterial(Material.LEATHER, "Leather");
-    buildGenericMaterial(Material.IRON_INGOT, "Iron Ingot");
-    buildGenericMaterial(Material.GOLD_INGOT, "Gold Ingot");
+    buildGenericMaterial(Material.IRON_INGOT, "Iron");
+    buildGenericMaterial(Material.GOLD_INGOT, "Gold");
     buildGenericMaterial(Material.DIAMOND, "Crystal");
     buildGenericMaterial(Material.CLAY_BALL, "Stone");
     buildGenericMaterial(Material.PAPER, "Paper");

@@ -316,7 +316,7 @@ public class ItemStyleUtil {
     size -= StringUtils.countMatches(s, ']') * 2;
     size -= StringUtils.countMatches(s, '(') * 2;
     size -= StringUtils.countMatches(s, ')') * 2;
-    size -= StringUtils.countMatches(s, '/') * 2;
+    //size -= StringUtils.countMatches(s, '/') * 2;
     size -= StringUtils.countMatches(s, ' ') * 2;
     size += StringUtils.countMatches(s, '丐') * 29;
     size += StringUtils.countMatches(s, '丑') * 41;

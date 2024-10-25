@@ -596,6 +596,26 @@ public class LootCommand extends BaseCommand {
           new String[][]{{"%amount%", amount + ""}});
     }
 
+    @Subcommand("flip")
+    @CommandCompletion("@players @range:1-100")
+    public void giveFlip(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(OrbOfOscillation.item());
+      }
+      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
+          new String[][]{{"%amount%", amount + ""}});
+    }
+
+    @Subcommand("trash")
+    @CommandCompletion("@players @range:1-100")
+    public void giveTrash(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(TraceOfTrash.item());
+      }
+      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
+          new String[][]{{"%amount%", amount + ""}});
+    }
+
     @Subcommand("normal")
     @CommandCompletion("@players @range:1-100")
     public void giveNormalItem(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {

@@ -121,7 +121,6 @@ public class StatManager {
           stat.setPerLevelMultiplier((float) cs.getDouble("per-level-multiplier"));
           stat.setPerRarityIncrease((float) cs.getDouble("per-rarity-increase"));
           stat.setPerRarityMultiplier((float) cs.getDouble("per-rarity-multiplier"));
-          stat.setStatString(cs.getString("stat-string"));
           stat.setMinHue((float) cs.getDouble("min-hue", 0));
           stat.setMaxHue((float) cs.getDouble("max-hue", 0));
           stat.setMinSaturation((float) cs.getDouble("min-saturation", 0.83));
