@@ -37,7 +37,13 @@ public class ModifyEquipmentUtil {
 
   public static boolean canUpgrade(ItemStack stack) {
     EquipmentData data = PersistHelper.getEquipmentData(stack);
-    return data != null && data.getBoolean("upgradeable", true);
+    if (data == null || !data.getBoolean("upgradeable", true)) {
+      return false;
+    }
+    if (data.getTier() == null || data.getTier().getUpgradeScale() > 15) {
+      return false;
+    }
+    return true;
   }
 
   public static void setCanUpgrade(ItemStack stack, boolean upgradeable) {

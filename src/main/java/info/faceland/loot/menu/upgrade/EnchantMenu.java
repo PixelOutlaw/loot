@@ -469,7 +469,12 @@ public class EnchantMenu extends ItemMenu {
 
     EquipmentData data = PersistHelper.getEquipmentData(selectedEquipment);
 
-    if (data == null) {
+    if (data == null || data.getTier() == null) {
+      updateConfirmDisplay(invalidUpgrade, invalidUpgradeLore, 62);
+      return;
+    }
+
+    if (data.getTier().getUpgradeScale() > 15) {
       updateConfirmDisplay(invalidUpgrade, invalidUpgradeLore, 62);
       return;
     }
