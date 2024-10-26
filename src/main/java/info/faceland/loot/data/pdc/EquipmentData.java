@@ -207,6 +207,9 @@ public class EquipmentData implements Serializable {
     if (eligibleStats.isEmpty()) {
       return false;
     }
+    if (getTier().getEssenceId() == -1) {
+      return false;
+    }
     if (!allowMultipleEssenceSlots && hasExistingCraftedStat()) {
       //System.out.println("not eligibile");
       return false;

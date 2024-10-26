@@ -15,10 +15,14 @@ public class SoulGemListener implements Listener {
     if (event.getData().getGemSlots() > 4) {
       return;
     }
-    int amount = (int) Math.pow(4, event.getData().getGemSlots());
+    int amount = switch (event.getData().getGemSlots()) {
+      case 0 -> 0;
+      case 1 -> 1;
+      case 2 -> 10;
+      default -> 99;
+    };
     if (event.getData().getPlayer().getInventory().containsAtLeast(SocketExtender.EXTENDER, amount)) {
-      MessageUtils.sendMessage(event.getData().getPlayer(),
-          "&d&lYour Soul Grows Stronger! &dSoul Gem slot unlocked!");
+      MessageUtils.sendMessage(event.getData().getPlayer(), "&d&lWoo! &dSlot unlocked!");
       event.getData().setGemSlots(event.getData().getGemSlots() + 1);
       for (ItemStack stack : event.getData().getPlayer().getInventory().getContents()) {
         if (stack != null && (SocketExtender.matches(stack) || SocketExtender.isSimilar(stack))) {
@@ -32,8 +36,7 @@ public class SoulGemListener implements Listener {
         }
       }
     } else {
-      MessageUtils.sendMessage(event.getData().getPlayer(),
-          "&e&oYou don't have enough &3Socket Extenders &e&oto do this!");
+      MessageUtils.sendMessage(event.getData().getPlayer(), "&e&oYou don't have enough &3Socket Extenders &e&oto do this!");
       event.setCancelled(true);
     }
   }

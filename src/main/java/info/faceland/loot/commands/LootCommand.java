@@ -341,6 +341,10 @@ public class LootCommand extends BaseCommand {
         sender.sendMessage("Invalid Rarity");
         return;
       }
+      if (t.getEssenceId() == -1) {
+        sender.sendMessage("Tier cannot have an essence");
+        return;
+      }
       ItemStack itemEss = EssenceUtil.createEssence(stat, tier, level, percentRoll, ir.getPower());
       player.getPlayer().getInventory().addItem(itemEss);
       sendMessage(sender, "Success!");
