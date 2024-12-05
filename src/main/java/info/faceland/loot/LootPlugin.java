@@ -22,6 +22,7 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.tealcube.minecraft.bukkit.facecore.logging.PluginLogger;
 import com.tealcube.minecraft.bukkit.facecore.plugin.FacePlugin;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.shade.acf.PaperCommandManager;
 import info.faceland.loot.api.managers.UniqueDropsManager;
 import info.faceland.loot.builders.ItemBuilder;
@@ -36,6 +37,7 @@ import info.faceland.loot.data.pdc.GenericStatsType;
 import info.faceland.loot.groups.ItemGroup;
 import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.items.EnchantmentTome;
+import info.faceland.loot.items.LevelModItem;
 import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.SoulGem;
 import info.faceland.loot.items.Tier;
@@ -54,6 +56,7 @@ import info.faceland.loot.menu.salvage.SalvageMenu;
 import info.faceland.loot.menu.tomereader.ReaderMenu;
 import info.faceland.loot.utils.DropUtil;
 import info.faceland.loot.utils.EnchantUtil;
+import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.config.MasterConfiguration;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
@@ -82,6 +85,10 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.HandlerList;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.RecipeChoice.MaterialChoice;
+import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -109,7 +116,7 @@ public final class LootPlugin extends FacePlugin {
   @Getter
   private VersionedSmartYamlConfiguration itemGroupsYml, rarityYAML, tierYML, socketGemsYAML, scrollsYAML,
       languageYAML, randomAffixes, configYAML, enchantmentTomesYAML, uniqueDropsYAML, materialsYml, soulGemsYml,
-      mortarYAML;
+      mortarYAML, levelModItemsYml;
 
   @Getter
   private StatManager statManager;
@@ -190,6 +197,7 @@ public final class LootPlugin extends FacePlugin {
     mortarYAML = defaultLoadConfig("pulverize.yml");
     materialsYml = defaultLoadConfig("materials.yml");
     soulGemsYml = defaultLoadConfig("soul-gems.yml");
+    levelModItemsYml = defaultLoadConfig("level-mod-items.yml");
 
     settings = MasterConfiguration.loadFromFiles(languageYAML, configYAML);
 
@@ -250,6 +258,25 @@ public final class LootPlugin extends FacePlugin {
     Tier.loadFromFile(this, tierYML);
     loadNames();
 
+    Bukkit.getOnlinePlayers().forEach(p ->
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "recipe take " + p.getName() + " *"));
+    Bukkit.clearRecipes();
+
+    Tier.RECIPES.forEach((r, t) -> Bukkit.addRecipe(r));
+    try {
+      Bukkit.addRecipe(constructInfusionRecipe());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    try {
+      Bukkit.addRecipe(constructLevelModRecipe());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    Bukkit.getOnlinePlayers().forEach(p ->
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "recipe give " + p.getName() + " *"));
+
     customItemManager.loadNewUniques(fetchNewUniques());
     loadUniqueDrops();
 
@@ -260,6 +287,7 @@ public final class LootPlugin extends FacePlugin {
     CraftMaterial.buildGeneric();
     CraftMaterial.loadFromFile(materialsYml);
     SoulGem.loadFromFile(soulGemsYml);
+    LevelModItem.loadFromFile(levelModItemsYml);
     EnchantmentTome.loadFromFile(this, enchantmentTomesYAML);
 
     MaterialUtil.refreshConfig();
@@ -303,6 +331,7 @@ public final class LootPlugin extends FacePlugin {
     commandManager.getCommandCompletions().registerCompletion("uniques", c -> customItemManager.listCustomItems());
     commandManager.getCommandCompletions().registerCompletion("materials", c -> CraftMaterial.getMaterials().keySet());
     commandManager.getCommandCompletions().registerCompletion("soulgems", c -> SoulGem.getGemList());
+    commandManager.getCommandCompletions().registerCompletion("levelmoditems", c -> LevelModItem.getModsList());
 
     Bukkit.getPluginManager().registerEvents(new EntityDeathListener(this), this);
     Bukkit.getPluginManager().registerEvents(new GayBoatFix(), this);
@@ -526,6 +555,49 @@ public final class LootPlugin extends FacePlugin {
 
   public ItemBuilder getNewItemBuilder() {
     return new ItemBuilder();
+  }
+
+  private Recipe constructInfusionRecipe() {
+    NamespacedKey key = new NamespacedKey(this, "infusion_guide");
+
+    var result = new ItemStack(Material.END_CRYSTAL);
+    result.editMeta(m -> {
+      m.setDisplayName(FaceColor.CYAN + "Item Essence Infusion");
+      m.setLore(PaletteUtil.color(List.of(
+          "|lgray|Use an |cyan|Item Essence |lgray|on a",
+          "|yellow|crafted item |lgray|with an empty stat",
+          "|lgray|slot to complete it!"
+      )));
+    });
+    ItemRenderer.applyCommonFlags(result);
+
+    ShapelessRecipe recipe = new ShapelessRecipe(key, result);
+
+    recipe.addIngredient(Material.GHAST_TEAR);
+    recipe.addIngredient(new MaterialChoice(Tier.EVERY_MAT.toArray(new Material[0])));
+
+    return recipe;
+  }
+
+  private Recipe constructLevelModRecipe() {
+    NamespacedKey key = new NamespacedKey(this, "level_mod_guide");
+
+    var result = new ItemStack(Material.SMITHING_TABLE);
+    result.editMeta(m -> {
+      m.setDisplayName(FaceColor.BLUE + "Item Level Alteration");
+      m.setLore(PaletteUtil.color(List.of(
+          "|lgray|Using certain items, you can modify",
+          "|lgray|the level of various equipment items!"
+      )));
+    });
+    ItemRenderer.applyCommonFlags(result);
+
+    ShapelessRecipe recipe = new ShapelessRecipe(key, result);
+
+    recipe.addIngredient(Material.SHULKER_SHELL);
+    recipe.addIngredient(new MaterialChoice(Tier.EVERY_MAT.toArray(new Material[0])));
+
+    return recipe;
   }
 
 }

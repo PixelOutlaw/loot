@@ -136,7 +136,20 @@ public class ItemModifyCommand extends BaseCommand {
     if (data == null) {
       return;
     }
-    data.setLevel(level);
+    data.setCustomLevel(level);
+    PersistHelper.setEquipmentData(stack, data);
+  }
+
+  // Used on unqiues to reset their level
+  @Subcommand("edit level-clear")
+  @CommandPermission("loot.editor")
+  public void clearCustomLevel(Player player, int level) {
+    ItemStack stack = player.getEquipment().getItemInMainHand();
+    EquipmentData data = validateItemData(player, stack);
+    if (data == null) {
+      return;
+    }
+    data.clearCustomLevel();
     PersistHelper.setEquipmentData(stack, data);
   }
 

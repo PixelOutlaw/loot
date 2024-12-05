@@ -302,6 +302,7 @@ public class ItemStyleUtil {
   public static int countNormalTextSize(String s) {
     int size = s.length() * 6;
     size -= StringUtils.countMatches(s, '.') * 4;
+    size -= StringUtils.countMatches(s, '*');
     size -= StringUtils.countMatches(s, ',') * 4;
     size -= StringUtils.countMatches(s, '1');
     size -= StringUtils.countMatches(s, '!') * 4;

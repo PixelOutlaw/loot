@@ -19,10 +19,14 @@
 package info.faceland.loot.items;
 
 import com.destroystokyo.paper.Namespaced;
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.tuple.Pair;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.ItemStat;
+import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.ModifyEquipmentUtil;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import java.util.ArrayList;
@@ -42,12 +46,16 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.ShapedRecipe;
 
 @Getter
 @Setter
 public final class Tier {
   
   private static final Map<String, Tier> TIERS = new HashMap<>();
+  public static final Map<Recipe, Tier> RECIPES = new HashMap<>();
+  public static final Set<Material> EVERY_MAT = new HashSet<>();
 
   private boolean skillRequirement = false;
   private String id;
@@ -62,7 +70,6 @@ public final class Tier {
   private List<String> essenceGroup;
   private int upgradeScale;
   private double spawnWeight;
-  private double identifyWeight;
   private int customDataStart;
   private int customDataInterval;
   private int essenceId;
@@ -72,6 +79,8 @@ public final class Tier {
   private int extraSockets;
 
   private List<Material> craftMaterials;
+  private List<String> shape;
+  private List<Pair<Character, Material>> materials;
 
   private Map<ItemRarity, List<String>> suffixes = new HashMap<>();
 
@@ -149,6 +158,8 @@ public final class Tier {
 
   public static void loadFromFile(LootPlugin plugin, SmartYamlConfiguration tierYAML) {
     TIERS.clear();
+    RECIPES.clear();
+    EVERY_MAT.clear();
     for (String key : tierYAML.getKeys(false)) {
       if (!tierYAML.isConfigurationSection(key)) {
         continue;
@@ -158,6 +169,7 @@ public final class Tier {
         Tier tier = new Tier(key);
         tier.setPlainName(cs.getString("plain-name"));
         tier.setMaterial(Material.valueOf(cs.getString("material", "APPLE")));
+        EVERY_MAT.add(tier.material);
         tier.setSkillRequirement(cs.getBoolean("skill-req", false));
         List<ItemStat> primaryStats = new ArrayList<>();
         for (String statName : cs.getStringList("primary-stats")) {
@@ -179,7 +191,6 @@ public final class Tier {
         tier.setBonusStats(bonusStats);
         tier.setSpawnWeight(cs.getDouble("spawn-weight"));
         tier.setUpgradeScale(cs.getInt("upgrade-scale", 1));
-        tier.setIdentifyWeight(cs.getDouble("identify-weight"));
         tier.setCustomDataStart(cs.getInt("base-custom-data", -1));
         tier.setCustomDataInterval(cs.getInt("custom-data-level-interval", 200));
         tier.setEssenceId(cs.getInt("essence-id", 0));
@@ -213,15 +224,67 @@ public final class Tier {
           tier.addItemSuffixes(r, combined);
         }
 
+        tier.setShape(cs.getStringList("shape"));
+        tier.setMaterials(new ArrayList<>());
+        for (String s : cs.getStringList("mats")) {
+          var split = s.split("~");
+          tier.getMaterials().add(Pair.of(split[0].toCharArray()[0], Material.valueOf(split[1])));
+        }
+
         String marketFilterFlag = cs.getString("filter-flag", "ALL");
         tier.setFilterFlag(FilterFlagA.valueOf(marketFilterFlag));
 
         TIERS.put(key, tier);
+
+        if (tier.getSpawnWeight() > 0) {
+          try {
+            var recipe = constructCraftRecipe(tier);
+            RECIPES.put(recipe, tier);
+          } catch (Exception e) {
+            Bukkit.getLogger().info("[Loot] Failed to build recipe for " + tier.getId());
+            e.printStackTrace();
+          }
+        } else {
+          Bukkit.getLogger().info("[Loot] Skipped recipe for " + tier.getId() + " (no drop weight)");
+        }
+
       } catch (Exception e) {
         Bukkit.getLogger().info("[Loot] Failed to load tier " + key);
         e.printStackTrace();
       }
     }
     Bukkit.getLogger().info("[Loot] Loaded " + TIERS.size() + " tiers!");
+  }
+
+  private static Recipe constructCraftRecipe(Tier tier) {
+    NamespacedKey key = new NamespacedKey(LootPlugin.getInstance(), "tier_" + tier.getId());
+
+    var result = new ItemStack(tier.material);
+    result.editMeta(m -> {
+      m.setDisplayName(FaceColor.YELLOW + "Equipment Crafting");
+      m.setLore(PaletteUtil.color(List.of(
+          "|white|Crafting: " + tier.getPlainName(),
+          "",
+          "|lgray|Craft an item of this type! The",
+          "|white|level |lgray|of the result is determined",
+          "|lgray|by the average level of materials",
+          "|lgray|used. The rarity is randomized, but",
+          "|lgray|higher quality materials increase",
+          "|lgray|the odds of a rarer result!"
+      )));
+      m.setCustomModelData(tier.getCustomDataStart());
+    });
+    ItemRenderer.applyCommonFlags(result);
+
+    ShapedRecipe recipe = new ShapedRecipe(key, result);
+
+    switch (tier.getShape().size()) {
+      case 1 -> recipe.shape(tier.getShape().get(0));
+      case 2 -> recipe.shape(tier.getShape().get(0), tier.getShape().get(1));
+      case 3 -> recipe.shape(tier.getShape().get(0), tier.getShape().get(1), tier.getShape().get(2));
+    }
+    tier.getMaterials().forEach(pair -> recipe.setIngredient(pair.getKey(), pair.getValue()));
+
+    return recipe;
   }
 }

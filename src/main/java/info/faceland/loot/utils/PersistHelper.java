@@ -168,7 +168,7 @@ public class PersistHelper {
     ItemStackExtensionsKt.setCustomModelData(stack, ci.getCustomDataNumber());
     data.setString("name", ci.getItemName());
     data.setInt("modelData", ci.getCustomDataNumber());
-    data.setInt("level", ci.getItemLevel());
+    data.setLevel(ci.getItemLevel());
     data.setTier(ci.getTier());
     data.setRarity("RARE");
 

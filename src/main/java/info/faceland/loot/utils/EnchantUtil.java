@@ -114,7 +114,7 @@ public class EnchantUtil {
       return;
     }
     double enchantLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.ENCHANTING);
-    double itemLevel = data.getLevel();
+    double itemLevel = data.getCustomLevel();
     int addAmount = 2 + (int) (LootPlugin.RNG.nextFloat() * (2 + Math.max(0, (enchantLevel - itemLevel) * 0.2)));
 
     data.refillEnchantment(Math.min(addAmount, data.getMissingEnchantPower()));

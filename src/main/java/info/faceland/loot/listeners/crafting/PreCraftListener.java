@@ -18,6 +18,7 @@ package info.faceland.loot.listeners.crafting;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.ShaderStyle;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
@@ -25,7 +26,11 @@ import info.faceland.loot.data.CraftResultData;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.data.pdc.StoredStat;
+import info.faceland.loot.items.EnchantmentTome;
+import info.faceland.loot.items.LevelModItem;
+import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.Tier;
+import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.utils.CraftingUtil;
 import info.faceland.loot.utils.EssenceUtil;
 import info.faceland.loot.utils.MaterialUtil;
@@ -59,15 +64,11 @@ public final class PreCraftListener implements Listener {
   public static String ESSENCE_SLOT_TEXT;
 
   private final String BAD_INFUSE_NAME;
+  private final String BAD_LEVEL_MOD;
   private final float MAX_QUALITY;
 
-  private final ItemMeta dupeStatMeta;
-  private final ItemMeta unstableStatMeta;
-  private final ItemMeta powerfulEssenceMeta;
-  private final ItemMeta lowLevelMeta;
-  private final ItemMeta invalidItemMeta;
-  private final ItemMeta wrongTypeMeta;
-  private final ItemMeta noSlotsMeta;
+  private final ItemMeta dupeStatMeta, unstableStatMeta, powerfulEssenceMeta, lowLevelMeta, invalidItemMeta,
+      wrongTypeMeta, noSlotsMeta, wrongLevelModType, alreadyAppliedMod, wrongTierMod;
 
   public PreCraftListener(LootPlugin plugin) {
     this.plugin = plugin;
@@ -78,10 +79,16 @@ public final class PreCraftListener implements Listener {
 
     BAD_INFUSE_NAME = StringExtensionsKt.chatColorize(plugin.getSettings()
         .getString("language.essence.invalid-title", "&cCannot Use Essence!"));
+    BAD_LEVEL_MOD = PaletteUtil.color(plugin.getSettings()
+        .getString("language.level-mod.invalid-title", "|red|Invalid Target Equipment!"));
 
     ItemStack failStack = new ItemStack(Material.BARRIER);
     ItemStackExtensionsKt.setDisplayName(failStack,
         StringExtensionsKt.chatColorize(BAD_INFUSE_NAME));
+
+    ItemStack failStack2 = new ItemStack(Material.BARRIER);
+    ItemStackExtensionsKt.setDisplayName(failStack2,
+        StringExtensionsKt.chatColorize(BAD_LEVEL_MOD));
 
     dupeStatMeta = failStack.getItemMeta().clone();
     dupeStatMeta.setLore(ListExtensionsKt.chatColorize(
@@ -104,12 +111,29 @@ public final class PreCraftListener implements Listener {
     noSlotsMeta = failStack.getItemMeta().clone();
     noSlotsMeta.setLore(ListExtensionsKt.chatColorize(
         plugin.getSettings().getStringList("language.essence.no-slots")));
+
+    wrongLevelModType = failStack2.getItemMeta().clone();
+    wrongLevelModType.setLore(PaletteUtil.color(
+        plugin.getSettings().getStringList("language.level-mod.wrong-type")));
+    alreadyAppliedMod = failStack2.getItemMeta().clone();
+    alreadyAppliedMod.setLore(PaletteUtil.color(
+        plugin.getSettings().getStringList("language.level-mod.already-applied")));
+    wrongTierMod = failStack2.getItemMeta().clone();
+    wrongTierMod.setLore(PaletteUtil.color(
+        plugin.getSettings().getStringList("language.level-mod.wrong-tier")));
   }
 
   @EventHandler
   public void onEssenceInfuse(PrepareItemCraftEvent event) {
     if (event.getRecipe() != null && event.getRecipe().getResult().getType() == Material.END_CRYSTAL) {
-      updateInfuseInvy(event.getInventory(), (Player) event.getViewers().get(0));
+      updateInfuseInvy(event.getInventory(), (Player) event.getViewers().getFirst());
+    }
+  }
+
+  @EventHandler
+  public void onnLevelModCraft(PrepareItemCraftEvent event) {
+    if (event.getRecipe() != null && event.getRecipe().getResult().getType() == Material.SMITHING_TABLE) {
+      updateLevelModInvy(event.getInventory(), (Player) event.getViewers().getFirst());
     }
   }
 
@@ -172,7 +196,7 @@ public final class PreCraftListener implements Listener {
       return;
     }
 
-    int itemLevel = data.getLevel();
+    int itemLevel = data.getCustomLevel();
     int essenceLevel = stat.getEssenceLevel(stat.getLevel());
     int craftingLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.CRAFTING);
     double levelAdvantage = craftingLevel + 10 - itemLevel;
@@ -220,8 +244,62 @@ public final class PreCraftListener implements Listener {
     craftingInventory.setResult(newResult);
   }
 
-  private void updateEquipmentCraftInvy(CraftingInventory craftingInventory, Recipe recipe,
-      Player player) {
+  private void updateLevelModInvy(CraftingInventory craftingInventory, Player player) {
+    if (craftingInventory.getResult() == null) {
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(wrongLevelModType);
+      return;
+    }
+    ItemStack equipmentItem = null;
+    ItemStack levelModStack = null;
+    for (ItemStack is : craftingInventory.getMatrix()) {
+      if (!(levelModStack == null || equipmentItem == null)) {
+        break;
+      }
+      if (is == null || is.getType() == Material.AIR) {
+        continue;
+      }
+      ItemStack loopItem = new ItemStack(is);
+      if (LevelModItem.TYPE_KEY.equals(PersistHelper.getItemType(loopItem))) {
+        levelModStack = loopItem;
+        continue;
+      }
+      equipmentItem = loopItem;
+    }
+
+    if (levelModStack == null || equipmentItem == null) {
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(wrongLevelModType);
+      return;
+    }
+    EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
+    LevelModItem levelModItem = LevelModItem.get(levelModStack);
+    if (data == null || levelModItem == null) {
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(wrongLevelModType);
+      return;
+    }
+    if (!levelModItem.getValidTiers().contains(data.getTier().getId())) {
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(wrongTierMod);
+      return;
+    }
+    if (data.getLevelMod() == levelModItem.getModificationAmount()) {
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(alreadyAppliedMod);
+      return;
+    }
+
+    ItemStack newResult = equipmentItem.clone();
+    EquipmentData newData = PersistHelper.getEquipmentData(newResult);
+    newData.setLevelMod(levelModItem.getModificationAmount());
+
+    PersistHelper.setEquipmentData(newResult, newData);
+
+    craftingInventory.setResult(newResult);
+  }
+
+  private void updateEquipmentCraftInvy(CraftingInventory craftingInventory, Recipe recipe, Player player) {
 
     for (ItemStack stack : craftingInventory.getMatrix()) {
       if (stack == null) {
@@ -231,9 +309,7 @@ public final class PreCraftListener implements Listener {
       if (StringUtils.isBlank(name)) {
         continue;
       }
-      name = ChatColor.stripColor(name);
-      if (name.startsWith("Socket Gem") || name.startsWith("Enchantment Tome")
-          || name.endsWith("Scroll")) {
+      if (SocketGem.get(stack) != null || EnchantmentTome.get(stack) != null || UpgradeScroll.get(stack) != null) {
         craftingInventory.getResult().setType(Material.BARRIER);
         craftingInventory.getResult().setItemMeta(invalidItemMeta);
         return;

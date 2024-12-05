@@ -1,5 +1,10 @@
 package info.faceland.loot.managers;
 
+import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
+import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
+import static info.faceland.loot.LootPlugin.ITEM_VERSION;
+import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
+
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
@@ -22,11 +27,16 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.Getter;
+import me.elsiff.morefish.MoreFish;
+import me.elsiff.morefish.pojo.CaughtFish;
+import me.elsiff.morefish.pojo.CustomFish;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 public class PawnManager {
 
@@ -81,6 +91,16 @@ public class PawnManager {
       return new PriceData(amount * namedPrices.get(itemName), namedPrices.get(itemName) > 500 &&
           !(itemName.contains("Silver Bar") || itemName.contains("Gold Bar")));
     }
+    var equipmentData = PersistHelper.getEquipmentData(stack);
+    if (equipmentData != null) {
+      double itemLevel = equipmentData.getCustomLevel();
+      double rarityPower = equipmentData.getItemRarity().getPower();
+      int itemPlus = equipmentData.getUpgradeLevel();
+      price = (int) (baseEquipmentPrice + itemLevel * equipPricePerLevel);
+      price = (float) Math.pow(price, 1 + (0.1 * rarityPower));
+      price *= (float) Math.pow(1.2736, itemPlus);
+      return new PriceData(amount * price, itemPlus > 4 || rarityPower > 1);
+    }
     SocketGem socketGem = SocketGem.get(stack);
     if (socketGem != null) {
       double divisor = (gemWeightHalf + socketGem.getWeight()) / gemWeightHalf;
@@ -113,31 +133,31 @@ public class PawnManager {
       price += (stat == null ? 1 : stat.getLevel(1)) * 0.15f;
       return new PriceData(amount * price, false);
     }
-    if (Tier.get(stack) != null) {
-      boolean cool = false;
-      List<String> lore = TextUtils.getLore(stack);
-      if (lore.size() > 1 && (lore.get(1).contains("\uD86D\uDFEA") ||
-          lore.get(1).contains("\uD86D\uDFE9") ||
-          lore.get(1).contains("\uD86D\uDFE8"))) {
-        cool = true;
-      }
-      double itemLevel = MaterialUtil.getLevelRequirement(stack);
-      int itemPlus = ModifyEquipmentUtil.getUpgradeLevel(stack);
-      price = (int) (baseEquipmentPrice + itemLevel * equipPricePerLevel);
-      price *= (float) Math.pow(1.1, itemPlus);
-      return new PriceData(amount * price, itemPlus > 4 || cool);
-    }
     // TODO: food logic
     if (stack.getType() == Material.KELP) {
-      int rarity = 1; // (int) MaterialUtil.getRarity(stack).getPower();
-      float rarityMult = 0.5f * rarity;
-      String stripped = net.md_5.bungee.api.ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack));
-      Matcher matcher = pattern.matcher(stripped);
-      while (matcher.find()) {
-        double size = Double.parseDouble(matcher.group());
-        return new PriceData((int) (2 + size * 0.2 * rarityMult), rarity > 2);
+      PersistentDataContainer pdc = stack.getItemMeta().getPersistentDataContainer();
+      var type = pdc.get(ITEM_TYPE_KEY, PersistentDataType.STRING);
+      if (!"fish".equals(type)) {
+        return new PriceData(0, false);
       }
-      return new PriceData(1, false);
+      var id = pdc.get(ITEM_EXTRA_KEY, PersistentDataType.STRING);
+      var fish = MoreFish.getInstance().getFishManager().getCustomFish(id);
+      if (fish == null) {
+        return new PriceData(0, false);
+      }
+      double lengthRoll = pdc.get(MoreFish.FISH_LENGTH_ROLL_KEY, PersistentDataType.DOUBLE).doubleValue();
+      double weightRoll = pdc.get(MoreFish.FISH_LENGTH_ROLL_KEY, PersistentDataType.DOUBLE).doubleValue();
+
+      var totalLength = fish.getLengthMin() + (lengthRoll * (fish.getLengthMax() - fish.getLengthMin()));
+      // TODO: var totalWeight = fish.getWeightMin() + (weightRoll * (fish.getWeightMax() - fish.getWeightMin()));
+      int rarityMult = switch (fish.getRarity().getId()) {
+        case "common" -> 1;
+        case "uncommon" -> 2;
+        case "rare" -> 3;
+        case "epic" -> 4;
+        default -> 1;
+      };
+      return new PriceData((int) (2 + totalLength * 0.2 * rarityMult), rarityMult > 2);
     }
     ItemRarity ir = MaterialUtil.getRarity(stack);
     double rarity = 1 + ((ir == null) ? 0 : ir.getPower());

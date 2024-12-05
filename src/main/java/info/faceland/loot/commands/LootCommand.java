@@ -39,6 +39,7 @@ import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.export.ExportEntry;
 import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.items.EnchantmentTome;
+import info.faceland.loot.items.LevelModItem;
 import info.faceland.loot.items.NewCustomItem;
 import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.SoulGem;
@@ -359,6 +360,18 @@ public class LootCommand extends BaseCommand {
         sendMessage(sender, "Success!");
       } else {
         sendMessage(sender, "Not a real material!!!");
+      }
+    }
+
+    @Subcommand("level-mod")
+    @CommandCompletion("@players @levelmoditems")
+    public void giveLevelModItem(CommandSender sender, OnlinePlayer player, String id) {
+      var mat = LevelModItem.get(id);
+      if (mat != null) {
+        ItemUtils.giveOrDrop(player.getPlayer(), mat.item());
+        sendMessage(sender, "Success!");
+      } else {
+        sendMessage(sender, "Not a real level mod item!!!");
       }
     }
 

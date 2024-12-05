@@ -27,6 +27,7 @@ import info.faceland.loot.builders.ItemBuilder;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.groups.ItemGroup;
+import info.faceland.loot.items.LevelModItem;
 import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -95,7 +96,7 @@ public final class MaterialUtil {
     success -= scroll.getFlatDecay() * targetPlus;
     success *= 1 - (scroll.getPercentDecay() * targetPlus);
     success = Math.pow(success, scroll.getExponent());
-    success += SkillRank.isRank(champion, LifeSkillType.ENCHANTING, SkillRank.JOURNEYMAN) ? 0.03 : 0;
+    success += SkillRank.isRank(champion, LifeSkillType.ENCHANTING, SkillRank.JOURNEYMAN) ? 0.02 : 0;
     if (success <= 1) {
       success += (1 - success) * getFailureMod(getFailureBonus(scrollStack));
     }
@@ -160,9 +161,6 @@ public final class MaterialUtil {
       audience.playSound(UPGRADE_ITEM);
 
       PersistHelper.setEquipmentData(stack, data);
-      if (targetLevel >= 10 && !strippedName.contains("Starter")) {
-        InventoryUtil.sendToDiscord(player, stack, upgradeSuccessBroadcast);
-      }
       return;
     }
 
@@ -192,9 +190,6 @@ public final class MaterialUtil {
       } else {
         player.playSound(player.getEyeLocation(), Sound.ENTITY_ITEM_BREAK, 1F, 1F);
         sendMessage(player, upgradeItemDestroyMsg);
-        if (itemUpgradeLevel >= 10 && !strippedName.contains("Starter")) {
-          InventoryUtil.sendToDiscord(player, stack.clone(), upgradeItemDestroyBroadcast);
-        }
         int newShards = rollShards(itemLevel, itemUpgradeLevel, (float) MaterialUtil.getRarity(stack).getPower());
         stack.setAmount(0);
         distributeShards(player, scrollShards + newShards);
@@ -349,7 +344,11 @@ public final class MaterialUtil {
 
   public static int getLevelRequirement(ItemStack stack) {
     EquipmentData data = PersistHelper.getEquipmentData(stack);
-    return data == null ? 0 : data.getLevel();
+    if (data == null) {
+      return 0;
+    }
+    //return data.getCustomLevel() + data.getLevelMod();
+    return data.getCustomLevel();
   }
 
   public static boolean updateItem(ItemStack stack) {

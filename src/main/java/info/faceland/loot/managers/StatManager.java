@@ -83,7 +83,7 @@ public class StatManager {
       response.setStatRoll(statRoll);
     }
     float rawStatValue = statValue;
-    statValue = (int) Math.floor(((float) statValue * multiplier) + flatBonus);
+    statValue = Math.round(((float) statValue * multiplier) + flatBonus);
     statValue = statValue == 0 ? 1 : statValue;
 
     String value = Integer.toString(statValue);

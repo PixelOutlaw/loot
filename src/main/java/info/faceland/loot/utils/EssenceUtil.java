@@ -45,7 +45,7 @@ public class EssenceUtil {
     if (p != null) {
       //p.sendMessage("Testresmoved: " + storedStat.toString());
       if (popOffStat) {
-        ItemStack essence = fromStoredStat(storedStat, data.getTier().getId(), data.getLevel(),
+        ItemStack essence = fromStoredStat(storedStat, data.getTier().getId(), data.getCustomLevel(),
             data.getItemRarity().getPower());
         ItemUtils.giveOrDrop(p, essence);
       }

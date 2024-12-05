@@ -24,6 +24,8 @@ import info.faceland.loot.data.PawnShopType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 import ninja.amp.ampmenus.events.ItemClickEvent;
 import ninja.amp.ampmenus.items.MenuItem;
 import org.bukkit.Material;
@@ -32,6 +34,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.nunnerycode.mint.MintPlugin;
 
+@Getter
+@Setter
 public class SaleIcon extends MenuItem {
 
   private final PawnMenu menu;
@@ -92,33 +96,5 @@ public class SaleIcon extends MenuItem {
       targetStack = null;
     }
     event.setWillUpdate(true);
-  }
-
-  public Integer getSlot() {
-    return slot;
-  }
-
-  public double getPrice() {
-    return price;
-  }
-
-  public void setPrice(double price) {
-    this.price = price;
-  }
-
-  public ItemStack getTargetStack() {
-    return targetStack;
-  }
-
-  public void setTargetStack(ItemStack targetStack) {
-    this.targetStack = targetStack;
-  }
-
-  public boolean isCheckRare() {
-    return checkRare;
-  }
-
-  public void setCheckRare(boolean checkRare) {
-    this.checkRare = checkRare;
   }
 }

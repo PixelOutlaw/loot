@@ -30,6 +30,7 @@ import info.faceland.loot.data.pdc.StoredStat;
 import info.faceland.loot.events.ExternalRenderEvent;
 import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.items.EnchantmentTome;
+import info.faceland.loot.items.LevelModItem;
 import info.faceland.loot.items.NewCustomItem;
 import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.SoulGem;
@@ -67,7 +68,6 @@ import land.face.strife.data.LoreAbility;
 import land.face.strife.data.champion.SkillRank;
 import land.face.strife.stats.StrifeStat;
 import land.face.strife.stats.StrifeTrait;
-import me.elsiff.morefish.MoreFish;
 import me.elsiff.morefish.pojo.CustomFish;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -87,6 +87,7 @@ public class ItemRenderer {
 
   private static Multimap<Attribute, AttributeModifier> BS_MAP = excreteBullshit();
   private static String FIXED_WIDTH_BUFFER = "\uF82C\uF829\uF825";
+  //private static NamespacedKey aa = NamespacedKey.minecraft()new NamespacedKey(this, "loot.item_data");
 
   public static void renderItem(ItemStack stack, boolean force) {
     //System.out.println("ITEM RENDER START");
@@ -125,6 +126,7 @@ public class ItemRenderer {
       case DivineHammer.TYPE_KEY -> DivineHammer.update(stack);
       case NormalItem.TYPE_KEY -> NormalItem.update(stack);
       case SoulGem.TYPE_KEY -> SoulGem.update(stack);
+      case LevelModItem.TYPE_KEY -> LevelModItem.update(stack);
       case TooltipPaint.TYPE_KEY -> TooltipPaint.update(stack);
       case AwakeningStone.TYPE_KEY -> AwakeningStone.update(stack);
       case AspectOfPerfection.TYPE_KEY -> AspectOfPerfection.update(stack);
@@ -142,11 +144,11 @@ public class ItemRenderer {
   private static Multimap<Attribute, AttributeModifier> excreteBullshit() {
     ItemStack stack = new ItemStack(Material.WOODEN_SWORD);
     stack.editMeta(m -> {
-      m.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
-          new AttributeModifier(new NamespacedKey(LootPlugin.getInstance(), "GENERIC_ATTACK_DAMAGE"), 0.002,
+      m.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+          new AttributeModifier(new NamespacedKey(LootPlugin.getInstance(), "ATTACK_DAMAGE"), 0.002,
               AttributeModifier.Operation.ADD_NUMBER));
-      m.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,
-          new AttributeModifier(new NamespacedKey(LootPlugin.getInstance(), "GENERIC_ARMOR_TOUGHNESS"), 0.002,
+      m.addAttributeModifier(Attribute.ARMOR_TOUGHNESS,
+          new AttributeModifier(new NamespacedKey(LootPlugin.getInstance(), "ARMOR_TOUGHNESS"), 0.002,
               AttributeModifier.Operation.ADD_NUMBER));
     });
     return stack.getItemMeta().getAttributeModifiers();
@@ -166,6 +168,7 @@ public class ItemRenderer {
           ItemFlag.HIDE_ENCHANTS,
           ItemFlag.HIDE_UNBREAKABLE
       );
+      //itemMeta.setTooltipStyle();
     });
   }
 
@@ -324,17 +327,29 @@ public class ItemRenderer {
       distortion = FaceColor.NO_SHADOW + GUI.spacesOf(-22) + CORRUPTION + GUI.spacesOf(-31) + FaceColor.GROW + "俽"
           + GUI.spacesOf(-162);
     }
+    String modified = "";
+    if (data.getLevelMod() != 0) {
+      modified = switch (data.getLevelMod()) {
+        case -5 -> FaceColor.RED + "↓";
+        case -3 -> FaceColor.YELLOW + "↓";
+        case 5 -> FaceColor.LIGHT_GREEN + "↑";
+        default -> "*";
+      };
+    }
+    int iLevel = data.getCustomLevel() - data.getUpgradeLevel() / 3;
+    iLevel += data.getLevelMod();
+    iLevel = Math.max(1, iLevel);
     if (tier.isSkillRequirement()) {
-      String reqString = "Skill Requirement: " + data.getInt("level");
+      String reqString = "Skill Requirement: " + iLevel + modified;
       lore.add(distortion + FaceColor.WHITE + centerLargeText(reqString));
     } else {
-      String reqString = "Level Requirement: " + data.getInt("level");
+      String reqString = "Level Requirement: " + iLevel + modified;
       lore.add(distortion + FaceColor.WHITE + centerLargeText(reqString));
     }
     lore.add("");
     if (unique == null) {
       ItemStackExtensionsKt.setCustomModelData(stack,
-          tier.getCustomDataStart() + data.getLevel() / tier.getCustomDataInterval());
+          tier.getCustomDataStart() + data.getCustomLevel() / tier.getCustomDataInterval());
     } else {
       ItemStackExtensionsKt.setCustomModelData(stack, unique.getCustomDataNumber());
     }
@@ -342,8 +357,8 @@ public class ItemRenderer {
     if (!data.getCoreStats().isEmpty()) {
       int numStats = 1;
       for (StoredStat stat : data.getCoreStats()) {
-        StatResponse sr = buildStatResponse(plugin, data.getLevel(), data.getUpgradeLevel(), r.getPower(), stat,
-            numStats);
+        int lvl = data.getCustomLevel() + data.getLevelMod();
+        StatResponse sr = buildStatResponse(plugin, lvl, data.getUpgradeLevel(), r.getPower(), stat, numStats);
         if (sr != null && !stat.getStat().isHide()) {
           lore.add(centerLargeText(sr.getStatString()));
         }
@@ -358,29 +373,30 @@ public class ItemRenderer {
       data.updateUniqueMultipliers(unique);
       Map<StoredStat, StatResponse> tempRollMap = new HashMap<>();
       for (StoredStat stat : data.getBonusStats()) {
-        StatResponse sr = buildStatResponse(plugin, data.getLevel(), data.getUpgradeLevel(), r.getPower(), stat, 0);
+        int lvl = data.getCustomLevel() + data.getLevelMod();
+        StatResponse sr = buildStatResponse(plugin, lvl, data.getUpgradeLevel(), r.getPower(), stat, 0);
         if (sr != null && !stat.getStat().isHide()) {
           tempRollMap.put(stat, sr);
         }
       }
       data.sortBonusStats();
       if (unique == null && !data.getBonusStats().isEmpty()) {
-        ItemStat stat = data.getBonusStats().get(0).getStat();
-        if (data.getBonusStats().get(0).getStatRoll() >= 0.85 && !stat.getNamePrefixes().isEmpty()
-            && !data.getBonusStats().get(0).isEssenceSlot()) {
-          statPrefix = stat.getNamePrefixes().get(0);
+        ItemStat stat = data.getBonusStats().getFirst().getStat();
+        if (data.getBonusStats().getFirst().getStatRoll() >= 0.85 && !stat.getNamePrefixes().isEmpty()
+            && !data.getBonusStats().getFirst().isEssenceSlot()) {
+          statPrefix = stat.getNamePrefixes().getFirst();
         }
       }
       for (StoredStat stat : data.getBonusStats()) {
         StatResponse sr = tempRollMap.get(stat);
         String corruptStr = distorted ? "" : (stat.isDistorted() ? ItemStyleUtil.getCorruptAddon() : "");
         if (stat.isInverted()) {
-          String viewThing = SkillRank.check(viewRank, data.getLevel()) ?
+          String viewThing = SkillRank.check(viewRank, data.getCustomLevel()) ?
               LoreglassMenu.getPercentText((float) stat.getStatRoll()) : "";
           lore.add(centerLargeText(FaceColor.RED +
               ChatColor.stripColor(sr.getStatString()).replace("+", "-") + corruptStr, viewThing));
         } else if (stat.isCrafted()) {
-          String viewThing = SkillRank.check(viewRank, data.getLevel()) ?
+          String viewThing = SkillRank.check(viewRank, data.getCustomLevel()) ?
               LoreglassMenu.getPercentText((float) stat.getStatRoll()) : "";
           lore.add(centerLargeText(FaceColor.CYAN + ChatColor.stripColor(sr.getStatString()) + corruptStr, viewThing));
           if (!stat.getOriginUnique().isBlank() && SkillRank.isRank(viewRank, SkillRank.EXPERT)) {
@@ -392,7 +408,7 @@ public class ItemRenderer {
         } else if (stat.isEssenceSlot()) {
           lore.add(centerLargeText(FaceColor.GRAY + "< Empty Stat Slot >"));
         } else {
-          String viewThing = SkillRank.check(viewRank, data.getLevel()) ?
+          String viewThing = SkillRank.check(viewRank, data.getCustomLevel()) ?
               LoreglassMenu.getPercentText((float) stat.getStatRoll()) : "";
           lore.add(centerLargeText(sr.getStatString() + corruptStr, viewThing));
         }
@@ -579,6 +595,9 @@ public class ItemRenderer {
     ItemStat itemStat = stat.getStat();
     if (itemStat == null) {
       return null;
+    }
+    if (level < 1) {
+      level = 1;
     }
     float flatBonus = 0;
     float multiplier = 1;

@@ -139,9 +139,9 @@ public class ModifyEquipmentUtil {
       StoredStat storedStat = new StoredStat(tome.getStat(), Math.random());
       storedStat.setLevel(level);
       storedStat.setRarityPower(rarityPower);
-      int enchantPoints = 15 + LootPlugin.RNG.nextInt(25);
+      int enchantPoints = 10 + LootPlugin.RNG.nextInt(20);
       if (SkillRank.isRank(rank, SkillRank.APPRENTICE)) {
-        enchantPoints += 25;
+        enchantPoints += 20;
       }
       boolean success = data.enchant(storedStat, enchantPoints);
       if (!success) {

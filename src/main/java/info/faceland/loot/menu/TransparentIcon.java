@@ -18,7 +18,7 @@
  */
 package info.faceland.loot.menu;
 
-import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import ninja.amp.ampmenus.events.ItemClickEvent;
 import ninja.amp.ampmenus.items.MenuItem;
 import org.bukkit.Material;
@@ -52,8 +52,13 @@ public class TransparentIcon extends MenuItem {
 
   private static ItemStack buildStack(String name) {
     ItemStack stack = new ItemStack(Material.BARRIER);
-    ItemStackExtensionsKt.setCustomModelData(stack, 50);
-    ItemStackExtensionsKt.setDisplayName(stack, name);
+    stack.editMeta(itemMeta -> {
+      itemMeta.setCustomModelData(50);
+      itemMeta.setDisplayName(name);
+      if (StringUtils.isBlank(name)) {
+        itemMeta.setHideTooltip(true);
+      }
+    });
     return stack;
   }
 }

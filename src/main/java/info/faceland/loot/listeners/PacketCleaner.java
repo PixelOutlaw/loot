@@ -2,6 +2,8 @@ package info.faceland.loot.listeners;
 
 import com.github.retrooper.packetevents.event.PacketListener;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.component.ComponentType;
+import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Server;
@@ -10,6 +12,8 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEn
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 
 public class PacketCleaner implements PacketListener {
@@ -34,7 +38,7 @@ public class PacketCleaner implements PacketListener {
       packet.getItems().forEach(is -> sanitize(user, is));
     } else if (event.getPacketType().equals(Server.ENTITY_METADATA)) {
       WrapperPlayServerEntityMetadata packet = new WrapperPlayServerEntityMetadata(event);
-      if (packet.getEntityMetadata().isEmpty()) {
+      if (packet.getEntityMetadata() == null || packet.getEntityMetadata().isEmpty()) {
         return;
       }
       var entityData = packet.getEntityMetadata().stream()
@@ -59,12 +63,15 @@ public class PacketCleaner implements PacketListener {
   }
 
   private ItemStack sanitize(User user, ItemStack stack) {
-    if (stack.getNBT() != null) {
-      stack.getNBT().removeTag("PublicBukkitValues");
+    if (user == null) {
+      return stack;
     }
+    stack.unsetComponent(ComponentTypes.CUSTOM_DATA);
     var enchants = stack.getEnchantments(user.getClientVersion());
-    enchants.removeIf(e -> e.getLevel() == 11);
-    stack.setEnchantments(enchants, user.getClientVersion());
+    if (enchants != null && !enchants.isEmpty()) {
+      enchants.removeIf(e -> e.getLevel() == 11);
+      stack.setEnchantments(enchants, user.getClientVersion());
+    }
     return stack;
   }
 }

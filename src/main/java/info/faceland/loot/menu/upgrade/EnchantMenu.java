@@ -25,6 +25,7 @@ import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.StatResponse;
 import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.items.EnchantmentTome;
+import info.faceland.loot.items.LevelModItem;
 import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;

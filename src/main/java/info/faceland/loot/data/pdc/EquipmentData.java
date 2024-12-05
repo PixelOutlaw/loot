@@ -125,6 +125,22 @@ public class EquipmentData implements Serializable {
     return intData.getOrDefault("level", 0);
   }
 
+  public int getCustomLevel() {
+    return intData.getOrDefault("custom-level", getLevel());
+  }
+
+  public boolean hasCustomLevel() {
+    return intData.containsKey("custom-level");
+  }
+
+  public void setCustomLevel(int level) {
+    intData.put("custom-level", level);
+  }
+
+  public void clearCustomLevel() {
+    intData.remove("custom-level");
+  }
+
   public void setCreationDate(String creation) {
     stringData.put("creation-date", creation);
   }
@@ -153,6 +169,14 @@ public class EquipmentData implements Serializable {
 
   public int getUpgradeLevel() {
     return intData.getOrDefault("upgradeLevel", 0);
+  }
+
+  public void setLevelMod(int level) {
+    intData.put("levelMod", level);
+  }
+
+  public int getLevelMod() {
+    return intData.getOrDefault("levelMod", 0);
   }
 
   public void setTier(String tier) {
@@ -245,7 +269,7 @@ public class EquipmentData implements Serializable {
 
     extractedStat.setCrafted(true);
     extractedStat.setRarityPower(getItemRarity().getPower());
-    extractedStat.setLevel(getLevel());
+    extractedStat.setLevel(getCustomLevel());
 
     return extractedStat;
   }
@@ -355,18 +379,22 @@ public class EquipmentData implements Serializable {
     return false;
   }
 
+  public void reroll() {
+    reroll(0, 2.75);
+  }
+
   public void reroll(double minimum, double exponent) {
+    reroll(minimum, exponent, false);
+  }
+
+  public void reroll(double minimum, double exponent, boolean ignoreCrafted) {
     for (StoredStat b : bonusStats) {
-      if (b.isCrafted()) {
+      if (ignoreCrafted && b.isCrafted()) {
         continue;
       }
       b.setStatRoll(Math.max(minimum, Math.pow(LootPlugin.RNG.nextFloat(), exponent)));
     }
     sortBonusStats();
-  }
-
-  public void reroll() {
-    reroll(0, 2.75);
   }
 
   public void forceRoll(double amount) {

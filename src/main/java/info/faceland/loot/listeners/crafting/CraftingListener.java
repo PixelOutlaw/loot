@@ -153,7 +153,8 @@ public final class CraftingListener implements Listener {
       if (is == null) {
         continue;
       }
-      if (is.getType() == Material.GHAST_TEAR || isDyeEvent(is.getType(), resultStack.getType())) {
+      if (is.getType() == Material.GHAST_TEAR || is.getType() == Material.SHULKER_SHELL ||
+          isDyeEvent(is.getType(), resultStack.getType())) {
         return;
       }
     }
