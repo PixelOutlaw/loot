@@ -325,14 +325,14 @@ public final class PreCraftListener implements Listener {
     double effectiveCraftLevel = data.getLevelWithBonus();
     CraftResultData crData = new CraftResultData(craftingInventory.getMatrix(), result);
     int maxCraftLevel = CraftingUtil.getMaxActionLevel(rank);
-
-    if (maxCraftLevel < (int) crData.getItemLevel()) {
+    int itemLevel = crData.getItemLevel() == -1 ? player.getLevel() : (int) crData.getItemLevel();
+    if (maxCraftLevel < itemLevel) {
       craftingInventory.getResult().setType(Material.BARRIER);
       ItemStackExtensionsKt.setCustomModelData(craftingInventory.getResult(), 150);
       ItemStackExtensionsKt.setDisplayName(craftingInventory.getResult(),
           FaceColor.RED + FaceColor.BOLD.s() + FaceColor.UNDERLINE.s() + "Crafting Level Too Low!");
       TextUtils.setLore(craftingInventory.getResult(), List.of(
-          FaceColor.WHITE + FaceColor.BOLD.s() + "Base Item Level: " + (int) crData.getItemLevel(),
+          FaceColor.WHITE + FaceColor.BOLD.s() + "Base Item Level: " + itemLevel,
           "",
           FaceColor.GRAY + "An item's level is determined by the",
           FaceColor.GRAY + "average level of materials used to",
@@ -358,19 +358,18 @@ public final class PreCraftListener implements Listener {
       return;
     }
 
-    int minItemLevel = (int) Math.max(1, crData.getItemLevel() - 3);
-    int maxItemLevel = (int) Math.max(1, Math.min(100, crData.getItemLevel()));
+    int minItemLevel = Math.max(1, itemLevel - 3);
+    int maxItemLevel = Math.max(1, Math.min(100, itemLevel));
 
     float craftBonus = data.getLevelWithBonus() - data.getLevel();
-    float levelAdvantage = maxCraftLevel - (int) crData.getItemLevel();
+    float levelAdvantage = maxCraftLevel - itemLevel;
     float effectiveLevelAdvantage = levelAdvantage + craftBonus;
 
     float minRarity = CraftingUtil.getMinimumRarity(crData.getRarity(), rank, effectiveLevelAdvantage);
 
-    int minSockets = MaterialUtil.getMinSockets(rank);
-    int maxSockets = MaterialUtil.getMaxSockets(minRarity) + tier.getExtraSockets();
-    int extendChance = (int) (100 * MaterialUtil.getExtendChance(rank));
-    float slotScore = crData.openSlotChance(Math.max(0, effectiveLevelAdvantage));
+    int maxSockets = tier.getMaxSockets("EPIC");
+
+    int slotScore = crData.highRateEmptySlots(minRarity, Math.max(0, effectiveLevelAdvantage), true);
 
     List<String> newLore = new ArrayList<>();
     newLore.add(FaceColor.WHITE + "Item Type: " + tier.getPlainName());
@@ -386,7 +385,6 @@ public final class PreCraftListener implements Listener {
       newLore.add(FaceColor.GRAY + " +X" + (s.isPercentage() ? "% " : " ") + s.getStat().getName() + "?");
     }
     newLore.add("");
-    newLore.add(FaceColor.RAINBOW + "Stat⇒Essence Slot: (" + Math.round(100 * slotScore * 0.2) + "%)");
     int certainStats = 3;
     int maybeStats = 1;
     if (craftingLevel > 45 && (effectiveCraftLevel - 20 >= minItemLevel)) {
@@ -404,6 +402,7 @@ public final class PreCraftListener implements Listener {
       certainStats--;
       maybeStats++;
     }
+    newLore.add(FaceColor.RAINBOW + "Stat⇒Essence Slot: (" + Math.round((slotScore * 23f) / (certainStats + maybeStats)) + "%)");
     certainStats = Math.max(1, certainStats);
     while (certainStats > 0) {
       newLore.add(FaceColor.CYAN + "+X Random Stat");
@@ -415,24 +414,17 @@ public final class PreCraftListener implements Listener {
     }
     newLore.add("");
     newLore.add(FaceColor.TRUE_WHITE + "傜" + FaceColor.BLUE +
-        (craftingLevel >= 10 ? " (100%)" : " (15%)"));
-    newLore.add("");
+        (craftingLevel >= 20 ? " (100%)" : " (" + (20 + craftingLevel * 3) + "%)"));
 
-
-    if (minSockets > 0) {
-      newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + "Socket (100%)");
-    } else {
-      newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + "Socket (50%)");
+    if (maxSockets > 0) {
+      newLore.add("");
+      newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + " Socket Slot");
     }
-
-    if (maxSockets > 1 || minSockets > 1) {
-      newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + "Socket (100%)");
-    } else {
-      newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + "Socket (12%)");
+    if (maxSockets > 1) {
+      newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + " Socket Slot " + FaceColor.LIGHT_GRAY.shaded(ShaderStyle.WAVE) + "(?)");
     }
-
-    if (extendChance > 0) {
-      newLore.add(FaceColor.TRUE_WHITE + "品 " + FaceColor.TEAL + "Socket (" + extendChance + "%)");
+    if (maxSockets > 2) {
+      newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + " Socket Slot " + FaceColor.LIGHT_GRAY.shaded(ShaderStyle.WAVE) + "(?)");
     }
 
     newLore.add("");
@@ -458,7 +450,7 @@ public final class PreCraftListener implements Listener {
   @EventHandler(priority = EventPriority.LOWEST)
   public void onCraftBarrier(CraftItemEvent event) {
     if (event.getCurrentItem() != null && event.getCurrentItem().getType() == Material.BARRIER
-        || event.getCursor() != null && event.getCursor().getType() == Material.BARRIER) {
+        || event.getCursor().getType() == Material.BARRIER) {
       event.setCancelled(true);
     }
   }

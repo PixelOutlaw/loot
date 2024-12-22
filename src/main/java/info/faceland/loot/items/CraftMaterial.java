@@ -17,8 +17,10 @@ import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -50,7 +52,7 @@ public class CraftMaterial {
   private int quality = 1;
   private int modelData = 1;
   private List<String> description = new ArrayList<>();
-  private List<String> extraOddsStats = new ArrayList<>();
+  private Set<String> preferredStats = new HashSet<>();
 
   @Getter(value=AccessLevel.NONE)
   @Setter(value=AccessLevel.NONE)
@@ -180,7 +182,7 @@ public class CraftMaterial {
     result.setQuality(section.getInt("quality", 1));
     result.setModelData(section.getInt("model-data", 0));
     result.setDescription(PaletteUtil.color(section.getStringList("description")));
-    result.setExtraOddsStats(section.getStringList("bonus-stats"));
+    result.setPreferredStats(new HashSet<>(section.getStringList("preferred-stats")));
     return result;
   }
 
@@ -206,6 +208,9 @@ public class CraftMaterial {
     lore.add("");
     if (itemLevel > 0) {
       lore.add(centerSmallText(FaceColor.WHITE + "Material Level: " + itemLevel));
+      lore.add("");
+    } else if (itemLevel < 0 ) {
+      lore.add(centerSmallText(FaceColor.WHITE + "Material Level: X"));
       lore.add("");
     }
     for (String s : description) {

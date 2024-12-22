@@ -25,12 +25,10 @@ import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.BuiltItem;
 import info.faceland.loot.data.CraftResultData;
-import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.events.LootCraftEvent;
 import info.faceland.loot.items.Tier;
 import info.faceland.loot.utils.CraftingUtil;
 import info.faceland.loot.utils.MaterialUtil;
-import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -170,9 +168,10 @@ public final class CraftingListener implements Listener {
     SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
     SkillRank rank = SkillRank.getRank(plugin.getStrifePlugin().getChampionManager().getChampion(player), LifeSkillType.CRAFTING);
     CraftResultData crData = new CraftResultData(event.getInventory().getMatrix(), resultStack);
+    int itemLevel = (int) (crData.getItemLevel() == -1 ? player.getLevel() : crData.getItemLevel());
     int maxCraftLevel = CraftingUtil.getMaxActionLevel(rank);
     float craftBonus = data.getLevelWithBonus() - data.getLevel();
-    float levelAdvantage = maxCraftLevel - (int) crData.getItemLevel();
+    float levelAdvantage = maxCraftLevel - itemLevel;
     float effectiveLevelAdvantage = levelAdvantage + craftBonus;
 
     if (levelAdvantage < 0) {
@@ -181,18 +180,25 @@ public final class CraftingListener implements Listener {
       return;
     }
 
-    int itemLevel = (int) Math.max(1, Math.min(100, crData.getItemLevel() - LootPlugin.RNG.nextInt(4)));
+    itemLevel = Math.max(1, Math.min(100, itemLevel - LootPlugin.RNG.nextInt(4)));
     float minRarity = CraftingUtil.getMinimumRarity(crData.getRarity(), rank, effectiveLevelAdvantage);
     float rarityBonus = 1 + (craftBonus / 50) + (crData.getRarity() / 10);
-
+    var rarity = plugin.getRarityManager().getRandomRarity(rarityBonus, minRarity);
+    var enchantable = true;
+    if (!SkillRank.isRank(rank, SkillRank.APPRENTICE)) {
+      enchantable = LootPlugin.RNG.nextFloat() < 0.2 + 0.03 * data.getLevelWithBonus();
+    }
     BuiltItem builtItem = plugin.getNewItemBuilder()
         .withItemGenerationReason(ItemGenerationReason.CRAFTING)
         .withTier(tier)
-        .withRarity(plugin.getRarityManager().getRandomRarity(rarityBonus, minRarity))
-        .withSlotScore(crData.openSlotChance(Math.max(0, effectiveLevelAdvantage)))
-        .withEnchantable(SkillRank.isRank(rank, SkillRank.APPRENTICE) || LootPlugin.RNG.nextFloat() < 0.15)
+        .withRarity(rarity)
+        .withHighRateEmptySlots(crData.highRateEmptySlots(rarity.getPower(), Math.max(0, effectiveLevelAdvantage), false))
+        .withEnchantable(enchantable)
         .withAlwaysEssence(SkillRank.isRank(rank, SkillRank.MASTER))
+        .withAlwaysExtend(SkillRank.isRank(rank, SkillRank.MASTER))
         .withCraftBonusStats(SkillRank.isRank(rank, SkillRank.EXPERT)? 0 : -1)
+        .socketChanceBonus(MaterialUtil.getSocketChanceBonus(rank))
+        .withPreferredStats(crData.getPreferredStats())
         .withLevel(itemLevel)
         .withCreator(player)
         .build();
@@ -206,7 +212,7 @@ public final class CraftingListener implements Listener {
     exp *= 1 + (itemLevel * CRAFT_LEVEL_MULT);
     exp *= 1 + (crData.getRarity() * CRAFT_QUALITY_MULT);
     if (maxCraftLevel > 25) {
-      exp *= crData.getItemLevel() / maxCraftLevel;
+      exp *= (float) itemLevel / maxCraftLevel;
     }
 
     LootCraftEvent craftEvent = new LootCraftEvent(player, newResult);

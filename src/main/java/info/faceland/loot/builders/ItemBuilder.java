@@ -37,10 +37,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.Getter;
-import lombok.Setter;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -49,7 +50,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 @Getter
-@Setter
 public final class ItemBuilder {
 
   public static final String SOCKET_BASE = "|none|哀\uF822|orange|Socket";
@@ -58,7 +58,6 @@ public final class ItemBuilder {
   public static final String EXTEND_BASE = "|none|品\uF822|teal|Socket";
   public static final String EXTEND = PaletteUtil.color(EXTEND_BASE);
   public static final String EXTEND_S = ChatColor.stripColor(EXTEND);
-
   public static final SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd");
 
   private Tier tier;
@@ -66,14 +65,16 @@ public final class ItemBuilder {
   private int level;
   private int plus;
   private Player creator;
-  private float slotScore;
+  private int highRateEmptySlots;
   private boolean distorted = false;
   private boolean soulbound = false;
   private boolean enchantable = true;
   private boolean alwaysEssence = false;
+  private boolean alwaysExtend = false;
   private int craftBonusStats = 0;
-  private ItemGenerationReason itemGenerationReason = ItemGenerationReason.MONSTER;
-
+  private float socketChanceBonus = 0;
+  private ItemGenerationReason generationReason = ItemGenerationReason.MONSTER;
+  private Set<String> preferredStats = new HashSet<>();
   private boolean built = false;
 
   public ItemBuilder withRarity(ItemRarity r) {
@@ -81,8 +82,8 @@ public final class ItemBuilder {
     return this;
   }
 
-  public ItemBuilder withSlotScore(float l) {
-    slotScore = l;
+  public ItemBuilder withHighRateEmptySlots(int l) {
+    highRateEmptySlots = l;
     return this;
   }
 
@@ -126,13 +127,28 @@ public final class ItemBuilder {
     return this;
   }
 
+  public ItemBuilder withAlwaysExtend(boolean b) {
+    alwaysExtend = b;
+    return this;
+  }
+
   public ItemBuilder withTier(Tier t) {
     tier = t;
     return this;
   }
 
+  public ItemBuilder socketChanceBonus(float l) {
+    socketChanceBonus = l;
+    return this;
+  }
+
   public ItemBuilder withItemGenerationReason(ItemGenerationReason reason) {
-    itemGenerationReason = reason;
+    generationReason = reason;
+    return this;
+  }
+
+  public ItemBuilder withPreferredStats(Set<String> preferredStats) {
+    this.preferredStats = preferredStats;
     return this;
   }
 
@@ -149,7 +165,7 @@ public final class ItemBuilder {
       throw new IllegalStateException("already built");
     }
     ItemStack stack = new ItemStack(tier.getMaterial());
-    boolean crafted = itemGenerationReason == ItemGenerationReason.CRAFTING;
+    boolean crafted = generationReason == ItemGenerationReason.CRAFTING;
 
     EquipmentData data = new EquipmentData();
     data.setTier(tier);
@@ -165,32 +181,58 @@ public final class ItemBuilder {
     data.addCoreStat(secondaryStoredStat);
 
     List<ItemStat> bonusStatList = new ArrayList<>(tier.getBonusStats());
-    bonusStatList.removeIf(stat -> level < stat.getMinimumItemLevel());
+    List<ItemStat> preferredStatList = new ArrayList<>();
+    bonusStatList.forEach(bs -> {
+      if (preferredStats.contains(bs.getId())) {
+        preferredStatList.add(bs);
+      }
+    });
+    bonusStatList.removeIf(stat -> preferredStatList.contains(stat) || level < stat.getMinimumItemLevel());
 
     int bonusStats = LootPlugin.RNG.nextInt(rarity.getMinimumBonusStats(), rarity.getMaximumBonusStats() + 1);
-    if (itemGenerationReason == ItemGenerationReason.CRAFTING) {
+    if (generationReason == ItemGenerationReason.CRAFTING) {
       bonusStats += craftBonusStats;
     }
 
     bonusStats = Math.max(1, bonusStats);
 
-    boolean alwaysEssence = this.alwaysEssence;
-    Map<String, Integer> categoryCount = new HashMap<>();
     int craftedStatSlots = 0;
-    for (int i = 0; i < bonusStats; i++) {
-      if (crafted && (alwaysEssence || LootPlugin.RNG.nextFloat() < slotScore / 5)) {
-        craftedStatSlots++;
-        alwaysEssence = false;
+    if (crafted) {
+      int highRateTries = this.highRateEmptySlots;
+      for (int i = 0; i <= bonusStats; i++) {
+        if (highRateTries > 0) {
+          craftedStatSlots += LootPlugin.RNG.nextDouble() < 0.25 ? 1 : 0;
+          highRateTries--;
+        } else {
+          craftedStatSlots += LootPlugin.RNG.nextDouble() < 0.04 ? 1 : 0;
+        }
       }
-      ItemStat stat = bonusStatList.get(LootPlugin.RNG.nextInt(bonusStatList.size()));
-      float roll = (float) Math.pow(LootPlugin.RNG.nextFloat(), 2.85);
-      data.addBonusStat(new StoredStat(stat.getId(), roll));
-      bonusStatList.remove(stat);
+      if (craftedStatSlots == 0 && alwaysEssence) {
+        craftedStatSlots = 1;
+      }
+      craftedStatSlots = Math.min(craftedStatSlots, bonusStats);
+    }
+
+    Map<String, Integer> categoryCount = new HashMap<>();
+    for (int i = 0; i < bonusStats; i++) {
+      ItemStat stat;
+      if (!preferredStatList.isEmpty()) {
+        stat = preferredStatList.get(LootPlugin.RNG.nextInt(preferredStatList.size()));
+        float roll = (float) Math.pow(LootPlugin.RNG.nextFloat(), 2.85);
+        data.addBonusStat(new StoredStat(stat.getId(), roll));
+        preferredStatList.remove(stat);
+      } else {
+        stat = bonusStatList.get(LootPlugin.RNG.nextInt(bonusStatList.size()));
+        float roll = (float) Math.pow(LootPlugin.RNG.nextFloat(), 2.85);
+        data.addBonusStat(new StoredStat(stat.getId(), roll));
+        bonusStatList.remove(stat);
+      }
 
       if (ItemStat.LIMIT_CATEGORY_IDS.containsKey(stat.getStat())) {
         for (var category : ItemStat.LIMIT_CATEGORY_IDS.get(stat.getStat())) {
           categoryCount.put(category, categoryCount.getOrDefault(category, 0) + 1);
           if (categoryCount.get(category) >= tier.getStatCategoryLimits().getOrDefault(category, 100)) {
+            preferredStatList.removeIf(bs -> ItemStat.LIMIT_CATEGORY_STATS.get(category).contains(bs.getStat()));
             bonusStatList.removeIf(bs -> ItemStat.LIMIT_CATEGORY_STATS.get(category).contains(bs.getStat()));
             categoryCount.remove(category);
           }
@@ -206,24 +248,28 @@ public final class ItemBuilder {
     data.setEnchantable(enchantable);
 
     int extenders = 0;
-    int sockets = rarity.getMinimumSockets();
-    int maxSockets = rarity.getMaximumSockets() + tier.getExtraSockets();
+    int sockets = 0;
+    int maxSockets = tier.getMaxSockets(rarity.getId());
     if (maxSockets > 0) {
+      sockets = tier.getMinSockets(rarity.getId());
+      double socketUpChance = crafted ? rarity.getSocketChance() / 2f : rarity.getSocketChance();
+      socketUpChance += socketChanceBonus;
       int failures = 0;
       while (failures + sockets + extenders < maxSockets) {
-        if (LootPlugin.RNG.nextFloat() > rarity.getSocketChance()) {
-          failures++;
-          continue;
-        }
-        if (LootPlugin.RNG.nextFloat() < rarity.getExtenderChance()) {
-          extenders++;
+        if (LootPlugin.RNG.nextFloat() < socketUpChance) {
+          if (LootPlugin.RNG.nextFloat() < rarity.getExtenderChance()) {
+            extenders++;
+          } else {
+            sockets++;
+          }
         } else {
-          sockets++;
+          failures++;
         }
       }
-      extenders += rarity.getBonusExtenders();
-    } else {
-      sockets = 0;
+    }
+
+    if (alwaysExtend && extenders < 1 && sockets + extenders < maxSockets) {
+      extenders++;
     }
 
     data.setEmptyGemSlots(Math.max(0, sockets));

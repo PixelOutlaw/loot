@@ -114,9 +114,9 @@ public final class LootPlugin extends FacePlugin {
   @Getter
   private MasterConfiguration settings;
   @Getter
-  private VersionedSmartYamlConfiguration itemGroupsYml, rarityYAML, tierYML, socketGemsYAML, scrollsYAML,
-      languageYAML, randomAffixes, configYAML, enchantmentTomesYAML, uniqueDropsYAML, materialsYml, soulGemsYml,
-      mortarYAML, levelModItemsYml;
+  private VersionedSmartYamlConfiguration itemGroupsYml, rarityYAML, socketGemsYAML, scrollsYAML, languageYAML,
+      randomAffixes, configYAML, enchantmentTomesYAML, uniqueDropsYAML, materialsYml, soulGemsYml, mortarYAML,
+      levelModItemsYml;
 
   @Getter
   private StatManager statManager;
@@ -187,7 +187,6 @@ public final class LootPlugin extends FacePlugin {
     configYAML = defaultLoadConfig("config.yml");
     itemGroupsYml = defaultLoadConfig("item-groups.yml");
     rarityYAML = defaultLoadConfig("rarity.yml");
-    tierYML = defaultLoadConfig("tier.yml");
     socketGemsYAML = defaultLoadConfig("socketGems.yml");
     scrollsYAML = defaultLoadConfig("scrolls.yml");
     languageYAML = defaultLoadConfig("language.yml");
@@ -255,7 +254,7 @@ public final class LootPlugin extends FacePlugin {
     ItemGroup.loadFromFile(itemGroupsYml);
     statManager.loadFromFiles(fetchStats());
     loadRarities();
-    Tier.loadFromFile(this, tierYML);
+    Tier.loadFromFile(this, getDataFolder());
     loadNames();
 
     Bukkit.getOnlinePlayers().forEach(p ->
@@ -289,6 +288,8 @@ public final class LootPlugin extends FacePlugin {
     SoulGem.loadFromFile(soulGemsYml);
     LevelModItem.loadFromFile(levelModItemsYml);
     EnchantmentTome.loadFromFile(this, enchantmentTomesYAML);
+
+    Tier.generateRandomUpgradeOptions(configYAML);
 
     MaterialUtil.refreshConfig();
     EnchantUtil.refreshConfig();
@@ -532,9 +533,6 @@ public final class LootPlugin extends FacePlugin {
       rarity.setEnchantments(cs.getInt("enchantments"));
       rarity.setSocketChance(cs.getDouble("socket-chance"));
       rarity.setExtenderChance(cs.getDouble("extend-chance"));
-      rarity.setMinimumSockets(cs.getInt("minimum-sockets"));
-      rarity.setMaximumSockets(cs.getInt("maximum-sockets"));
-      rarity.setBonusExtenders(cs.getInt("bonus-extenders", 0));
       rarity.setLivedTicks(cs.getInt("base-ticks-lived", 0));
       getRarityManager().addRarity(key, rarity);
     }

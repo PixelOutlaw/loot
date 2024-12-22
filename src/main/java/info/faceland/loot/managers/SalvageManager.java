@@ -74,13 +74,10 @@ public class SalvageManager {
     }
 
     double exp = 5;
-    int rarity = (int) MaterialUtil.getRarity(selectedStack).getPower();
-    float rarityUpChance = CraftingUtil.getRarityUpChance(effectiveLevelAdvantage, tool.getQuality());
-    while (LootPlugin.RNG.nextFloat() < rarityUpChance && rarity < 3) {
-      rarity++;
-    }
+    int stars = (int) Math.round(MaterialUtil.getRarity(selectedStack).getPower());
+    stars += CraftingUtil.getStarBonus(effectiveLevelAdvantage, stars, tool.getQuality());
 
-    if (equipmentData.isDistorted() && LootPlugin.RNG.nextDouble() < 0.005) {
+    if (equipmentData.isDistorted() && LootPlugin.RNG.nextDouble() < (0.0025 * tool.getQuality())) {
       try {
         player.playSound(player.getEyeLocation(), Sound.BLOCK_SCULK_SHRIEKER_SHRIEK, 1F, 2.0F);
         exp += 1000;
@@ -88,7 +85,7 @@ public class SalvageManager {
       } catch (Exception ignored) {}
     }
 
-    ItemStack craftMaterial = CraftMaterial.get(material, itemLevel, rarity).item();
+    ItemStack craftMaterial = CraftMaterial.get(material, itemLevel, stars).item();
     player.playSound(player.getEyeLocation(), Sound.ENTITY_ITEM_BREAK, 1F, 0.8F);
 
     float essenceChance = (effectiveLevelAdvantage / 100) + (tool.getItemLevel() - 1) * 0.2f;

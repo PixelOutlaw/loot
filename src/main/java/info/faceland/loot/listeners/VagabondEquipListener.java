@@ -23,21 +23,26 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.ItemRarity;
+import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.items.NewCustomItem;
+import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.Tier;
-import info.faceland.loot.utils.DropUtil;
+import info.faceland.loot.utils.EnchantUtil;
 import info.faceland.loot.utils.InventoryUtil;
-import info.faceland.loot.utils.MaterialUtil;
 import info.faceland.loot.utils.ModifyEquipmentUtil;
+import info.faceland.loot.utils.PersistHelper;
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import land.face.dinvy.DeluxeInvyPlugin;
+import land.face.dinvy.windows.equipment.EquipmentMenu.DeluxeSlot;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.StrifeMob;
+import land.face.strife.data.champion.SkillRank;
 import land.face.strife.events.VagabondEquipEvent;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -52,33 +57,37 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 public final class VagabondEquipListener implements Listener {
 
   private final LootPlugin plugin;
   private final String itemFoundFormat;
   private final Map<String, VagabondData> vagabondData = new HashMap<>();
-  private final Map<LivingEntity, Boolean> vagabonds = new WeakHashMap<>();
   private final float vagabondUniqueChance;
+
+  public static final Map<LivingEntity, StoredVagabondItems> VAGABONDS = new WeakHashMap<>();
 
   public VagabondEquipListener(LootPlugin plugin) {
     this.plugin = plugin;
     itemFoundFormat = plugin.getSettings().getString("language.broadcast.found-item", "");
-    vagabondUniqueChance = (float) plugin.getSettings()
-        .getDouble("config.vagabond-unique-chance", 0);
+    vagabondUniqueChance = (float) plugin.getSettings().getDouble("config.vagabond-unique-chance", 0);
   }
 
   @EventHandler(priority = EventPriority.HIGH)
   public void onVagabondEquip(VagabondEquipEvent event) {
-    if (!vagabondData.containsKey(event.getCombatClass())) {
+    if (!vagabondData.containsKey(event.getCombatClass()) || event.getLivingEntity().getEquipment() == null) {
       return;
     }
     VagabondData data = vagabondData.get(event.getCombatClass());
-    for (EquipmentSlot slot : EquipmentSlot.values()) {
-      if (slot == EquipmentSlot.BODY) {
-        continue;
-      }
+    var storedItems = new StoredVagabondItems();
+
+    List<String> list = new ArrayList<>();
+    for (var slot : DeluxeSlot.values()) {
+      list.add(slot.toString());
+    }
+    list.add("HAND");
+
+    for (var slot : list) {
       int upgradeLevel = 3;
       while (upgradeLevel < 15 && LootPlugin.RNG.nextFloat() < 0.5) {
         upgradeLevel++;
@@ -86,15 +95,19 @@ public final class VagabondEquipListener implements Listener {
       ItemStack item = null;
       if (LootPlugin.RNG.nextFloat() < vagabondUniqueChance) {
         List<NewCustomItem> potentialItems = buildPotentialItems(data, slot, event.getLevel());
-        if (potentialItems.size() > 1) {
+        if (!potentialItems.isEmpty()) {
           NewCustomItem customItem = selectItemByWeight(potentialItems);
+          assert customItem != null;
           item = customItem.item();
         }
       }
       if (item == null) {
-        ItemRarity rarity = plugin.getRarityManager().getRandomRarity(1, 2.0);
-        // TODO: this is ugly
-        String selectedTier = data.getTierList().get(slot).get(LootPlugin.RNG.nextInt(data.getTierList().get(slot).size()));
+        ItemRarity rarity = plugin.getRarityManager().getRandomRarity(1.5, 2.0);
+        var tierList = data.getTierList().getOrDefault(slot, null);
+        if (tierList == null) {
+          continue;
+        }
+        String selectedTier = tierList.get(LootPlugin.RNG.nextInt(tierList.size()));
         Tier tier = Tier.get(selectedTier);
         item = plugin.getNewItemBuilder()
             .withItemGenerationReason(ItemGenerationReason.MONSTER)
@@ -107,18 +120,71 @@ public final class VagabondEquipListener implements Listener {
             .build()
             .getStack();
       }
-      ItemMeta m = item.getItemMeta();
-      m.setUnbreakable(true);
-      item.setItemMeta(m);
-      event.getLivingEntity().getEquipment().setItem(slot, item);
-      event.getLivingEntity().getEquipment().setDropChance(slot, 0f);
+
+      var equipData = PersistHelper.getEquipmentData(item);
+      if (!equipData.getTier().getRandomTomeOptions().isEmpty()) {
+        if (equipData.canBeEnchanted() && LootPlugin.RNG.nextDouble() > 0.25) {
+          int enchantLevel = 1 + LootPlugin.RNG.nextInt(event.getLevel() + 10);
+          float enchantPower = (float) EnchantUtil.getBaseEnchantBonus(enchantLevel);
+          Collections.shuffle(equipData.getTier().getRandomTomeOptions());
+          ModifyEquipmentUtil.enchant(item, equipData.getTier().getRandomTomeOptions().getFirst(),
+              enchantLevel, enchantPower, SkillRank.APPRENTICE);
+          ModifyEquipmentUtil.tickEnchantment(item, LootPlugin.RNG.nextInt(20));
+        }
+      }
+      if (!equipData.getTier().getRandomGemOptions().isEmpty()) {
+        int openSockets = equipData.getEmptyGemSlots();
+        while (openSockets > 0) {
+          if (LootPlugin.RNG.nextDouble() > 0.5) {
+            Collections.shuffle(equipData.getTier().getRandomGemOptions());
+            ModifyEquipmentUtil.applySocket(item, equipData.getTier().getRandomGemOptions().getFirst());
+          }
+          openSockets--;
+        }
+      }
+
+      storedItems.getItems().put(slot, item.clone());
+      item.editMeta(m -> m.setUnbreakable(true));
+
+      switch (slot) {
+        case "HELMET" -> {
+          item = DeluxeInvyPlugin.getInstance().getPlayerManager().trimArmor(item, 50);
+          event.getLivingEntity().getEquipment().setItem(EquipmentSlot.HEAD, item);
+          event.getLivingEntity().getEquipment().setDropChance(EquipmentSlot.HEAD, 0f);
+        }
+        case "BODY" -> {
+          item = DeluxeInvyPlugin.getInstance().getPlayerManager().trimArmor(item, 50);
+          event.getLivingEntity().getEquipment().setItem(EquipmentSlot.CHEST, item);
+          event.getLivingEntity().getEquipment().setDropChance(EquipmentSlot.CHEST, 0f);
+        }
+        case "LEGS" -> {
+          item = DeluxeInvyPlugin.getInstance().getPlayerManager().trimArmor(item, 50);
+          event.getLivingEntity().getEquipment().setItem(EquipmentSlot.LEGS, item);
+          event.getLivingEntity().getEquipment().setDropChance(EquipmentSlot.LEGS, 0f);
+        }
+        case "BOOTS" -> {
+          item = DeluxeInvyPlugin.getInstance().getPlayerManager().trimArmor(item, 50);
+          event.getLivingEntity().getEquipment().setItem(EquipmentSlot.FEET, item);
+          event.getLivingEntity().getEquipment().setDropChance(EquipmentSlot.FEET, 0f);
+        }
+        case "HAND" -> {
+          event.getLivingEntity().getEquipment().setItem(EquipmentSlot.HAND, item);
+          event.getLivingEntity().getEquipment().setDropChance(EquipmentSlot.HAND, 0f);
+        }
+        case "OFF_HAND" -> {
+          item = DeluxeInvyPlugin.getInstance().getPlayerManager().trimArmor(item, 50);
+          event.getLivingEntity().getEquipment().setItem(EquipmentSlot.OFF_HAND, item);
+          event.getLivingEntity().getEquipment().setDropChance(EquipmentSlot.OFF_HAND, 0f);
+        }
+      }
     }
-    vagabonds.put(event.getLivingEntity(), true);
+    VAGABONDS.put(event.getLivingEntity(), storedItems);
   }
 
   @EventHandler(priority = EventPriority.LOW)
   public void onVagabondDeath(EntityDeathEvent event) {
-    if (!vagabonds.containsKey(event.getEntity())) {
+    var vagabondStuff = VAGABONDS.getOrDefault(event.getEntity(), null);
+    if (vagabondStuff == null) {
       return;
     }
     StrifeMob mob = StrifePlugin.getInstance().getStrifeMobManager().getStatMob(event.getEntity());
@@ -130,27 +196,28 @@ public final class VagabondEquipListener implements Listener {
         return;
       }
     }
-
-    for (EquipmentSlot slot : EquipmentSlot.values()) {
-      if (slot == EquipmentSlot.BODY) {
+    for (var item : vagabondStuff.getItems().entrySet()) {
+      ItemStack stack = item.getValue();
+      if (stack == null || stack.getType() == Material.AIR || LootPlugin.RNG.nextFloat() < 0.35f) {
         continue;
       }
-      ItemStack stack = event.getEntity().getEquipment().getItem(slot);
-      if (stack == null || stack.getType() == Material.AIR) {
+      EquipmentData data = PersistHelper.getEquipmentData(stack);
+      if (data == null) {
         continue;
       }
-      if (0.5f < LootPlugin.RNG.nextFloat()) {
-        continue;
+      boolean announce;
+      Color dropRgb;
+      ChatColor glow;
+      if ("unique".equals(PersistHelper.getItemType(stack))) {
+        announce = true;
+        dropRgb = FaceColor.ORANGE.getRawColor();
+        glow = ChatColor.GOLD;
+      } else {
+        double rarity = data.getItemRarity().getPower();
+        announce = ModifyEquipmentUtil.getUpgradeLevel(stack) > 6 || rarity > 3;
+        dropRgb = rarity == 4 ? FaceColor.RED.getRawColor() : FaceColor.PURPLE.getRawColor();
+        glow = rarity == 4 ? ChatColor.RED : ChatColor.DARK_PURPLE;
       }
-      ItemMeta m = stack.getItemMeta();
-      m.setUnbreakable(false);
-      stack.setItemMeta(m);
-
-      int rarity = (int) MaterialUtil.getRarity(stack).getPower();
-      boolean announce = ModifyEquipmentUtil.getUpgradeLevel(stack) > 6 || rarity > 3;
-      Color dropRgb = rarity == 4 ? FaceColor.RED.getRawColor() : FaceColor.PURPLE.getRawColor();
-      ChatColor glow = rarity == 4 ? ChatColor.RED : ChatColor.DARK_PURPLE;
-
       ItemUtils.dropItem(event.getEntity().getLocation(), stack, killer, 0, dropRgb, glow, true);
       if (announce) {
         InventoryUtil.sendToDiscord(killer, stack, itemFoundFormat);
@@ -158,40 +225,12 @@ public final class VagabondEquipListener implements Listener {
     }
   }
 
-  public void loadData(ConfigurationSection section) {
-    vagabondData.clear();
-    for (String classKey : section.getKeys(false)) {
-      VagabondData data = new VagabondData(classKey);
-      ConfigurationSection tierSection = section.getConfigurationSection(classKey + ".tiers");
-      if (tierSection == null) {
-        Bukkit.getLogger().warning("[Loot] No tier section for vagabond class " + classKey);
-        Bukkit.getLogger().warning("[Loot] Skipping...");
-        continue;
-      }
-      ConfigurationSection uniqueSection = section.getConfigurationSection(classKey + ".uniques");
-      if (uniqueSection == null) {
-        Bukkit.getLogger().warning("[Loot] No unique section for vagabond class " + classKey);
-        Bukkit.getLogger().warning("[Loot] Skipping...");
-        continue;
-      }
-      for (String slotKey : tierSection.getKeys(false)) {
-        EquipmentSlot slot = EquipmentSlot.valueOf(slotKey);
-        data.getTierList().put(slot, tierSection.getStringList(slotKey));
-      }
-      for (String slotKey : uniqueSection.getKeys(false)) {
-        EquipmentSlot slot = EquipmentSlot.valueOf(slotKey);
-        data.getUniquesList().put(slot, uniqueSection.getStringList(slotKey));
-      }
-      vagabondData.put(classKey, data);
-    }
-  }
-
-  private List<NewCustomItem> buildPotentialItems(VagabondData data, EquipmentSlot slot, int level) {
+  private List<NewCustomItem> buildPotentialItems(VagabondData data, String slot, int level) {
     List<NewCustomItem> options = new ArrayList<>();
     for (String s : data.getUniquesList().get(slot)) {
       NewCustomItem ci = plugin.getCustomItemManager().getUnique(s);
-      if (level > ci.getDropLevel() + ci.getDropRange() ||
-          level < ci.getDropLevel() - ci.getDropRange()) {
+      assert ci != null;
+      if (level > ci.getDropLevel() + ci.getDropRange() || level < ci.getDropLevel() - ci.getDropRange()) {
         continue;
       }
       options.add(ci);
@@ -216,17 +255,46 @@ public final class VagabondEquipListener implements Listener {
     return null;
   }
 
+  public void loadData(ConfigurationSection section) {
+    vagabondData.clear();
+    for (String classKey : section.getKeys(false)) {
+      VagabondData data = new VagabondData(classKey);
+      ConfigurationSection tierSection = section.getConfigurationSection(classKey + ".tiers");
+      if (tierSection == null) {
+        Bukkit.getLogger().warning("[Loot] No tier section for vagabond class " + classKey);
+        Bukkit.getLogger().warning("[Loot] Skipping...");
+        continue;
+      }
+      ConfigurationSection uniqueSection = section.getConfigurationSection(classKey + ".uniques");
+      if (uniqueSection == null) {
+        Bukkit.getLogger().warning("[Loot] No unique section for vagabond class " + classKey);
+        Bukkit.getLogger().warning("[Loot] Skipping...");
+        continue;
+      }
+      for (String slotKey : tierSection.getKeys(false)) {
+        data.getTierList().put(slotKey, tierSection.getStringList(slotKey));
+      }
+      for (String slotKey : uniqueSection.getKeys(false)) {
+        data.getUniquesList().put(slotKey, uniqueSection.getStringList(slotKey));
+      }
+      vagabondData.put(classKey, data);
+    }
+  }
+
+  @Getter
   public static class VagabondData {
 
-    @Getter
     private final String id;
-    @Getter
-    private final Map<EquipmentSlot, List<String>> tierList = new HashMap<>();
-    @Getter
-    private final Map<EquipmentSlot, List<String>> uniquesList = new HashMap<>();
+    private final Map<String, List<String>> tierList = new HashMap<>();
+    private final Map<String, List<String>> uniquesList = new HashMap<>();
 
     public VagabondData(String id) {
       this.id = id;
     }
+  }
+
+  @Getter
+  public static class StoredVagabondItems {
+    private final Map<String, ItemStack> items = new HashMap<>();
   }
 }

@@ -305,41 +305,14 @@ public final class MaterialUtil {
     return true;
   }
 
-  public static float getExtendChance(SkillRank rank) {
-    return switch (rank) {
-      case NOVICE -> 0;
-      case APPRENTICE -> 0.25f;
-      case JOURNEYMAN, EXPERT -> 0.5f;
-      case MASTER -> 1.0f;
-    };
-  }
-
-  public static int getSockets(float rarity, SkillRank skillRank) {
-    int minSockets = getMinSockets(skillRank);
-    int maxSockets = getMaxSockets(rarity);
-    if (minSockets >= maxSockets) {
-      return minSockets;
-    }
-    int result = minSockets;
-    while (result < maxSockets && LootPlugin.RNG.nextFloat() > 0.5f) {
-      result++;
-    }
-    return result;
-  }
-
-  public static int getMinSockets(SkillRank skillRank) {
-    int amount = 0;
-    if (SkillRank.isRank(skillRank, SkillRank.APPRENTICE)) {
-      amount++;
-    }
+  public static float getSocketChanceBonus(SkillRank skillRank) {
     if (SkillRank.isRank(skillRank, SkillRank.EXPERT)) {
-      amount++;
+      return 0.2f;
     }
-    return amount;
-  }
-
-  public static int getMaxSockets(float rarity) {
-    return rarity > 1.1 ? 2 : 1;
+    if (SkillRank.isRank(skillRank, SkillRank.APPRENTICE)) {
+      return 0.1f;
+    }
+    return 0;
   }
 
   public static int getLevelRequirement(ItemStack stack) {
@@ -566,8 +539,7 @@ public final class MaterialUtil {
       // TODO: could maybe be more??
       data.addBonusStat();
     }
-    if (data.getSockets().size() + data.getEmptyExtendSlots() <
-        rarity.getMinimumSockets() + rarity.getBonusExtenders() + data.getTier().getExtraSockets()) {
+    if (data.getSockets().size() + data.getEmptyExtendSlots() < data.getTier().getMinSockets(rarity.getId())) {
       data.setEmptyExtendSlots(data.getEmptyExtendSlots() + 1);
     }
     PersistHelper.setEquipmentData(equipmentItem, data);

@@ -72,7 +72,7 @@ public class EssenceUtil {
       }
       for (var statId : ItemStat.LIMIT_CATEGORY_IDS.get(ts.getStat())) {
         categoryCount.put(statId, categoryCount.getOrDefault(statId, 0) + 1);
-        if (categoryCount.get(statId) >= tier.getStatCategoryLimits().getOrDefault(statId, 100)) {
+        if (categoryCount.get(statId) > tier.getStatCategoryLimits().getOrDefault(statId, 100)) {
           validStats.removeIf(vs -> ItemStat.LIMIT_CATEGORY_STATS.get(statId).contains(vs.getStat()));
         }
       }

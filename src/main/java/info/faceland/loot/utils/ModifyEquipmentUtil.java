@@ -164,12 +164,16 @@ public class ModifyEquipmentUtil {
   }
 
   public static void applySocket(ItemStack stack, String socketId) {
-    EquipmentData data = PersistHelper.getEquipmentData(stack);
-    if (data == null) {
-      return;
-    }
     SocketGem gem = SocketGem.get(socketId);
     if (gem == null) {
+      return;
+    }
+    applySocket(stack, gem);
+  }
+
+  public static void applySocket(ItemStack stack, SocketGem gem) {
+    EquipmentData data = PersistHelper.getEquipmentData(stack);
+    if (data == null) {
       return;
     }
     boolean success = data.socket(gem);

@@ -1,8 +1,10 @@
 package info.faceland.loot.data;
 
+import info.faceland.loot.LootPlugin;
 import info.faceland.loot.items.CraftMaterial;
-import info.faceland.loot.utils.MaterialUtil;
-import info.faceland.loot.utils.ModifyEquipmentUtil;
+import java.util.HashSet;
+import java.util.Set;
+import land.face.strife.data.champion.SkillRank;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Material;
@@ -17,40 +19,72 @@ public class CraftResultData {
   private final float totalItemLevel;
   private final float itemLevel;
   private final float rarity;
+  private final Set<String> preferredStats;
 
   public CraftResultData(ItemStack[] craftMatrix, ItemStack resultStack) {
     int numMaterials = 0;
+    int xLevelMats = 0;
     float totalStars = 0;
     float totalItemLevel = 0;
+    this.preferredStats = new HashSet<>();
     for (ItemStack is : craftMatrix) {
       if (is == null || is.getType() == Material.AIR || is.getType() == resultStack.getType()) {
         continue;
       }
-      ItemStack loopItem = new ItemStack(is);
-      if (loopItem == null || loopItem.getType() == Material.AIR) {
+      CraftMaterial cr = CraftMaterial.get(is);
+      if (cr == null) {
         totalItemLevel += 1;
         totalStars += 1;
       } else {
-        CraftMaterial cr = CraftMaterial.get(loopItem);
-        if (cr == null) {
-          totalItemLevel += 1;
-          totalStars += 1;
+        if (cr.getItemLevel() == -1) {
+          xLevelMats++;
         } else {
           totalItemLevel += cr.getItemLevel();
-          totalStars += cr.getQuality();
         }
+        totalStars += cr.getQuality();
+        preferredStats.addAll(cr.getPreferredStats());
       }
       numMaterials++;
     }
-
-    this.numMaterials = numMaterials;
-    this.totalRarity = totalStars;
-    this.totalItemLevel = totalItemLevel;
-    this.itemLevel = totalItemLevel / numMaterials;
-    this.rarity = totalStars / numMaterials;
+    if (xLevelMats == numMaterials) {
+      this.numMaterials = numMaterials;
+      this.totalRarity = totalStars;
+      this.totalItemLevel = -1;
+      this.itemLevel = -1;
+      this.rarity = totalStars / numMaterials;
+    } else {
+      float avgItemLevel = totalItemLevel / (numMaterials - xLevelMats);
+      this.numMaterials = numMaterials;
+      this.totalRarity = totalStars;
+      this.totalItemLevel = totalItemLevel + (avgItemLevel * xLevelMats);
+      this.itemLevel = avgItemLevel;
+      this.rarity = totalStars / numMaterials;
+    }
   }
 
-  public float openSlotChance(float levelAdvantage) {
-    return (rarity * 0.065f) + Math.min(0.8f, levelAdvantage / 100);
+  public int highRateEmptySlots(double rarityScore, float levelAdvantage, boolean estimate) {
+    int amount = 0;
+    if (estimate) {
+      if (levelAdvantage > 75) {
+        amount++;
+      }
+      if (levelAdvantage > 35) {
+        amount++;
+      }
+    } else {
+      if (levelAdvantage / 100 > LootPlugin.RNG.nextDouble()) {
+        amount++;
+      }
+      if (levelAdvantage / 50 > LootPlugin.RNG.nextDouble()) {
+        amount++;
+      }
+    }
+    if (rarityScore >= 2) {
+      amount++;
+    }
+    if (rarityScore >= 3) {
+      amount++;
+    }
+    return amount;
   }
 }
