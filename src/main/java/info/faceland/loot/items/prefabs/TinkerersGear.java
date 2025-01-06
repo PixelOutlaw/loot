@@ -56,7 +56,7 @@ public final class TinkerersGear {
     meta.setCustomModelData(15);
     meta.setMaxStackSize(99);
     List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF801\uF808丌\uF808\uF8021"),
+        PaletteUtil.color("|ns|\uF801\uF808丌\uF808\uF802"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|This |red|powerful |lgray|item will")),
         centerSmallText(PaletteUtil.color("|lgray|convert a random |lgreen|stat")),

@@ -53,7 +53,7 @@ public final class DistortionCell {
     meta.setCustomModelData(2);
     meta.setMaxStackSize(99);
     List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF801\uF808丌\uF808\uF8021"),
+        PaletteUtil.color("|ns|\uF801\uF808丌\uF808\uF802"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|This weird mass of flesh")),
         centerSmallText(PaletteUtil.color("|lgray|can be used to make an")),

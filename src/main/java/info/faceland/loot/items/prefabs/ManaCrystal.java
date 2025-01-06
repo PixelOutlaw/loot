@@ -33,6 +33,7 @@ import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import java.util.List;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -52,12 +53,14 @@ public final class ManaCrystal {
     meta.setCustomModelData(20);
     meta.setMaxStackSize(99);
     meta.setLore(List.of(
-        PaletteUtil.color("|ns|\uF808与\uF808\uF801"),
+        PaletteUtil.color("|ns|\uF801\uF808与\uF808\uF802"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|Use this at an enchanting")),
         centerSmallText(PaletteUtil.color("|lgray|table to |pink|refill |lgray|an item's")),
         centerSmallText(PaletteUtil.color("|blue|enchantment"))
     ));
+    meta.setTooltipStyle(NamespacedKey.fromString("item_common"));
+
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
     pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, TYPE_KEY);
