@@ -36,6 +36,7 @@ import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -55,7 +56,7 @@ public final class TinkerersGear {
     meta.setCustomModelData(15);
     meta.setMaxStackSize(99);
     List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF808丌\uF808\uF801"),
+        PaletteUtil.color("|ns|\uF801\uF808丌\uF808\uF8021"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|This |red|powerful |lgray|item will")),
         centerSmallText(PaletteUtil.color("|lgray|convert a random |lgreen|stat")),
@@ -67,6 +68,7 @@ public final class TinkerersGear {
         centerSmallText(PaletteUtil.color("|lgray|are... |yellow||i|Don't use this yet!"))
     );
     meta.setLore(lore);
+    meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);

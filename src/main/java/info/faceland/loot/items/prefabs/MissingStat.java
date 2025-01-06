@@ -33,6 +33,7 @@ import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import java.util.List;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -52,7 +53,7 @@ public final class MissingStat {
     meta.setCustomModelData(3002);
     meta.setMaxStackSize(99);
     List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF808丏\uF808\uF801"),
+        PaletteUtil.color("|ns|\uF801\uF808丏\uF808\uF802"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|Some items are missing a")),
         centerSmallText(PaletteUtil.color("|lgray|stat! That's okay, you can")),
@@ -66,6 +67,7 @@ public final class MissingStat {
         centerSmallText(PaletteUtil.color("|gray||i|Oh! That's where it went!"))
     );
     meta.setLore(lore);
+    meta.setTooltipStyle(NamespacedKey.fromString("item_rare"));
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);

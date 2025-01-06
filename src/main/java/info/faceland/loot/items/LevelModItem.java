@@ -49,6 +49,7 @@ import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -122,12 +123,13 @@ public final class LevelModItem {
     meta.setDisplayName(FaceColor.DARK_ORANGE + name);
     meta.setCustomModelData(modelData);
     List<String> lore = new ArrayList<>();
-    lore.add(PaletteUtil.color("|ns|\uF808丏\uF808\uF801"));
+    lore.add(PaletteUtil.color("|ns|\uF801\uF808俋\uF808\uF802"));
     lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C");
     for (String s : description) {
       lore.add(centerSmallText(s) + "\uF80B");
     }
     meta.setLore(lore);
+    meta.setTooltipStyle(NamespacedKey.fromString("item_uncommon"));
     meta.setMaxStackSize(99);
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();

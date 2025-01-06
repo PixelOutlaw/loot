@@ -26,6 +26,7 @@ import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
 import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
 import com.sentropic.guiapi.gui.GUI;
+import com.sk89q.worldedit.util.kyori.Key;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.LootPlugin;
@@ -51,6 +52,7 @@ import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -145,7 +147,7 @@ public final class SocketGem {
     String name = ChatColor.stripColor(this.name);
 
     List<String> lore = new ArrayList<>();
-    lore.add(PaletteUtil.color("|ns|\uF808丈\uF808\uF801"));
+    lore.add(PaletteUtil.color("|ns|\uF801\uF808丈\uF808\uF802"));
     // Todo: remove manual character replace
     lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK +
         doSmallNameThing(name.replace("â", "a")) + "\uF80C");
@@ -191,6 +193,15 @@ public final class SocketGem {
     meta.setCustomModelData(customModelData);
     meta.setMaxStackSize(99);
     meta.setLore(lore);
+    if (weight < 10) {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
+    } else if (weight < 200) {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_rare"));
+    } else if (weight < 1000) {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_uncommon"));
+    } else {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_common"));
+    }
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);

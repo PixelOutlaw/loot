@@ -120,7 +120,7 @@ public final class InventoryUtil {
           DiscordToolTip discordToolTip = DiscordItemStackUtils.getToolTip(item, icPlayer);
           if (!discordToolTip.isBaseItem()
               || InteractiveChatDiscordSrvAddon.plugin.itemUseTooltipImageOnBaseItem) {
-            BufferedImage tooltip = ImageGeneration.getToolTipImage(discordToolTip.getComponents());
+            BufferedImage tooltip = ImageGeneration.getToolTipImage(discordToolTip.getComponents(), null);
             ByteArrayOutputStream tooltipOs = new ByteArrayOutputStream();
             ImageIO.write(tooltip, "png", tooltipOs);
             content.addAttachment("ToolTip.png", tooltipOs.toByteArray());

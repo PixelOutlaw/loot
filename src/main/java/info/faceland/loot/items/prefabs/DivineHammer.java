@@ -33,6 +33,7 @@ import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import java.util.List;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -52,7 +53,7 @@ public final class DivineHammer {
     meta.setCustomModelData(13);
     meta.setMaxStackSize(99);
     List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF808丌\uF808\uF801"),
+        PaletteUtil.color("|ns|\uF801\uF808丌\uF808\uF8021"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|This hammer can be used at")),
         centerSmallText(PaletteUtil.color("|lgray|an enchantment table to")),
@@ -73,6 +74,7 @@ public final class DivineHammer {
         centerSmallText(PaletteUtil.color("|gray||i|was instantly killed"))
     );
     meta.setLore(lore);
+    meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);

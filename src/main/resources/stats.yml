@@ -6,7 +6,6 @@ SHIELD-ARMOR:
   per-level-multipler: 0.1
   per-rarity-increase: 1
   per-rarity-multipler: 0.1
-  stat-string: "+{} Armor"
   stat-prefix: "&a"
 SHIELD-HEALTH:
   min-base-value: 6
@@ -15,5 +14,4 @@ SHIELD-HEALTH:
   per-level-multipler: 0.1
   per-rarity-increase: 1
   per-rarity-multipler: 0.1
-  stat-string: "+{} Health"
   stat-prefix: "&a"

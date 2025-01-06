@@ -33,6 +33,7 @@ import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import java.util.List;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -52,7 +53,7 @@ public final class DistortionCell {
     meta.setCustomModelData(2);
     meta.setMaxStackSize(99);
     List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF808丌\uF808\uF801"),
+        PaletteUtil.color("|ns|\uF801\uF808丌\uF808\uF8021"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|This weird mass of flesh")),
         centerSmallText(PaletteUtil.color("|lgray|can be used to make an")),
@@ -67,6 +68,7 @@ public final class DistortionCell {
         centerSmallText(PaletteUtil.color("|gray||i|energy... gross!"))
     );
     meta.setLore(lore);
+    meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);

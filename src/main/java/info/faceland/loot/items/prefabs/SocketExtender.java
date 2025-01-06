@@ -35,6 +35,7 @@ import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.List;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -70,7 +71,7 @@ public final class SocketExtender {
     String name = "Socket Extender";
     meta.setDisplayName(FaceColor.TEAL + name);
     List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF808三\uF808\uF801"),
+        PaletteUtil.color("|ns|\uF801\uF808三\uF808\uF802"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|This |red|powerful |lgray|item can be")),
         centerSmallText(PaletteUtil.color("|lgray|used on equipment to turn")),
@@ -81,6 +82,7 @@ public final class SocketExtender {
     meta.setLore(lore);
     meta.setCustomModelData(10);
     meta.setMaxStackSize(99);
+    meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);

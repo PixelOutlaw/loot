@@ -81,7 +81,7 @@
     <dependency>
       <groupId>io.pixeloutlaw</groupId>
       <artifactId>facecore</artifactId>
-      <version>1.21.3.0</version>
+      <version>1.21.3.1</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -98,13 +98,13 @@
     <dependency>
       <groupId>com.loohp</groupId>
       <artifactId>InteractiveChat</artifactId>
-      <version>4.2.6.0</version>
+      <version>4.2.14.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.loohp</groupId>
       <artifactId>InteractiveChatDiscordSrvAddon</artifactId>
-      <version>4.2.12.0</version>
+      <version>4.2.14.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
