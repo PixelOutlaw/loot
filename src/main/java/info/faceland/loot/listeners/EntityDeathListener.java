@@ -20,14 +20,10 @@ package info.faceland.loot.listeners;
 
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.data.ViolationData;
 import info.faceland.loot.events.LootDropEvent;
 import info.faceland.loot.utils.DropUtil;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import land.face.strife.data.StrifeMob;
 import land.face.strife.stats.StrifeStat;
@@ -46,13 +42,11 @@ import org.bukkit.potion.PotionEffectType;
 public final class EntityDeathListener implements Listener {
 
   private final LootPlugin plugin;
-  private final Map<Player, ViolationData> violationMap;
 
   private static final String DEFAULT_WORLD_CONFIG = "DEFAULT";
 
   public EntityDeathListener(LootPlugin plugin) {
     this.plugin = plugin;
-    this.violationMap = new HashMap<>();
   }
 
   @EventHandler(priority = EventPriority.HIGH)

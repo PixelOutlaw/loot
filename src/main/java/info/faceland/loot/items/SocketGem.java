@@ -26,7 +26,6 @@ import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
 import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
 import com.sentropic.guiapi.gui.GUI;
-import com.sk89q.worldedit.util.kyori.Key;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.LootPlugin;
@@ -34,7 +33,6 @@ import info.faceland.loot.groups.ItemGroup;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
-import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -149,7 +147,7 @@ public final class SocketGem {
     List<String> lore = new ArrayList<>();
     lore.add(PaletteUtil.color("|ns|\uF801\uF808丈\uF808\uF802"));
     // Todo: remove manual character replace
-    lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK +
+    lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE +
         doSmallNameThing(name.replace("â", "a")) + "\uF80C");
     lore.add(centerSmallText(FaceColor.WHITE + "Usable On: " + FaceColor.CYAN + itemGroup.getName()));
     lore.add("");
@@ -193,11 +191,11 @@ public final class SocketGem {
     meta.setCustomModelData(customModelData);
     meta.setMaxStackSize(99);
     meta.setLore(lore);
-    if (weight < 10) {
+    if (weight <= 10) {
       meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
-    } else if (weight < 200) {
+    } else if (weight <= 150) {
       meta.setTooltipStyle(NamespacedKey.fromString("item_rare"));
-    } else if (weight < 1000) {
+    } else if (weight <= 3000) {
       meta.setTooltipStyle(NamespacedKey.fromString("item_uncommon"));
     } else {
       meta.setTooltipStyle(NamespacedKey.fromString("item_common"));

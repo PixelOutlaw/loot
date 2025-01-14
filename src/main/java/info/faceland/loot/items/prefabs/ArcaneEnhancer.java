@@ -55,7 +55,7 @@ public final class ArcaneEnhancer {
     meta.setMaxStackSize(99);
     meta.setLore(List.of(
         PaletteUtil.color("|ns|\uF801\uF808丏\uF808\uF802"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
+        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|Use this item to improve")),
         centerSmallText(PaletteUtil.color("|lgray|enchanted equipment!")),
         "",

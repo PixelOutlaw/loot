@@ -44,6 +44,7 @@ import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -137,8 +138,8 @@ public class EnchantmentTome {
     ItemMeta meta = builtItem.getItemMeta();
     ItemStat is = LootPlugin.getInstance().getStatManager().getStat(stat);
     List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF808不\uF808\uF801"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
+        PaletteUtil.color("|ns|\uF801\uF808出\uF808\uF802"),
+        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
         FaceColor.WHITE + centerSmallText("Usable On: " + FaceColor.CYAN + itemGroup.getName()),
         FaceColor.WHITE + centerSmallText("Adds: " + FaceColor.BLUE + is.getStat().getName()) + "\uF80C",
         "",
@@ -149,6 +150,17 @@ public class EnchantmentTome {
     meta.setDisplayName(FaceColor.BLUE + name);
     meta.setLore(lore);
     meta.setMaxStackSize(99);
+    if (weight == 0) {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_common"));
+    } else if (weight <= 30) {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
+    } else if (weight <= 200) {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_rare"));
+    } else if (weight <= 1000) {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_uncommon"));
+    } else {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_common"));
+    }
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);

@@ -204,7 +204,7 @@ public class CraftMaterial {
       default -> "丅";
     };
     lore.add(PaletteUtil.color("|ns|\uF808" + symbol + "\uF808\uF801"));
-    lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C");
+    lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C");
     lore.add("");
     if (itemLevel > 0) {
       lore.add(centerSmallText(FaceColor.WHITE + "Material Level: " + itemLevel));

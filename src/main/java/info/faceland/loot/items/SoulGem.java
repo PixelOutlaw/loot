@@ -50,6 +50,7 @@ import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -137,8 +138,8 @@ public final class SoulGem  {
     meta.setDisplayName(FaceColor.PINK + name);
     meta.setCustomModelData(modelData);
     List<String> lore = new ArrayList<>();
-    lore.add(PaletteUtil.color("|ns|\uF808俊\uF808\uF801"));
-    lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C");
+    lore.add(PaletteUtil.color("|ns|\uF801\uF808俊\uF808\uF802"));
+    lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C");
     if (breakChance < 0.2) {
       lore.add(centerSmallText(FaceColor.WHITE + "Break Chance: " + FaceColor.GREEN + "Very Low"));
     } else if (breakChance < 0.4) {
@@ -167,6 +168,15 @@ public final class SoulGem  {
     }
     meta.setLore(lore);
     meta.setMaxStackSize(99);
+    if (weight <= 500) {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
+    } else if (weight <= 2000) {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_rare"));
+    } else if (weight <= 6000) {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_uncommon"));
+    } else {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_common"));
+    }
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);

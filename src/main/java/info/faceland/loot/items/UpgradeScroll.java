@@ -42,6 +42,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -142,9 +143,10 @@ public final class UpgradeScroll {
     ItemMeta meta = stack.getItemMeta();
     String name = ChatColor.stripColor(WordUtils.capitalize(id) + " Scroll");
     List<String> lore = new ArrayList<>();
-    lore.add(PaletteUtil.color("|ns|\uF808上\uF808\uF801"));
+
+    lore.add(PaletteUtil.color("|ns|\uF801\uF808上\uF808\uF802"));
     lore.add(
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C");
+        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C");
     stack.setType(Material.PAPER);
     for (String s : this.lore) {
       lore.add(centerSmallText(s));
@@ -155,6 +157,15 @@ public final class UpgradeScroll {
     meta.setCustomModelData(customData);
     meta.setMaxStackSize(99);
     meta.setLore(lore);
+    if (weight <= 150) {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
+    } else if (weight <= 2500) {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_rare"));
+    } else if (weight <= 8500) {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_uncommon"));
+    } else {
+      meta.setTooltipStyle(NamespacedKey.fromString("item_common"));
+    }
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);

@@ -53,8 +53,8 @@ public final class UnidEnchant {
     meta.setCustomModelData(5);
     meta.setMaxStackSize(99);
     List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF801\uF808俋\uF808\uF802"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
+        PaletteUtil.color("|ns|\uF801\uF808出\uF808\uF802"),
+        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize("UNKNOWN") / 2) + FaceColor.TRUE_WHITE + doSmallNameThing("UNKNOWN") + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|When identified, the effect")),
         centerSmallText(PaletteUtil.color("|lgray|of this enchantment tome")),
         centerSmallText(PaletteUtil.color("|lgray|is revealed!")),

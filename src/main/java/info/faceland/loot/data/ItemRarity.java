@@ -19,6 +19,7 @@ public class ItemRarity {
   private String name;
   private String plainName;
   private String tooltipPlate;
+  private String tooltip;
   private double weight;
   private int minimumBonusStats;
   private int maximumBonusStats;

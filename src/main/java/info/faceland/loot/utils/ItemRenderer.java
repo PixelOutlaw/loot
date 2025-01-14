@@ -277,7 +277,10 @@ public class ItemRenderer {
     String plate, rarityName;
     Tier tier;
     FaceColor color;
+    NamespacedKey tooltip;
     if (unique == null) {
+      // TODO: pull from rarity
+      tooltip = null;
       if (StringUtils.isNotBlank(data.getString("craftedBy"))) {
         color = FaceColor.YELLOW;
         plate = "俌";
@@ -291,6 +294,7 @@ public class ItemRenderer {
       color = unique.getColor();
       plate = StringUtils.isBlank(unique.getPlateString()) ? "乞" : unique.getPlateString();
       tier = unique.getTier();
+      tooltip = unique.getTooltip();
       rarityName = "Unique";
     }
 
@@ -304,6 +308,7 @@ public class ItemRenderer {
     stack.editMeta(m -> {
       m.setMaxStackSize(1);
       ((Damageable) m).setMaxDamage(1000);
+      m.setTooltipStyle(tooltip);
       //m.get
     });
 
@@ -319,7 +324,7 @@ public class ItemRenderer {
     }
     // MAYBE CHECK FOR SMALL VS LARGE? Should always be large though
     lore.add(FaceColor.NO_SHADOW + "\uF808" + plate + "\uF80C\uF80B\uF828" + plus);
-    lore.add(HALFWAY + GUI.spacesOf(1 + (-countTitleSize(name) / 2)) + FaceColor.BLACK + doNameThing(name) + "\uF80C");
+    lore.add(HALFWAY + GUI.spacesOf(1 + (-countTitleSize(name) / 2)) + FaceColor.TRUE_WHITE + doNameThing(name) + "\uF80C");
     String subtitle = rarityName + " " + tier.getPlainName();
     lore.add(HALFWAY + GUI.spacesOf(-countSubtitleSize(subtitle) / 2) + color + doSuffix(subtitle) + "\uF80C");
     String distortion = "";

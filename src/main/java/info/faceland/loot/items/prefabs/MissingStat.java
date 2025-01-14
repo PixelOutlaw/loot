@@ -54,7 +54,7 @@ public final class MissingStat {
     meta.setMaxStackSize(99);
     List<String> lore = List.of(
         PaletteUtil.color("|ns|\uF801\uF808丏\uF808\uF802"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
+        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|Some items are missing a")),
         centerSmallText(PaletteUtil.color("|lgray|stat! That's okay, you can")),
         centerSmallText(PaletteUtil.color("|lgray|put it back on if it wasn't")),

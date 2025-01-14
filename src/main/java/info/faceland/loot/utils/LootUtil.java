@@ -9,6 +9,7 @@ import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.items.EnchantmentTome;
 import info.faceland.loot.items.NewCustomItem;
 import info.faceland.loot.items.SocketGem;
+import info.faceland.loot.items.SoulGem;
 import info.faceland.loot.items.Tier;
 import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
@@ -20,16 +21,71 @@ import info.faceland.loot.items.prefabs.PerfectSphere;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import org.apache.commons.lang3.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 
 @SuppressWarnings("unused")
 public class LootUtil {
 
+  private static LootPlugin plugin;
+
+  public static void refresh(LootPlugin lootPlugin) {
+    plugin = lootPlugin;
+  }
+
+  public static ItemStack getItem(Plugin requester, String id) {
+    var split = id.split("_");
+    if (split.length < 2) {
+      // SINGLE PARAM FLOW
+      ItemStack stack = null;
+      switch (split[0]) {
+        case "reroll" -> stack = OrbOfManyFaces.item();
+        case "reroll2" -> stack = PerfectSphere.item();
+      }
+      if (stack == null) {
+        Bukkit.getLogger().warning("[Loot] Plugin " + requester.getName() + " requested invalid item with id " + id);
+      }
+      return stack;
+    }
+    ItemStack stack = null;
+    switch (split[0]) {
+      case "unique" -> {
+        var result = plugin.getCustomItemManager().getUnique(split[1]);
+        if (result != null) {
+          stack = result.item();
+        }
+      }
+      case "soulgem" -> {
+        var result = SoulGem.get(split[1]);
+        if (result != null) {
+          stack = result.item();
+        }
+      }
+      case "socketgem", "gem" -> {
+        var result = SocketGem.get(split[1]);
+        if (result != null) {
+          stack = result.item();
+        }
+      }
+      case "tome", "enchanttome", "enchant" -> {
+        var result = EnchantmentTome.get(split[1]);
+        if (result != null) {
+          stack = result.item();
+        }
+      }
+    }
+    if (stack == null) {
+      Bukkit.getLogger().warning("[Loot] Plugin " + requester.getName() + " requested invalid item with id " + id);
+    }
+    return stack;
+  }
+
   public static LootResponse getRandomItem(ItemType itemType, String extraData, int itemLevel, float rarityMultiplier) {
     switch (itemType) {
       case TIER_ITEM -> {
-        ItemRarity rarity = LootPlugin.getInstance().getRarityManager().getRandomRarity(rarityMultiplier, -1);
-        BuiltItem builtItem = LootPlugin.getInstance().getNewItemBuilder()
+        ItemRarity rarity = plugin.getRarityManager().getRandomRarity(rarityMultiplier, -1);
+        BuiltItem builtItem = plugin.getNewItemBuilder()
             .withTier(Tier.getRandomTier())
             .withRarity(rarity)
             .withLevel(Math.max(1, Math.min(itemLevel, 100)))
@@ -40,7 +96,7 @@ public class LootUtil {
       case SOCKET_GEM -> {
         SocketGem gem;
         if (StringUtils.isBlank(extraData)) {
-          gem = LootPlugin.getInstance().getSocketGemManager().getRandomSocketGemByLevel(itemLevel);
+          gem = plugin.getSocketGemManager().getRandomSocketGemByLevel(itemLevel);
         } else {
           gem = SocketGem.get(extraData);
         }
@@ -49,9 +105,9 @@ public class LootUtil {
       case CUSTOM_ITEM -> {
         NewCustomItem ci;
         if (StringUtils.isBlank(extraData)) {
-          ci = LootPlugin.getInstance().getCustomItemManager().getRandomByLevel(itemLevel);
+          ci = plugin.getCustomItemManager().getRandomByLevel(itemLevel);
         } else {
-          ci = LootPlugin.getInstance().getCustomItemManager().getUnique(extraData);
+          ci = plugin.getCustomItemManager().getUnique(extraData);
         }
         return new LootResponse(ci.item(), ci.isBroadcast());
       }
@@ -59,7 +115,7 @@ public class LootUtil {
         return new LootResponse(PurifyingScroll.get(), false);
       }
       case UPGRADE_SCROLL -> {
-        UpgradeScroll us = LootPlugin.getInstance().getScrollManager().getRandomScroll();
+        UpgradeScroll us = plugin.getScrollManager().getRandomScroll();
         ItemStack scrollStack = us.item();
         return new LootResponse(scrollStack, us.isBroadcast());
       }
@@ -87,7 +143,7 @@ public class LootUtil {
       case ENCHANTMENT_TOME -> {
         EnchantmentTome e;
         if (StringUtils.isBlank(extraData)) {
-          e = LootPlugin.getInstance().getEnchantTomeManager().getRandomEnchantTome();
+          e = plugin.getEnchantTomeManager().getRandomEnchantTome();
         } else {
           e = EnchantmentTome.get(extraData);
         }

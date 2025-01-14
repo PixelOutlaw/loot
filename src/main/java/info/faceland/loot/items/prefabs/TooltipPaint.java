@@ -54,7 +54,7 @@ public final class TooltipPaint {
     meta.setMaxStackSize(99);
     List<String> lore = List.of(
         PaletteUtil.color("|ns|\uF801\uF808丌\uF808\uF802"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
+        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|This magical paint is used")),
         centerSmallText(PaletteUtil.color("|lgray|on an item's tooltip, thus")),
         centerSmallText(PaletteUtil.color("|lgray|increasing its rarity")),

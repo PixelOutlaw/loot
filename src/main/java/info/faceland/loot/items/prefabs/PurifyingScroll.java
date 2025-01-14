@@ -55,7 +55,7 @@ public final class PurifyingScroll {
     meta.setMaxStackSize(99);
     meta.setLore(List.of(
         PaletteUtil.color("|ns|\uF801\uF808与\uF808\uF802"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
+        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|Use this at an enchanting")),
         centerSmallText(PaletteUtil.color("|lgray|table to remove an item's")),
         centerSmallText(PaletteUtil.color("|lgray|enchantment"))

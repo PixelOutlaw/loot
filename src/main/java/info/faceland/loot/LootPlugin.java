@@ -57,6 +57,7 @@ import info.faceland.loot.menu.tomereader.ReaderMenu;
 import info.faceland.loot.utils.DropUtil;
 import info.faceland.loot.utils.EnchantUtil;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.LootUtil;
 import info.faceland.loot.utils.MaterialUtil;
 import io.pixeloutlaw.minecraft.spigot.config.MasterConfiguration;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
@@ -364,6 +365,8 @@ public final class LootPlugin extends FacePlugin {
 
     stackSanitizeListener = PacketEvents.getAPI().getEventManager()
         .registerListener(new PacketCleaner(), PacketListenerPriority.NORMAL);
+
+    LootUtil.refresh(this);
 
     debug("v" + getDescription().getVersion() + " enabled");
   }

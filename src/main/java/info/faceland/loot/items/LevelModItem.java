@@ -124,7 +124,7 @@ public final class LevelModItem {
     meta.setCustomModelData(modelData);
     List<String> lore = new ArrayList<>();
     lore.add(PaletteUtil.color("|ns|\uF801\uF808俋\uF808\uF802"));
-    lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C");
+    lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C");
     for (String s : description) {
       lore.add(centerSmallText(s) + "\uF80B");
     }

@@ -18,7 +18,6 @@
  */
 package info.faceland.loot.utils;
 
-import com.google.gson.Gson;
 import com.loohp.interactivechat.api.InteractiveChatAPI;
 import com.loohp.interactivechat.libs.net.kyori.adventure.text.Component;
 import com.loohp.interactivechat.libs.net.kyori.adventure.text.TextComponent;
@@ -118,8 +117,7 @@ public final class InventoryUtil {
           contents.add(content);
 
           DiscordToolTip discordToolTip = DiscordItemStackUtils.getToolTip(item, icPlayer);
-          if (!discordToolTip.isBaseItem()
-              || InteractiveChatDiscordSrvAddon.plugin.itemUseTooltipImageOnBaseItem) {
+          if (!discordToolTip.isBaseItem() || InteractiveChatDiscordSrvAddon.plugin.itemUseTooltipImageOnBaseItem) {
             BufferedImage tooltip = ImageGeneration.getToolTipImage(discordToolTip.getComponents(), null);
             ByteArrayOutputStream tooltipOs = new ByteArrayOutputStream();
             ImageIO.write(tooltip, "png", tooltipOs);

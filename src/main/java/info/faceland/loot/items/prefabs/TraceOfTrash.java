@@ -53,7 +53,7 @@ public final class TraceOfTrash {
     meta.setMaxStackSize(99);
     List<String> lore = List.of(
         PaletteUtil.color("|ns|\uF808侾\uF808\uF801"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
+        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|This item can be used at")),
         centerSmallText(PaletteUtil.color("|lgray|an enchantment table to")),
         centerSmallText(PaletteUtil.color("|brown|worsen |lgray|an item's stats!")),

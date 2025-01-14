@@ -54,7 +54,7 @@ public final class ClawOfTheVoid {
     meta.setMaxStackSize(99);
     List<String> lore = List.of(
         PaletteUtil.color("|ns|\uF801\uF808丌\uF808\uF802"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C",
+        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|This orb can be used at")),
         centerSmallText(PaletteUtil.color("|lgray|an enchantment table to")),
         centerSmallText(PaletteUtil.color("|green|reroll |lgray|an item's stats!")),

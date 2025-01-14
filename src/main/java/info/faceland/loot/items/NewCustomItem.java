@@ -1,20 +1,18 @@
 /**
  * The MIT License Copyright (c) 2015 Teal Cube Games
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
- * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * <p>
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package info.faceland.loot.items;
 
@@ -73,6 +71,7 @@ public class NewCustomItem {
 
   private String itemName;
   private String plateString;
+  private NamespacedKey tooltip;
   private FaceColor color;
   private boolean printName;
   private boolean large;
@@ -118,49 +117,7 @@ public class NewCustomItem {
   }
 
   public ItemStack item() {
-    if (tier == null) {
-      if (cachedStack != null) {
-        return cachedStack.clone();
-      }
-      cachedStack = new ItemStack(material);
-      ItemMeta meta = cachedStack.getItemMeta();
-
-      String name = ChatColor.stripColor(itemName);
-      List<String> lore = new ArrayList<>();
-      if (StringUtils.isNotBlank(plateString)) {
-        lore.add(PaletteUtil.color(plateString));
-      } else {
-        lore.add(PaletteUtil.color("|ns|\uF808丄\uF808\uF801"));
-      }
-      if (printName) {
-        if (large) {
-          lore.add(HALFWAY + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doNameThing(name) + "\uF80C");
-        } else {
-          lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.BLACK + doSmallNameThing(name) + "\uF80C");
-        }
-      } else {
-        lore.add("");
-      }
-      lore.addAll(flavorText);
-
-      meta.setDisplayName(color + itemName);
-      meta.setCustomModelData(customDataNumber);
-      meta.setLore(lore);
-      if (stackSize != -1) {
-        meta.setMaxStackSize(stackSize);
-      } else if (material.getMaxStackSize() > 1) {
-        meta.setMaxStackSize(99);
-      }
-
-      PersistentDataContainer pdc = meta.getPersistentDataContainer();
-      pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
-      pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, "unique");
-      pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, id);
-
-      cachedStack.setItemMeta(meta);
-      ItemRenderer.applyCommonFlags(cachedStack);
-      return cachedStack.clone();
-    } else {
+    if (tier != null) {
       ItemStack stack = new ItemStack(material);
       ItemMeta meta = stack.getItemMeta();
       PersistentDataContainer pdc = meta.getPersistentDataContainer();
@@ -173,6 +130,48 @@ public class NewCustomItem {
       ItemRenderer.renderItem(stack, true);
       return stack;
     }
+    if (cachedStack != null) {
+      return cachedStack.clone();
+    }
+    cachedStack = new ItemStack(material);
+    ItemMeta meta = cachedStack.getItemMeta();
+
+    String name = ChatColor.stripColor(itemName);
+    List<String> lore = new ArrayList<>();
+    if (StringUtils.isNotBlank(plateString)) {
+      lore.add(PaletteUtil.color(plateString));
+    } else {
+      lore.add(PaletteUtil.color("|ns|\uF808丄\uF808\uF801"));
+    }
+    if (printName) {
+      if (large) {
+        lore.add(HALFWAY + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doNameThing(name) + "\uF80C");
+      } else {
+        lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C");
+      }
+    } else {
+      lore.add("");
+    }
+    lore.addAll(flavorText);
+
+    meta.setDisplayName(color + itemName);
+    meta.setCustomModelData(customDataNumber);
+    meta.setLore(lore);
+    meta.setTooltipStyle(tooltip);
+    if (stackSize != -1) {
+      meta.setMaxStackSize(stackSize);
+    } else if (material.getMaxStackSize() > 1) {
+      meta.setMaxStackSize(99);
+    }
+
+    PersistentDataContainer pdc = meta.getPersistentDataContainer();
+    pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
+    pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, "unique");
+    pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, id);
+
+    cachedStack.setItemMeta(meta);
+    ItemRenderer.applyCommonFlags(cachedStack);
+    return cachedStack.clone();
   }
 
   public void setFlavorText(List<String> lore) {
@@ -207,6 +206,8 @@ public class NewCustomItem {
     ci.setTier(Tier.get(section.getString("tier")));
     ci.setQuality(section.getInt("quality", 1));
     ci.setPlateString(section.getString("nameplate", ""));
+    var tt = section.getString("tooltip-id", null);
+    ci.setTooltip(tt == null ? null : NamespacedKey.fromString(tt));
     ci.setColor(FaceColor.valueOf(section.getString("color", "ORANGE")));
     ci.setPrintName(section.getBoolean("print-name", true));
     ci.setLarge(section.getBoolean("large", false));
@@ -261,10 +262,10 @@ public class NewCustomItem {
       itemStat.setMaxBaseValue(max);
       itemStat.setMinHue(core ? 0.05f : 0.3083f);
       itemStat.setMaxHue(core ? 0.05f : 0.1278f);
-      itemStat.setMinSaturation(core ?  0.09827f : 0.82906f);
-      itemStat.setMaxSaturation(core ?  0.09827f : 0.74118f);
-      itemStat.setMinBrightness(core ?  0.67843f : 0.91765f);
-      itemStat.setMaxBrightness(core ?  0.67843f : 1.0f);
+      itemStat.setMinSaturation(core ? 0.09827f : 0.82906f);
+      itemStat.setMaxSaturation(core ? 0.09827f : 0.74118f);
+      itemStat.setMinBrightness(core ? 0.67843f : 0.91765f);
+      itemStat.setMaxBrightness(core ? 0.67843f : 1.0f);
       itemStat.setStat(stat);
       itemStat.setPercentage(percent);
       itemStat.calcColorRange();
