@@ -65,6 +65,10 @@ public class EquipmentData implements Serializable {
     ItemDetails itemDetails = new ItemDetails();
     for (StoredStat s : coreStats) {
       StrifeStat stat = s.getStat().getStat();
+      if (s.getStat() == null) {
+        Bukkit.getLogger().severe("[Loot] Unknown stat on item!");
+        continue;
+      }
       itemDetails.getStats().put(stat, itemDetails.getStats().getOrDefault(stat, 0f) + s.getCachedValue());
     }
     for (StoredStat s : bonusStats) {
@@ -103,6 +107,9 @@ public class EquipmentData implements Serializable {
       Bukkit.getLogger().warning("[Loot] Bad passive load" + s + " attempted");
     }
     for (SocketGem gem : getSocketGems()) {
+      if (gem == null) {
+        continue;
+      }
       for (var gemStats : gem.getStats().entrySet()) {
         itemDetails.getStats().put(gemStats.getKey(),
             itemDetails.getStats().getOrDefault(gemStats.getKey(), 0f) + gemStats.getValue().intValue());
@@ -325,10 +332,8 @@ public class EquipmentData implements Serializable {
       if (s == null) {
         continue;
       }
-      SocketGem gem = LootPlugin.getInstance().getSocketGemManager().getSocketGem(s);
-      if (gem != null) {
-        socketGems.add(gem);
-      }
+      // NOTE! This can be NULL!
+      socketGems.add(LootPlugin.getInstance().getSocketGemManager().getSocketGem(s));
     }
     return socketGems;
   }

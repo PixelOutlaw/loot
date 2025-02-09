@@ -39,6 +39,7 @@ import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.items.prefabs.TooltipPaint;
 import info.faceland.loot.items.prefabs.TraceOfTrash;
+import info.faceland.loot.items.prefabs.WarpedTongs;
 import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.utils.PersistHelper;
 import ninja.amp.ampmenus.menus.MenuHolder;
@@ -94,7 +95,7 @@ public final class EnchantMenuListener implements Listener {
            SocketExtender.TYPE_KEY, TinkerersGear.TYPE_KEY, OrbOfManyFaces.TYPE_KEY, UpgradeScroll.TYPE_KEY,
            PerfectSphere.TYPE_KEY, DivineHammer.TYPE_KEY, ManaCrystal.TYPE_KEY, DistortionCell.TYPE_KEY,
            AspectOfPerfection.TYPE_KEY, NormalItem.TYPE_KEY, AwakeningStone.TYPE_KEY, TooltipPaint.TYPE_KEY,
-           MissingStat.TYPE_KEY, TraceOfTrash.TYPE_KEY, OrbOfOscillation.TYPE_KEY -> true;
+           MissingStat.TYPE_KEY, TraceOfTrash.TYPE_KEY, OrbOfOscillation.TYPE_KEY, WarpedTongs.TYPE_KEY -> true;
       default -> false;
     };
     if (select) {

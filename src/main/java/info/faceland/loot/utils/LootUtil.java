@@ -35,13 +35,21 @@ public class LootUtil {
   }
 
   public static ItemStack getItem(Plugin requester, String id) {
-    var split = id.split("_");
+    var split = id.split("_", 2);
     if (split.length < 2) {
       // SINGLE PARAM FLOW
       ItemStack stack = null;
       switch (split[0]) {
         case "reroll" -> stack = OrbOfManyFaces.item();
-        case "reroll2" -> stack = PerfectSphere.item();
+        case "reroll2", "hypercube" -> stack = PerfectSphere.item();
+        case "enhancer", "arcaneenhancer" -> stack = ArcaneEnhancer.get();
+        case "extender", "socketextender" -> stack = SocketExtender.item();
+        default -> {
+          var result = plugin.getCustomItemManager().getUnique(split[0]);
+          if (result != null) {
+            stack = result.item();
+          }
+        }
       }
       if (stack == null) {
         Bukkit.getLogger().warning("[Loot] Plugin " + requester.getName() + " requested invalid item with id " + id);
@@ -57,19 +65,43 @@ public class LootUtil {
         }
       }
       case "soulgem" -> {
+        if ("random".equals(split[1])) {
+          return SoulGem.getRandom().item();
+        }
         var result = SoulGem.get(split[1]);
         if (result != null) {
           stack = result.item();
         }
       }
+      case "material" -> {
+        var result = CraftMaterial.get(split[1]);
+        if (result != null) {
+          stack = result.item();
+        }
+      }
       case "socketgem", "gem" -> {
+        if ("random".equals(split[1])) {
+          return plugin.getSocketGemManager().getRandomSocketGem().item();
+        }
         var result = SocketGem.get(split[1]);
         if (result != null) {
           stack = result.item();
         }
       }
       case "tome", "enchanttome", "enchant" -> {
+        if ("random".equals(split[1])) {
+          return plugin.getEnchantTomeManager().getRandomEnchantTome().item();
+        }
         var result = EnchantmentTome.get(split[1]);
+        if (result != null) {
+          stack = result.item();
+        }
+      }
+      case "scroll", "upgradescroll"  -> {
+        if ("random".equals(split[1])) {
+          return plugin.getScrollManager().getRandomScroll().item();
+        }
+        var result = UpgradeScroll.get(split[1]);
         if (result != null) {
           stack = result.item();
         }

@@ -69,13 +69,13 @@ public final class SocketExtender {
     EXTENDER = new ItemStack(Material.NETHER_STAR);
     ItemMeta meta = EXTENDER.getItemMeta();
     String name = "Socket Extender";
-    meta.setDisplayName(FaceColor.TEAL + name);
+    meta.setDisplayName(FaceColor.YELLOW + name);
     List<String> lore = List.of(
         PaletteUtil.color("|ns|\uF801\uF808三\uF808\uF802"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
         centerSmallText(PaletteUtil.color("|lgray|This |red|powerful |lgray|item can be")),
         centerSmallText(PaletteUtil.color("|lgray|used on equipment to turn")),
-        centerSmallText(PaletteUtil.color("|lgray|a |teal|locked socket |lgray|into a")),
+        centerSmallText(PaletteUtil.color("|lgray|a |yellow|locked socket |lgray|into a")),
         centerSmallText(PaletteUtil.color("|lgray|normal |orange|socket|lgray|!"))
     );
     meta.setLore(lore);

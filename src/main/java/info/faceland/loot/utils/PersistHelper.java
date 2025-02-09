@@ -24,6 +24,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.codehaus.plexus.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class PersistHelper {
@@ -50,6 +51,13 @@ public class PersistHelper {
       return "";
     }
     return stack.getItemMeta().getPersistentDataContainer().getOrDefault(ITEM_EXTRA_KEY, PersistentDataType.STRING, "");
+  }
+
+  public static boolean isUnique(EquipmentData data, ItemStack stack) {
+    if (data == null) {
+      return false;
+    }
+    return StringUtils.isNotBlank(PersistHelper.getItemId(stack));
   }
 
   @NotNull

@@ -50,6 +50,7 @@ import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public final class CraftingListener implements Listener {
@@ -58,16 +59,11 @@ public final class CraftingListener implements Listener {
 
   public static String ESSENCE_SLOT_TEXT;
 
-  private final String BAD_INFUSE_NAME;
   private final double CRAFT_EXP;
   private final double CRAFT_LEVEL_MULT;
   private final double CRAFT_QUALITY_MULT;
 
-  private final ItemMeta dupeStatMeta;
-  private final ItemMeta powerfulEssenceMeta;
-  private final ItemMeta lowLevelMeta;
-  private final ItemMeta wrongTypeMeta;
-  private final ItemMeta noSlotsMeta;
+  public static Recipe TRANSMUTE_RECIPE = null;
 
   private static final Pattern pattern = Pattern.compile("[^A-za-z]");
 
@@ -80,26 +76,26 @@ public final class CraftingListener implements Listener {
     CRAFT_QUALITY_MULT = plugin.getSettings().getDouble("config.crafting.craft-rarity-mult", 0.1);
     ESSENCE_SLOT_TEXT = plugin.getSettings().getString("config.crafting.essence-text", "(Essence Slot)");
 
-    BAD_INFUSE_NAME = StringExtensionsKt.chatColorize(plugin.getSettings()
+    String badInfuseName = StringExtensionsKt.chatColorize(plugin.getSettings()
         .getString("language.essence.invalid-title", "&cCannot Use Essence!"));
 
     ItemStack failStack = new ItemStack(Material.BARRIER);
     ItemStackExtensionsKt.setDisplayName(failStack,
-        StringExtensionsKt.chatColorize(BAD_INFUSE_NAME));
+        StringExtensionsKt.chatColorize(badInfuseName));
 
-    dupeStatMeta = failStack.getItemMeta().clone();
+    ItemMeta dupeStatMeta = failStack.getItemMeta().clone();
     dupeStatMeta.setLore(ListExtensionsKt.chatColorize(
         plugin.getSettings().getStringList("language.essence.duplicate-stats")));
-    powerfulEssenceMeta = failStack.getItemMeta().clone();
+    ItemMeta powerfulEssenceMeta = failStack.getItemMeta().clone();
     powerfulEssenceMeta.setLore(ListExtensionsKt.chatColorize(
         plugin.getSettings().getStringList("language.essence.essence-strength")));
-    lowLevelMeta = failStack.getItemMeta().clone();
+    ItemMeta lowLevelMeta = failStack.getItemMeta().clone();
     lowLevelMeta.setLore(ListExtensionsKt.chatColorize(
         plugin.getSettings().getStringList("language.essence.low-craft-level")));
-    wrongTypeMeta = failStack.getItemMeta().clone();
+    ItemMeta wrongTypeMeta = failStack.getItemMeta().clone();
     wrongTypeMeta.setLore(ListExtensionsKt.chatColorize(
         plugin.getSettings().getStringList("language.essence.wrong-type")));
-    noSlotsMeta = failStack.getItemMeta().clone();
+    ItemMeta noSlotsMeta = failStack.getItemMeta().clone();
     noSlotsMeta.setLore(ListExtensionsKt.chatColorize(
         plugin.getSettings().getStringList("language.essence.no-slots")));
   }
@@ -147,6 +143,9 @@ public final class CraftingListener implements Listener {
       return;
     }
     ItemStack resultStack = event.getCurrentItem();
+    if (resultStack != null && resultStack.getType() == Material.EMERALD) {
+      return;
+    }
     for (ItemStack is : event.getInventory().getMatrix()) {
       if (is == null) {
         continue;
@@ -232,6 +231,18 @@ public final class CraftingListener implements Listener {
     if (event.getCurrentItem() != null && event.getCurrentItem().getType() == Material.BARRIER
         || event.getCursor() != null && event.getCursor().getType() == Material.BARRIER) {
       event.setCancelled(true);
+    }
+  }
+
+  @EventHandler(priority = EventPriority.MONITOR)
+  public void onCraftTransmute(CraftItemEvent event) {
+    if (event.isCancelled()) {
+      return;
+    }
+    if (TRANSMUTE_RECIPE == event.getRecipe()) {
+      Bukkit.getScheduler().runTaskLater(plugin, () -> plugin.getStrifePlugin().getSkillExperienceManager()
+          .addExperience((Player) event.getWhoClicked(), LifeSkillType.ALCHEMY,
+              event.getInventory().getResult().getAmount() * 0.7f, false, false), 0L);
     }
   }
 

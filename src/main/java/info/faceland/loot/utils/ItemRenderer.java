@@ -28,6 +28,7 @@ import info.faceland.loot.data.StatResponse;
 import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.data.pdc.StoredStat;
 import info.faceland.loot.events.ExternalRenderEvent;
+import info.faceland.loot.items.CosmeticHead;
 import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.items.EnchantmentTome;
 import info.faceland.loot.items.LevelModItem;
@@ -53,6 +54,7 @@ import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.items.prefabs.TooltipPaint;
 import info.faceland.loot.items.prefabs.TraceOfTrash;
 import info.faceland.loot.items.prefabs.UnidEnchant;
+import info.faceland.loot.items.prefabs.WarpedTongs;
 import info.faceland.loot.menu.loreglass.LoreglassMenu;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
@@ -121,9 +123,11 @@ public class ItemRenderer {
       case "essence" -> renderEssence(stack, null);
       case ArcaneEnhancer.TYPE_KEY -> ArcaneEnhancer.update(stack);
       case TinkerersGear.TYPE_KEY -> TinkerersGear.update(stack);
+      case CosmeticHead.TYPE_KEY -> CosmeticHead.update(stack);
       case OrbOfManyFaces.TYPE_KEY -> OrbOfManyFaces.update(stack);
       case PerfectSphere.TYPE_KEY -> PerfectSphere.update(stack);
       case DivineHammer.TYPE_KEY -> DivineHammer.update(stack);
+      case WarpedTongs.TYPE_KEY -> WarpedTongs.update(stack);
       case NormalItem.TYPE_KEY -> NormalItem.update(stack);
       case SoulGem.TYPE_KEY -> SoulGem.update(stack);
       case LevelModItem.TYPE_KEY -> LevelModItem.update(stack);
@@ -464,6 +468,11 @@ public class ItemRenderer {
         int gemPrefixData = 0;
         for (String socketStr : data.getSockets()) {
           SocketGem gem = plugin.getSocketGemManager().getSocketGem(socketStr);
+          if (gem == null) {
+            Bukkit.getLogger().warning("[Loot] Outdated gem detected... " + socketStr);
+            lore.add(centerLargeText(FaceColor.RED.s() + "< Outdated gem >"));
+            continue;
+          }
           //System.out.println("detected gem: " + gem.getId());
           if (gem.getCustomModelData() > gemPrefixData && !StringUtils.isBlank(gem.getPrefix())) {
             gemPrefix = gem.getPrefix();

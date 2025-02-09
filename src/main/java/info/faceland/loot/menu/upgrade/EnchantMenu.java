@@ -44,6 +44,7 @@ import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.items.prefabs.TooltipPaint;
 import info.faceland.loot.items.prefabs.TraceOfTrash;
+import info.faceland.loot.items.prefabs.WarpedTongs;
 import info.faceland.loot.managers.StatManager.RollStyle;
 import info.faceland.loot.utils.EnchantUtil;
 import info.faceland.loot.utils.MaterialUtil;
@@ -53,6 +54,7 @@ import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import land.face.strife.data.champion.Champion;
 import land.face.strife.data.champion.LifeSkillType;
@@ -242,6 +244,7 @@ public class EnchantMenu extends ItemMenu {
       case TooltipPaint.TYPE_KEY -> updateRarityUpDisplay();
       case OrbOfOscillation.TYPE_KEY -> updateFlipDisplay();
       case TraceOfTrash.TYPE_KEY -> updateTrashDisplay();
+      case WarpedTongs.TYPE_KEY -> updateWarpedDisplay();
       default -> {
         // NOTHING
       }
@@ -403,6 +406,60 @@ public class EnchantMenu extends ItemMenu {
             "|lgray|This will lower the randomized",
             "|lgray|rolls on your item??"
         )),
+        60
+    );
+  }
+
+  private void updateWarpedDisplay() {
+    EquipmentData data = PersistHelper.getEquipmentData(selectedEquipment);
+    if (data == null) {
+      updateConfirmDisplay(PaletteUtil.color("|red|Not Equipment"),
+          PaletteUtil.color(List.of("",
+              "|lgray|The selected item is not normal equipment"
+          )), 62
+      );
+      return;
+    }
+    boolean isUnique = PersistHelper.isUnique(data, selectedEquipment);
+    if (isUnique) {
+      updateConfirmDisplay(PaletteUtil.color("|red|Invalid Equipment!"),
+          PaletteUtil.color(List.of("",
+              "|lgray|The tongs cannot be used on",
+              "|lgray|unique items, as unique items",
+              "|lgray|always have the same secondary",
+              "|lgray|stat"
+          )), 62
+      );
+      return;
+    }
+    if (data.getTier().getSecondaryStats().size() <= 1) {
+      updateConfirmDisplay(PaletteUtil.color("|red|Invalid Equipment!"),
+          PaletteUtil.color(List.of("",
+              "|lgray|This equipment item only has",
+              "|lgray|one possible option for its",
+              "|lgray|secondary stat!"
+          )), 62
+      );
+      return;
+    }
+    var secondaryStats = new ArrayList<>(data.getTier().getSecondaryStats());
+    for (var ss : data.getCoreStats()) {
+      secondaryStats.removeIf(s -> s.getStat() == ss.getStat().getStat());
+    }
+    List<String> lore = new ArrayList<>(PaletteUtil.color(List.of(
+        "",
+        "|lgray|This will change the secondary",
+        "|lgray|stat on normal equipment to one",
+        "|lgray|of the other possible options!",
+        "",
+        "|white|Possible Options:"
+    )));
+    for (var ss : secondaryStats) {
+      lore.add(FaceColor.LIGHT_GRAY + "- " + ss.getStat().getName());
+    }
+    updateConfirmDisplay(
+        PaletteUtil.color("|teal|Warp Item"),
+        lore,
         60
     );
   }
@@ -693,6 +750,12 @@ public class EnchantMenu extends ItemMenu {
       }
       case TraceOfTrash.TYPE_KEY -> {
         MaterialUtil.doWorsenEffects(plugin, selectedEquipment, selectedUpgradeItem, player);
+        setSelectedUpgradeItem(player, selectedUpgradeItem);
+        setSelectedEquipment(player, selectedEquipment);
+        return true;
+      }
+      case WarpedTongs.TYPE_KEY -> {
+        MaterialUtil.doWarpEffects(plugin, selectedEquipment, selectedUpgradeItem, player);
         setSelectedUpgradeItem(player, selectedUpgradeItem);
         setSelectedEquipment(player, selectedEquipment);
         return true;

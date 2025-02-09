@@ -149,7 +149,7 @@ public final class SocketGem {
     // Todo: remove manual character replace
     lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE +
         doSmallNameThing(name.replace("â", "a")) + "\uF80C");
-    lore.add(centerSmallText(FaceColor.WHITE + "Usable On: " + FaceColor.CYAN + itemGroup.getName()));
+    lore.add(centerSmallText(FaceColor.WHITE + "Used On: " + FaceColor.CYAN + itemGroup.getName()));
     lore.add("");
     for (var stuff : percentStats.entrySet()) {
       int val = Math.round(stuff.getValue());

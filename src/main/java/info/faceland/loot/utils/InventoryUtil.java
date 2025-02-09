@@ -19,6 +19,7 @@
 package info.faceland.loot.utils;
 
 import com.loohp.interactivechat.api.InteractiveChatAPI;
+import com.loohp.interactivechat.libs.net.kyori.adventure.key.Key;
 import com.loohp.interactivechat.libs.net.kyori.adventure.text.Component;
 import com.loohp.interactivechat.libs.net.kyori.adventure.text.TextComponent;
 import com.loohp.interactivechat.objectholders.ICPlayer;
@@ -44,6 +45,7 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -78,6 +80,7 @@ public final class InventoryUtil {
     chatItem.editMeta(m -> {
       m.setItemName(item.getItemMeta().getDisplayName());
       m.setLore(item.getItemMeta().getLore());
+      m.setTooltipStyle(item.getItemMeta().getTooltipStyle());
     });
     ItemRenderer.applyCommonFlags(chatItem);
 
@@ -116,9 +119,14 @@ public final class InventoryUtil {
           content.addAttachment("Item.png", itemOs.toByteArray());
           contents.add(content);
 
-          DiscordToolTip discordToolTip = DiscordItemStackUtils.getToolTip(item, icPlayer);
+          DiscordToolTip discordToolTip = DiscordItemStackUtils.getToolTip(item, icPlayer, false);
           if (!discordToolTip.isBaseItem() || InteractiveChatDiscordSrvAddon.plugin.itemUseTooltipImageOnBaseItem) {
-            BufferedImage tooltip = ImageGeneration.getToolTipImage(discordToolTip.getComponents(), null);
+            Key key = null;
+            if (chatItem.getItemMeta() != null && chatItem.getItemMeta().getTooltipStyle() != null) {
+              NamespacedKey style = chatItem.getItemMeta().getTooltipStyle();
+              key = Key.key(style.getNamespace(), style.value());
+            }
+            BufferedImage tooltip = ImageGeneration.getToolTipImage(discordToolTip.getComponents(), key);
             ByteArrayOutputStream tooltipOs = new ByteArrayOutputStream();
             ImageIO.write(tooltip, "png", tooltipOs);
             content.addAttachment("ToolTip.png", tooltipOs.toByteArray());

@@ -59,8 +59,11 @@ public class GemOption extends MenuItem {
       return new ItemStack(Material.AIR);
     }
     List<SocketGem> sockets = ModifyEquipmentUtil.getSockets(menu.getStack(player));
-    if (sockets.size() < (index - 1) || sockets.get(index) == null) {
+    if (sockets.size() <= index) {
       return new ItemStack(Material.AIR);
+    }
+    if (sockets.get(index) == null) {
+      return new ItemStack(Material.EMERALD);
     }
     return sockets.get(index).item();
   }
@@ -74,12 +77,12 @@ public class GemOption extends MenuItem {
       return;
     }
     List<SocketGem> sockets = ModifyEquipmentUtil.getSockets(menu.getStack(event.getPlayer()));
-    if (sockets.size() < (index - 1) || sockets.get(index) == null) {
+    if (sockets.size() <= index) {
       event.setWillUpdate(false);
       event.setWillClose(false);
       return;
     }
-    int cost = menu.getCost(event.getPlayer());
+    int cost = sockets.get(index) == null ? 0 : menu.getCost(event.getPlayer());
     EconomyResponse response = MintPlugin.getInstance().getEconomy()
         .withdrawPlayer(event.getPlayer(), cost);
 

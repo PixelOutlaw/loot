@@ -33,6 +33,7 @@ import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import java.util.List;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -66,6 +67,7 @@ public final class TraceOfTrash {
         centerSmallText(PaletteUtil.color("|gray||i|EVER use this garbage"))
     );
     meta.setLore(lore);
+    meta.setTooltipStyle(NamespacedKey.fromString("item_trash"));
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);

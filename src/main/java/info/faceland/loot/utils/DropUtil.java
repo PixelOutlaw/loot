@@ -266,7 +266,7 @@ public class DropUtil implements Listener {
     if (LootPlugin.RNG.nextDouble() < 0.01) {
       if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * enhancerDropChance) {
         dropItem(event.getLocation(), ArcaneEnhancer.get(), killer, 0, true,
-            FaceColor.RED.getRawColor(), ChatColor.DARK_PURPLE, arcaneDropSound);
+            FaceColor.PURPLE.getRawColor(), ChatColor.DARK_PURPLE, arcaneDropSound);
       }
       if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * tinkerGearDropChance) {
         dropItem(event.getLocation(), TinkerersGear.get(), killer, 0, true,
@@ -283,6 +283,11 @@ public class DropUtil implements Listener {
       if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * flipDropChance) {
         dropItem(event.getLocation(), OrbOfOscillation.item(), killer, 0, true,
             FaceColor.BLACK.getRawColor(), ChatColor.BLACK, tinkerDropSound);
+      }
+      // TODO MORE BETTERER
+      if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * rarityPaintDropChance) {
+        dropItem(event.getLocation(), WarpedTongs.item(), killer, 0, true,
+            FaceColor.DARK_BLUE.getRawColor(), ChatColor.DARK_BLUE, tinkerDropSound);
       }
       if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * trashDropChance) {
         dropItem(event.getLocation(), TraceOfTrash.item(), killer, 0, true,
@@ -312,7 +317,7 @@ public class DropUtil implements Listener {
           .getDouble("config.drops.socket-extender", 0D)) {
         ItemStack his = SocketExtender.EXTENDER.clone();
         dropItem(event.getLocation(), his, killer, 0, true,
-            FaceColor.TEAL.getRawColor(), ChatColor.AQUA, extenderDropSound);
+            FaceColor.YELLOW.getRawColor(), ChatColor.YELLOW, extenderDropSound);
       }
     }
   }

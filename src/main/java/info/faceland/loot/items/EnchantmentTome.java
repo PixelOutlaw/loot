@@ -140,7 +140,7 @@ public class EnchantmentTome {
     List<String> lore = List.of(
         PaletteUtil.color("|ns|\uF801\uF808出\uF808\uF802"),
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
-        FaceColor.WHITE + centerSmallText("Usable On: " + FaceColor.CYAN + itemGroup.getName()),
+        FaceColor.WHITE + centerSmallText("Used On: " + FaceColor.CYAN + itemGroup.getName()),
         FaceColor.WHITE + centerSmallText("Adds: " + FaceColor.BLUE + is.getStat().getName()) + "\uF80C",
         "",
         FaceColor.LIGHT_GRAY + centerSmallText("Use this magical book at"),

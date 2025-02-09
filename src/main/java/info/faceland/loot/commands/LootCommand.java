@@ -37,6 +37,7 @@ import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.export.ExportEntry;
+import info.faceland.loot.items.CosmeticHead;
 import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.items.EnchantmentTome;
 import info.faceland.loot.items.LevelModItem;
@@ -394,6 +395,18 @@ public class LootCommand extends BaseCommand {
       }
     }
 
+    @Subcommand("head")
+    @CommandCompletion("@players @heads")
+    public void getHead(CommandSender sender, OnlinePlayer player, String material) {
+      var gemb = CosmeticHead.get(material);
+      if (gemb != null) {
+        ItemUtils.giveOrDrop(player.getPlayer(), gemb.item());
+        sendMessage(sender, "Success!");
+      } else {
+        sendMessage(sender, "Not a real head!!!");
+      }
+    }
+
     @Subcommand("tier")
     @CommandCompletion("@players @tiers @rarities amount level distorted")
     public void giveTier(CommandSender sender, OnlinePlayer player,
@@ -608,6 +621,16 @@ public class LootCommand extends BaseCommand {
     public void giveDivineHammer(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
       for (int i = 0; i < amount; i++) {
         player.getPlayer().getInventory().addItem(DivineHammer.item());
+      }
+      sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
+          new String[][]{{"%amount%", amount + ""}});
+    }
+
+    @Subcommand("tongs")
+    @CommandCompletion("@players @range:1-100")
+    public void giveTongs(CommandSender sender, OnlinePlayer player, @Default("1") int amount) {
+      for (int i = 0; i < amount; i++) {
+        player.getPlayer().getInventory().addItem(WarpedTongs.item());
       }
       sendMessage(sender, plugin.getSettings().getString("language.commands.spawn.socket-extender", ""),
           new String[][]{{"%amount%", amount + ""}});

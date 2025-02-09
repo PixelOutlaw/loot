@@ -40,6 +40,7 @@ import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
+import land.face.strife.StrifePlugin;
 import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.data.champion.SkillRank;
 import land.face.strife.data.pojo.SkillLevelData;
@@ -63,12 +64,10 @@ public final class PreCraftListener implements Listener {
 
   public static String ESSENCE_SLOT_TEXT;
 
-  private final String BAD_INFUSE_NAME;
-  private final String BAD_LEVEL_MOD;
   private final float MAX_QUALITY;
 
   private final ItemMeta dupeStatMeta, unstableStatMeta, powerfulEssenceMeta, lowLevelMeta, invalidItemMeta,
-      wrongTypeMeta, noSlotsMeta, wrongLevelModType, alreadyAppliedMod, wrongTierMod;
+      wrongTypeMeta, noSlotsMeta, wrongLevelModType, alreadyAppliedMod, wrongTierMod, notSocketGemMeta, noTransmuteMeta;
 
   public PreCraftListener(LootPlugin plugin) {
     this.plugin = plugin;
@@ -77,18 +76,24 @@ public final class PreCraftListener implements Listener {
     ESSENCE_SLOT_TEXT = plugin.getSettings()
         .getString("config.crafting.essence-text", "(Essence Slot)");
 
-    BAD_INFUSE_NAME = StringExtensionsKt.chatColorize(plugin.getSettings()
+    String badInfuse = StringExtensionsKt.chatColorize(plugin.getSettings()
         .getString("language.essence.invalid-title", "&cCannot Use Essence!"));
-    BAD_LEVEL_MOD = PaletteUtil.color(plugin.getSettings()
+    String badLevelMod = PaletteUtil.color(plugin.getSettings()
         .getString("language.level-mod.invalid-title", "|red|Invalid Target Equipment!"));
+    String cantTransmute = PaletteUtil.color(plugin.getSettings()
+        .getString("language.transmute-create.invalid-title", "|red|Invalid Socket Gem!"));
 
     ItemStack failStack = new ItemStack(Material.BARRIER);
     ItemStackExtensionsKt.setDisplayName(failStack,
-        StringExtensionsKt.chatColorize(BAD_INFUSE_NAME));
+        StringExtensionsKt.chatColorize(badInfuse));
 
     ItemStack failStack2 = new ItemStack(Material.BARRIER);
     ItemStackExtensionsKt.setDisplayName(failStack2,
-        StringExtensionsKt.chatColorize(BAD_LEVEL_MOD));
+        StringExtensionsKt.chatColorize(badLevelMod));
+
+    ItemStack failStack3 = new ItemStack(Material.BARRIER);
+    ItemStackExtensionsKt.setDisplayName(failStack2,
+        StringExtensionsKt.chatColorize(cantTransmute));
 
     dupeStatMeta = failStack.getItemMeta().clone();
     dupeStatMeta.setLore(ListExtensionsKt.chatColorize(
@@ -121,6 +126,20 @@ public final class PreCraftListener implements Listener {
     wrongTierMod = failStack2.getItemMeta().clone();
     wrongTierMod.setLore(PaletteUtil.color(
         plugin.getSettings().getStringList("language.level-mod.wrong-tier")));
+
+    notSocketGemMeta = failStack2.getItemMeta().clone();
+    notSocketGemMeta.setLore(PaletteUtil.color(
+        plugin.getSettings().getStringList("language.transmute-create.no-gem")));
+    noTransmuteMeta = failStack2.getItemMeta().clone();
+    noTransmuteMeta.setLore(PaletteUtil.color(
+        plugin.getSettings().getStringList("language.transmute-create.invalid-gem")));
+  }
+
+  @EventHandler
+  public void onGemFuckery(PrepareItemCraftEvent event) {
+    if (event.getRecipe() != null && event.getRecipe().getResult().getType() == Material.EMERALD) {
+      updateSocketGemInvy(event.getInventory(), (Player) event.getViewers().getFirst());
+    }
   }
 
   @EventHandler
@@ -144,6 +163,40 @@ public final class PreCraftListener implements Listener {
       if (StringUtils.isNotBlank(name) && ChatColor.stripColor(name).contains("Equipment Crafting")) {
         updateEquipmentCraftInvy(event.getInventory(), event.getRecipe(), (Player) event.getViewers().get(0));
       }
+    }
+  }
+
+  private void updateSocketGemInvy(CraftingInventory craftingInventory, Player player) {
+    if (craftingInventory.getResult() == null) {
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(wrongTypeMeta);
+      return;
+    }
+    ItemStack gemStack = null;
+    for (ItemStack is : craftingInventory.getMatrix()) {
+      if (is == null || is.getType() == Material.AIR) {
+        continue;
+      }
+      if (is.getType() == Material.EMERALD) {
+        gemStack = is;
+        break;
+      }
+    }
+    SocketGem gemb = SocketGem.get(gemStack);
+    if (gemStack == null) {
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(notSocketGemMeta);
+      return;
+    }
+    if (gemb == null) {
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(notSocketGemMeta);
+      return;
+    }
+    if ("transmute".equals(gemb.getId())) {
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(noTransmuteMeta);
+      return;
     }
   }
 
@@ -197,10 +250,11 @@ public final class PreCraftListener implements Listener {
     }
 
     int itemLevel = data.getCustomLevel();
-    int essenceLevel = stat.getEssenceLevel(stat.getLevel());
-    int craftingLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.CRAFTING);
-    double levelAdvantage = craftingLevel + 10 - itemLevel;
-    if (levelAdvantage < 0) {
+    var champ = StrifePlugin.getMob(player);
+    var craftRank = SkillRank.getRank(champ, LifeSkillType.CRAFTING);
+    var essenceLevel = stat.getEssenceLevel(stat.getLevel());
+    var maxActionLevel = CraftingUtil.getMaxActionLevel(craftRank);
+    if (essenceLevel > maxActionLevel) {
       craftingInventory.getResult().setType(Material.BARRIER);
       craftingInventory.getResult().setItemMeta(lowLevelMeta);
       return;

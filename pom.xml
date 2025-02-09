@@ -98,13 +98,13 @@
     <dependency>
       <groupId>com.loohp</groupId>
       <artifactId>InteractiveChat</artifactId>
-      <version>4.2.14.0</version>
+      <version>4.2.16.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.loohp</groupId>
       <artifactId>InteractiveChatDiscordSrvAddon</artifactId>
-      <version>4.2.14.0</version>
+      <version>4.2.16.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -147,6 +147,12 @@
       <groupId>com.github.retrooper</groupId>
       <artifactId>packetevents-spigot</artifactId>
       <version>2.6.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.shynixn.headdatabase</groupId>
+      <artifactId>hdb-api</artifactId>
+      <version>1.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

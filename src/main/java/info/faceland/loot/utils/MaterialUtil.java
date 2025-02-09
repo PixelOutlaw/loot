@@ -26,11 +26,14 @@ import info.faceland.loot.LootPlugin;
 import info.faceland.loot.builders.ItemBuilder;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.pdc.EquipmentData;
+import info.faceland.loot.data.pdc.StoredStat;
 import info.faceland.loot.groups.ItemGroup;
 import info.faceland.loot.items.LevelModItem;
 import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ShardOfFailure;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import land.face.strife.data.champion.Champion;
@@ -51,16 +54,10 @@ import org.codehaus.plexus.util.StringUtils;
 
 public final class MaterialUtil {
 
-  public static final Pattern ONLY_LETTERS = Pattern.compile("[^A-za-z]");
-  private static final Pattern DIGITS = Pattern.compile("[^0-9.-]");
-
   private static String upgradeFailureMsg;
   private static String upgradeItemDestroyMsg;
-  private static String upgradeItemDestroyBroadcast;
   private static String upgradeItemDamageMsg;
-  private static String upgradeItemNoDamageMsg;
   private static String upgradeSuccessMsg;
-  private static String upgradeSuccessBroadcast;
 
   public static final String FAILURE_BONUS = ChatColor.RED + "Failure Bonus";
 
@@ -78,16 +75,10 @@ public final class MaterialUtil {
         .getString("language.upgrade.failure", "");
     upgradeItemDestroyMsg = LootPlugin.getInstance().getSettings()
         .getString("language.upgrade.destroyed", "");
-    upgradeItemDestroyBroadcast = LootPlugin.getInstance().getSettings()
-        .getString("language.broadcast.destroyed-item");
     upgradeItemDamageMsg = LootPlugin.getInstance().getSettings()
         .getString("language.upgrade.damaged", "");
-    upgradeItemNoDamageMsg = LootPlugin.getInstance().getSettings()
-        .getString("language.upgrade.not-damaged", "");
     upgradeSuccessMsg = LootPlugin.getInstance().getSettings()
         .getString("language.upgrade.success", "");
-    upgradeSuccessBroadcast = LootPlugin.getInstance().getSettings()
-        .getString("language.broadcast.upgraded-item");
   }
 
   public static double getSuccessChance(Champion champion, int targetPlus, ItemStack scrollStack,
@@ -96,7 +87,7 @@ public final class MaterialUtil {
     success -= scroll.getFlatDecay() * targetPlus;
     success *= 1 - (scroll.getPercentDecay() * targetPlus);
     success = Math.pow(success, scroll.getExponent());
-    success += SkillRank.isRank(champion, LifeSkillType.ENCHANTING, SkillRank.JOURNEYMAN) ? 0.02 : 0;
+    success += SkillRank.isRank(champion, LifeSkillType.ENCHANTING, SkillRank.EXPERT) ? 0.02 : 0;
     if (success <= 1) {
       success += (1 - success) * getFailureMod(getFailureBonus(scrollStack));
     }
@@ -408,6 +399,40 @@ public final class MaterialUtil {
     }
   }
 
+  public static void doWarpEffects(LootPlugin plugin, ItemStack equipmentItem, ItemStack tongs, Player player) {
+    EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
+    if (data == null) {
+      PaletteUtil.sendMessage(player, "|yellow|Only equipment can be tong'd!");
+      return;
+    }
+    boolean isUnique = PersistHelper.isUnique(data, equipmentItem);
+    if (isUnique) {
+      PaletteUtil.sendMessage(player, "|yellow|This upgrade cannot be used on uniques!");
+      return;
+    }
+    if (data.getTier().getSecondaryStats().size() <= 1) {
+      PaletteUtil.sendMessage(player, "|yellow|This equipment has no other secondary stat options!");
+      return;
+    }
+    var secondaryStats = new ArrayList<>(data.getTier().getSecondaryStats());
+    for (var ss : data.getCoreStats()) {
+      secondaryStats.removeIf(s -> s.getStat() == ss.getStat().getStat());
+    }
+    Collections.shuffle(secondaryStats);
+    StoredStat newSecondary = new StoredStat(secondaryStats.getFirst().getId(), 1);
+    data.getCoreStats().set(1, newSecondary);
+
+    PersistHelper.setEquipmentData(equipmentItem, data);
+    plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player,
+        LifeSkillType.ENCHANTING, 200, false, false);
+    if (LootPlugin.RNG.nextFloat() > 0.35) {
+      player.playSound(player.getEyeLocation(), Sound.BLOCK_CREAKING_HEART_FALL, 1F, 1F);
+      tongs.setAmount(tongs.getAmount() - 1);
+    } else {
+      player.playSound(player.getEyeLocation(), Sound.BLOCK_CREAKING_HEART_FALL, 1F, 1F);
+    }
+  }
+
   public static void doPolishEffects(LootPlugin plugin, ItemStack polishItem, ItemStack equipmentItem, Player player) {
     EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
     if (data == null) {
@@ -520,9 +545,9 @@ public final class MaterialUtil {
       PaletteUtil.sendMessage(player, "|yellow|Only equipment can have their rarity increased!");
       return;
     }
-    String id = PersistHelper.getItemId(equipmentItem);
-    if (StringUtils.isNotBlank(id)) {
-      PaletteUtil.sendMessage(player, "|yellow|This item cannot be used on uniques!");
+    boolean isUnique = PersistHelper.isUnique(data, equipmentItem);
+    if (isUnique) {
+      PaletteUtil.sendMessage(player, "|yellow|This upgrade cannot be used on uniques!");
       return;
     }
     ItemRarity rarity = data.getItemRarity();

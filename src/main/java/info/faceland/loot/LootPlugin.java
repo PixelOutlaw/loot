@@ -35,6 +35,7 @@ import info.faceland.loot.data.MobLootTable;
 import info.faceland.loot.data.pdc.EquipmentDetailsType;
 import info.faceland.loot.data.pdc.GenericStatsType;
 import info.faceland.loot.groups.ItemGroup;
+import info.faceland.loot.items.CosmeticHead;
 import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.items.EnchantmentTome;
 import info.faceland.loot.items.LevelModItem;
@@ -117,7 +118,7 @@ public final class LootPlugin extends FacePlugin {
   @Getter
   private VersionedSmartYamlConfiguration itemGroupsYml, rarityYAML, socketGemsYAML, scrollsYAML, languageYAML,
       randomAffixes, configYAML, enchantmentTomesYAML, uniqueDropsYAML, materialsYml, soulGemsYml, mortarYAML,
-      levelModItemsYml;
+      levelModItemsYml, cosmeticHeadYml;
 
   @Getter
   private StatManager statManager;
@@ -197,6 +198,7 @@ public final class LootPlugin extends FacePlugin {
     mortarYAML = defaultLoadConfig("pulverize.yml");
     materialsYml = defaultLoadConfig("materials.yml");
     soulGemsYml = defaultLoadConfig("soul-gems.yml");
+    cosmeticHeadYml = defaultLoadConfig("cosmetic-heads.yml");
     levelModItemsYml = defaultLoadConfig("level-mod-items.yml");
 
     settings = MasterConfiguration.loadFromFiles(languageYAML, configYAML);
@@ -274,9 +276,6 @@ public final class LootPlugin extends FacePlugin {
       e.printStackTrace();
     }
 
-    Bukkit.getOnlinePlayers().forEach(p ->
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "recipe give " + p.getName() + " *"));
-
     customItemManager.loadNewUniques(fetchNewUniques());
     loadUniqueDrops();
 
@@ -287,6 +286,7 @@ public final class LootPlugin extends FacePlugin {
     CraftMaterial.buildGeneric();
     CraftMaterial.loadFromFile(materialsYml);
     SoulGem.loadFromFile(soulGemsYml);
+    CosmeticHead.loadFromFile(cosmeticHeadYml);
     LevelModItem.loadFromFile(levelModItemsYml);
     EnchantmentTome.loadFromFile(this, enchantmentTomesYAML);
 
@@ -306,6 +306,7 @@ public final class LootPlugin extends FacePlugin {
     ManaCrystal.rebuild();
     DistortionCell.rebuild();
     DivineHammer.rebuild();
+    WarpedTongs.rebuild();
     PerfectSphere.rebuild();
     AspectOfPerfection.rebuild();
     TraceOfTrash.rebuild();
@@ -333,6 +334,7 @@ public final class LootPlugin extends FacePlugin {
     commandManager.getCommandCompletions().registerCompletion("uniques", c -> customItemManager.listCustomItems());
     commandManager.getCommandCompletions().registerCompletion("materials", c -> CraftMaterial.getMaterials().keySet());
     commandManager.getCommandCompletions().registerCompletion("soulgems", c -> SoulGem.getGemList());
+    commandManager.getCommandCompletions().registerCompletion("heads", c -> CosmeticHead.getHeadList());
     commandManager.getCommandCompletions().registerCompletion("levelmoditems", c -> LevelModItem.getModsList());
 
     Bukkit.getPluginManager().registerEvents(new EntityDeathListener(this), this);
@@ -349,6 +351,9 @@ public final class LootPlugin extends FacePlugin {
     Bukkit.getPluginManager().registerEvents(new EnchantMenuListener(), this);
     Bukkit.getPluginManager().registerEvents(new ItemListListener(this), this);
     Bukkit.getPluginManager().registerEvents(new HeadHelmetsListener(), this);
+    if (Bukkit.getPluginManager().getPlugin("HeadDatabase") != null) {
+      Bukkit.getPluginManager().registerEvents(new HeadLoadListener(), this);
+    }
     Bukkit.getPluginManager().registerEvents(new SoulGemListener(), this);
     Bukkit.getPluginManager().registerEvents(new PawnMenuListener(this), this);
     Bukkit.getPluginManager().registerEvents(new SalvageMenuListener(this), this);
@@ -356,11 +361,24 @@ public final class LootPlugin extends FacePlugin {
     Bukkit.getPluginManager().registerEvents(new MortarListener(this), this);
     Bukkit.getPluginManager().registerEvents(new LoreglassListener(this), this);
 
+    // Must be after gems load
+    try {
+      Bukkit.addRecipe(constructTransmuteRecipe());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    Bukkit.getOnlinePlayers().forEach(p ->
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "recipe give " + p.getName() + " *"));
+
     if (strifePlugin != null) {
       Bukkit.getPluginManager().registerEvents(new StrifeListener(this), this);
       VagabondEquipListener vagabondEquipListener = new VagabondEquipListener(this);
       vagabondEquipListener.loadData(configYAML.getConfigurationSection("vagabonds"));
       Bukkit.getPluginManager().registerEvents(vagabondEquipListener, this);
+    }
+    if (CosmeticHead.DB_LOADED) {
+      CosmeticHead.rebuild(true);
     }
 
     stackSanitizeListener = PacketEvents.getAPI().getEventManager()
@@ -577,6 +595,20 @@ public final class LootPlugin extends FacePlugin {
     recipe.addIngredient(Material.GHAST_TEAR);
     recipe.addIngredient(new MaterialChoice(Tier.EVERY_MAT.toArray(new Material[0])));
 
+    return recipe;
+  }
+
+  private Recipe constructTransmuteRecipe() {
+    NamespacedKey key = new NamespacedKey(this, "transmute");
+    var gemb = SocketGem.get("transmute");
+    if (gemb == null) {
+      CraftingListener.TRANSMUTE_RECIPE = null;
+      return null;
+    }
+    ShapelessRecipe recipe = new ShapelessRecipe(key, gemb.item());
+    recipe.addIngredient(Material.EMERALD);
+
+    CraftingListener.TRANSMUTE_RECIPE = recipe;
     return recipe;
   }
 

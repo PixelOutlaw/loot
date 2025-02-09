@@ -13,6 +13,7 @@ softdepend:
   - InteractiveChatDiscordSrvAddon
   - RecipeManager
   - RPGHealthAndFoods
+  - HeadDatabase
 
 commands:
   loot:

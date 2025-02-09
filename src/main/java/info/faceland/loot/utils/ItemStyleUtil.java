@@ -138,6 +138,9 @@ public class ItemStyleUtil {
       return EMPTY_GEM;
     }
     SocketGem gem = sockets.get(index);
+    if (gem == null) {
+      return GEM_T1;
+    }
     return switch (gem.getCustomModelData()) {
       case 2000 -> GEM_T1;
       case 2001 -> GEM_T2;
