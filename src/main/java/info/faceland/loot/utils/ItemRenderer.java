@@ -646,7 +646,7 @@ public class ItemRenderer {
     return sr;
   }
 
-  private static void applyUntradeable(ItemStack stack, List<String> lore, boolean large) {
+  public static void applyUntradeable(ItemStack stack, List<String> lore, boolean large) {
     if (!PersistHelper.isTradeLocked(stack) || lore.isEmpty()) {
       return;
     }

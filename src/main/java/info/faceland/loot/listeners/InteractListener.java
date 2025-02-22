@@ -18,9 +18,6 @@
  */
 package info.faceland.loot.listeners;
 
-import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
-import static info.faceland.loot.utils.MaterialUtil.FAILURE_BONUS;
-
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.items.NewCustomItem;

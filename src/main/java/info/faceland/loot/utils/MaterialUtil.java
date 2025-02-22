@@ -448,7 +448,7 @@ public final class MaterialUtil {
     polishItem.setAmount(polishItem.getAmount() - 1);
   }
 
-  public static void doWorsenEffects(LootPlugin plugin, ItemStack shitItem, ItemStack equipmentItem, Player player) {
+  public static void doWorsenEffects(LootPlugin plugin, ItemStack equipmentItem, ItemStack shitItem, Player player) {
     EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
     if (data == null) {
       PaletteUtil.sendMessage(player, "|yellow|Only equipment can be worsened!");
@@ -462,7 +462,7 @@ public final class MaterialUtil {
     shitItem.setAmount(shitItem.getAmount() - 1);
   }
 
-  public static void doFlipEffects(LootPlugin plugin, ItemStack flipItem, ItemStack equipmentItem, Player player) {
+  public static void doFlipEffects(LootPlugin plugin, ItemStack equipmentItem, ItemStack flipItem, Player player) {
     EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
     if (data == null) {
       PaletteUtil.sendMessage(player, "|yellow|Only equipment can have stats flipped!");
@@ -564,7 +564,8 @@ public final class MaterialUtil {
       // TODO: could maybe be more??
       data.addBonusStat();
     }
-    if (data.getSockets().size() + data.getEmptyExtendSlots() < data.getTier().getMinSockets(rarity.getId())) {
+    if (data.getSockets().size() + data.getEmptyGemSlots() + data.getEmptyExtendSlots()
+        < data.getTier().getMinSockets(rarity.getId())) {
       data.setEmptyExtendSlots(data.getEmptyExtendSlots() + 1);
     }
     PersistHelper.setEquipmentData(equipmentItem, data);
