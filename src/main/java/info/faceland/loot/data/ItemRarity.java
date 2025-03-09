@@ -4,6 +4,7 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.ChatColor;
+import org.bukkit.NamespacedKey;
 
 @Getter
 @Setter
@@ -19,7 +20,8 @@ public class ItemRarity {
   private String name;
   private String plainName;
   private String tooltipPlate;
-  private String tooltip;
+  private String tooltipPlateCrafted;
+  private NamespacedKey tooltip;
   private double weight;
   private int minimumBonusStats;
   private int maximumBonusStats;

@@ -174,7 +174,9 @@ public class PersistHelper {
   public static void syncUniqueEquipment(ItemStack stack, EquipmentData data, NewCustomItem ci) {
     stack.setType(ci.getMaterial());
     ItemStackExtensionsKt.setCustomModelData(stack, ci.getCustomDataNumber());
-    data.setString("name", ci.getItemName());
+    if (!data.isNameEdited()) {
+      data.setString("name", ci.getItemName());
+    }
     data.setInt("modelData", ci.getCustomDataNumber());
     data.setLevel(ci.getItemLevel());
     data.setTier(ci.getTier());

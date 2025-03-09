@@ -88,7 +88,7 @@ import org.bukkit.persistence.PersistentDataType;
 public class ItemRenderer {
 
   private static Multimap<Attribute, AttributeModifier> BS_MAP = excreteBullshit();
-  private static String FIXED_WIDTH_BUFFER = "\uF82C\uF829\uF825";
+  private static String FIXED_WIDTH_BUFFER = "\uF82C\uF829\uF824";
   //private static NamespacedKey aa = NamespacedKey.minecraft()new NamespacedKey(this, "loot.item_data");
 
   public static void renderItem(ItemStack stack, boolean force) {
@@ -283,11 +283,10 @@ public class ItemRenderer {
     FaceColor color;
     NamespacedKey tooltip;
     if (unique == null) {
-      // TODO: pull from rarity
-      tooltip = null;
+      tooltip = r.getTooltip();
       if (StringUtils.isNotBlank(data.getString("craftedBy"))) {
         color = FaceColor.YELLOW;
-        plate = "俌";
+        plate = r.getTooltipPlateCrafted();
       } else {
         color = r.getColor();
         plate = r.getTooltipPlate();
@@ -327,8 +326,9 @@ public class ItemRenderer {
       plus = ItemStyleUtil.upgradeNumbers.get(scaledPlus - 1);
     }
     // MAYBE CHECK FOR SMALL VS LARGE? Should always be large though
-    lore.add(FaceColor.NO_SHADOW + "\uF808" + plate + "\uF80C\uF80B\uF828" + plus);
-    lore.add(HALFWAY + GUI.spacesOf(1 + (-countTitleSize(name) / 2)) + FaceColor.TRUE_WHITE + doNameThing(name) + "\uF80C");
+    lore.add(FaceColor.NO_SHADOW + plate + plus);
+    lore.add(HALFWAY + GUI.spacesOf(-countTitleSize(name) / 2) +
+        FaceColor.TRUE_WHITE + doNameThing(name, data.isNameEdited()) + "\uF80C");
     String subtitle = rarityName + " " + tier.getPlainName();
     lore.add(HALFWAY + GUI.spacesOf(-countSubtitleSize(subtitle) / 2) + color + doSuffix(subtitle) + "\uF80C");
     String distortion = "";
@@ -641,7 +641,7 @@ public class ItemRenderer {
         flatBonus
     );
     //System.out.println(sr.getStatString() + " " + sr.getValue());
-    stat.setCachedValue(sr.getValue());
+    stat.setCachedValue(stat.isInverted() ? -sr.getValue() : sr.getValue());
     stat.setSortOrder(sr.getValue() > 0 ? sr.getStatRoll() : -1);
     return sr;
   }

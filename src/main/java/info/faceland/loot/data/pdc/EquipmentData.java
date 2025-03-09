@@ -148,6 +148,18 @@ public class EquipmentData implements Serializable {
     intData.remove("custom-level");
   }
 
+  public boolean isNameEdited() {
+    return booleanData.containsKey("name-edited");
+  }
+
+  public void setNameEdited(boolean edited) {
+    if (edited) {
+      booleanData.put("name-edited", true);
+    } else {
+      booleanData.remove("name-edited");
+    }
+  }
+
   public void setCreationDate(String creation) {
     stringData.put("creation-date", creation);
   }

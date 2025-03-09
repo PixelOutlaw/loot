@@ -24,10 +24,12 @@ import com.tealcube.minecraft.bukkit.facecore.plugin.FacePlugin;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.shade.acf.PaperCommandManager;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.api.managers.UniqueDropsManager;
 import info.faceland.loot.builders.ItemBuilder;
 import info.faceland.loot.commands.ItemModifyCommand;
 import info.faceland.loot.commands.LootCommand;
+import info.faceland.loot.commands.RenameItemCommand;
 import info.faceland.loot.commands.UpdateItemCommand;
 import info.faceland.loot.data.ItemRarity;
 import info.faceland.loot.data.ItemStat;
@@ -324,6 +326,7 @@ public final class LootPlugin extends FacePlugin {
     PaperCommandManager commandManager = new PaperCommandManager(this);
     commandManager.registerCommand(new LootCommand(this));
     commandManager.registerCommand(new ItemModifyCommand(this));
+    commandManager.registerCommand(new RenameItemCommand(this));
     commandManager.registerCommand(new UpdateItemCommand(this));
 
     commandManager.getCommandCompletions().registerCompletion("gems", c -> SocketGem.getGems().keySet());
@@ -543,6 +546,10 @@ public final class LootPlugin extends FacePlugin {
       rarity.setName(cs.getString("name"));
       rarity.setPlainName(cs.getString("plain-name"));
       rarity.setTooltipPlate(cs.getString("tooltip-plate"));
+      var craftedPlate = cs.getString("tooltip-plate-crafted");
+      rarity.setTooltipPlateCrafted(StringUtils.isNotBlank(craftedPlate) ? craftedPlate : rarity.getTooltipPlate());
+      var tt = cs.getString("tooltip-id", null);
+      rarity.setTooltip(tt == null ? null : NamespacedKey.fromString(tt));
       rarity.setColor(FaceColor.valueOf(cs.getString("color")));
       rarity.setGlowColor(ChatColor.valueOf(cs.getString("glow-color", "WHITE")));
       rarity.setAlwaysGlow(cs.getBoolean("always-glow", false));

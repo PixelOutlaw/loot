@@ -213,8 +213,8 @@ public class ItemStyleUtil {
         .replace(" ", "乚\uF802");
   }
 
-  public static String doNameThing(String s) {
-    return s.toLowerCase()
+  public static String doNameThing(String s, boolean edited) {
+    String str = s.toLowerCase()
         .replace("a", "俐")
         .replace("b", "俑")
         .replace("c", "俒")
@@ -242,6 +242,10 @@ public class ItemStyleUtil {
         .replace("y", "俨")
         .replace("z", "俩")
         .replace("'", "俏");
+    if (edited) {
+      str += "俻";
+    }
+    return str;
   }
 
   public static String doSmallNameThing(String s) {

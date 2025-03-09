@@ -145,7 +145,8 @@ public class NewCustomItem {
     }
     if (printName) {
       if (large) {
-        lore.add(HALFWAY + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doNameThing(name) + "\uF80C");
+        lore.add(HALFWAY + GUI.spacesOf(-countTitleSize(name) / 2) +
+            FaceColor.TRUE_WHITE + doNameThing(name, false) + "\uF80C");
       } else {
         lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C");
       }
@@ -205,7 +206,7 @@ public class NewCustomItem {
     ci.setStackSize(section.getInt("stack-size", -1));
     ci.setTier(Tier.get(section.getString("tier")));
     ci.setQuality(section.getInt("quality", 1));
-    ci.setPlateString(section.getString("nameplate", ""));
+    ci.setPlateString(section.getString("nameplate", "\uF819\uF818\uF812\uF804乞\uF81C\uF81A\uF81A\uF808\uF804"));
     var tt = section.getString("tooltip-id", null);
     ci.setTooltip(tt == null ? null : NamespacedKey.fromString(tt));
     ci.setColor(FaceColor.valueOf(section.getString("color", "ORANGE")));
@@ -232,6 +233,21 @@ public class NewCustomItem {
     ci.setDropLevel(section.getInt("drop-level", 0));
     ci.setDropRange(section.getInt("drop-range", 1));
     ci.setBroadcast(section.getBoolean("broadcast", false));
+
+    if (ci.getTooltip() == null) {
+      if (ci.getWeight() >= 2000) {
+        ci.setTooltip(NamespacedKey.fromString("equipment_common"));
+      } else if (ci.getWeight() >= 1000) {
+        ci.setTooltip(NamespacedKey.fromString("equipment_uncommon"));
+      } else if (ci.getWeight() >= 100) {
+        ci.setTooltip(NamespacedKey.fromString("equipment_rare"));
+      } else if (ci.getWeight() >= 1) {
+        ci.setTooltip(NamespacedKey.fromString("equipment_epic"));
+      } else {
+        ci.setTooltip(NamespacedKey.fromString("equipment_common"));
+      }
+    }
+
     ci.setExport(section.getBoolean("export", ci.getWeight() > 0));
 
     ci.setMountId(section.getString("mount-id", null));

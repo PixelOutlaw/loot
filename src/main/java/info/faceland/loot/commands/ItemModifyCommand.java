@@ -162,6 +162,20 @@ public class ItemModifyCommand extends BaseCommand {
       return;
     }
     data.setString("name", text);
+    data.setNameEdited(false);
+    PersistHelper.setEquipmentData(stack, data);
+  }
+
+  @Subcommand("edit name-custom")
+  @CommandPermission("loot.editor")
+  public void editNameCustom(Player player, String text) {
+    ItemStack stack = player.getEquipment().getItemInMainHand();
+    EquipmentData data = validateItemData(player, stack);
+    if (data == null) {
+      return;
+    }
+    data.setString("name", text);
+    data.setNameEdited(true);
     PersistHelper.setEquipmentData(stack, data);
   }
 
