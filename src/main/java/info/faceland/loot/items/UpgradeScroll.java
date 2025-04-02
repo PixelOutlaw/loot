@@ -120,7 +120,7 @@ public final class UpgradeScroll {
       UpgradeScroll scroll = new UpgradeScroll();
       scroll.setId(key.toLowerCase());
       scroll.setPrefix(cs.getString("prefix", "CONFIGURE PREFIX FOR SCROLL" + key));
-      scroll.setLore(PaletteUtil.color(cs.getStringList("lore")));
+      scroll.setLore(cs.getStringList("lore"));
       scroll.setBaseSuccess(cs.getDouble("base-success", 1.0));
       scroll.setFlatDecay(cs.getDouble("flat-decay", 0.01));
       scroll.setPercentDecay(cs.getDouble("percent-decay", 0.01));
@@ -148,7 +148,7 @@ public final class UpgradeScroll {
     lore.add(
         HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C");
     stack.setType(Material.PAPER);
-    for (String s : this.lore) {
+    for (String s : PaletteUtil.color(this.lore)) {
       lore.add(centerSmallText(s));
     }
     lore.remove(2);

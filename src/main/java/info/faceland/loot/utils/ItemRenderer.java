@@ -379,6 +379,7 @@ public class ItemRenderer {
     String statPrefix = "";
     if (!data.getBonusStats().isEmpty()) {
       lore.add(FIXED_WIDTH_BUFFER);
+      PersistHelper.validateCraftStats(data);
       data.updateUniqueMultipliers(unique);
       Map<StoredStat, StatResponse> tempRollMap = new HashMap<>();
       for (StoredStat stat : data.getBonusStats()) {
@@ -431,7 +432,7 @@ public class ItemRenderer {
     if (data.hasEnchantmentSlot()) {
       if (data.getEnchantment() == null) {
         lore.add(FIXED_WIDTH_BUFFER);
-        lore.add(FaceColor.NO_SHADOW + "\uF805严\uF80A");
+        lore.add(FaceColor.NO_SHADOW + "\uF806严\uF80A");
         lore.add("");
       } else {
         boolean enhanced = data.isEnhanced();
@@ -513,7 +514,7 @@ public class ItemRenderer {
         lore.add(FaceColor.ORANGE + centerLargeText("- Socket Slots -"));
       }
       lore.add(FaceColor.TRUE_WHITE +
-          ItemStyleUtil.generateGemString(totalGemSlots, data.getEmptyExtendSlots(), data.getSocketGems()));
+          ItemStyleUtil.generateGemString(totalGemSlots, data.getEmptyExtendSlots(), data.getSocketGems()) + "\uF81B");
       lore.add("");
     }
 
@@ -604,7 +605,7 @@ public class ItemRenderer {
     return !loreAbilities.isEmpty() || !traits.isEmpty();
   }
 
-  private static StatResponse buildStatResponse(LootPlugin plugin, int level, int upgradeLevel,
+  public static StatResponse buildStatResponse(LootPlugin plugin, int level, int upgradeLevel,
       double backupRarityPower, StoredStat stat, int statOrder) {
     ItemStat itemStat = stat.getStat();
     if (itemStat == null) {
@@ -650,7 +651,7 @@ public class ItemRenderer {
     if (!PersistHelper.isTradeLocked(stack) || lore.isEmpty()) {
       return;
     }
-    String originalString = lore.get(lore.size() - 1);
+    String originalString = lore.getLast();
     lore.set(lore.size() - 1, (large ? UNTRADEABLE_NORMAL : UNTRADEABLE_SMALL) + originalString);
   }
 

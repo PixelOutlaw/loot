@@ -145,7 +145,7 @@ public class DropUtil implements Listener {
 
     boolean normalDrop = bonusWithCheeseAndLevelPenalty * normalDropChance > LootPlugin.RNG.nextFloat();
     while (!bonusDrops.isEmpty() || normalDrop) {
-      Tier tier = getTier(killer);
+      Tier tier = getTier(killer, (int) itemLevel);
       ItemRarity rarity = plugin.getRarityManager().getRandomRarity(rarityBonus, -1);
       if (!bonusDrops.isEmpty()) {
         ItemRarity dropRarity = bonusDrops.get(LootPlugin.RNG.nextInt(0, bonusDrops.size()));
@@ -395,9 +395,9 @@ public class DropUtil implements Listener {
     }
   }
 
-  public static Tier getTier(Player killer) {
+  public static Tier getTier(Player killer, int dropLevel) {
     if (killer == null || customizedTierChance < LootPlugin.RNG.nextFloat()) {
-      return Tier.getRandomTier();
+      return Tier.getRandomTier(dropLevel);
     }
     List<ItemStack> itemStacks = getWornItems(killer);
     List<Tier> wornTiers = new ArrayList<>();
@@ -409,7 +409,7 @@ public class DropUtil implements Listener {
       wornTiers.add(data.getTier());
     }
     if (wornTiers.isEmpty()) {
-      return Tier.getRandomTier();
+      return Tier.getRandomTier(dropLevel);
     }
     return wornTiers.get(LootPlugin.RNG.nextInt(0, wornTiers.size()));
   }

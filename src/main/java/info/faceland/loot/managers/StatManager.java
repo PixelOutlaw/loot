@@ -89,7 +89,11 @@ public class StatManager {
     String value = Integer.toString(statValue);
     if (itemStat.getStat() != null) {
       if (statValue >= 0) {
-        component.setText("+" + value + (itemStat.isPercentage() ? "% " : " ") + itemStat.getStat().getName());
+        if (itemStat.isShowPlus()) {
+          component.setText("+" + value + (itemStat.isPercentage() ? "% " : " ") + itemStat.getStat().getName());
+        } else {
+          component.setText(value + (itemStat.isPercentage() ? "% " : " ") + itemStat.getStat().getName());
+        }
       } else {
         component.setText(value + (itemStat.isPercentage() ? "% " : " ") + itemStat.getStat().getName());
       }
@@ -128,6 +132,7 @@ public class StatManager {
           stat.setMinBrightness((float) cs.getDouble("min-brightness", 1));
           stat.setMaxBrightness((float) cs.getDouble("max-brightness", 1));
           stat.setMinimumItemLevel(cs.getInt("minimum-item-level", -10));
+          stat.setShowPlus(cs.getBoolean("show-plus", true));
           stat.getNamePrefixes().clear();
           stat.getNamePrefixes().addAll(cs.getStringList("prefixes"));
           String statStr = cs.getString("stat", "");

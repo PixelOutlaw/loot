@@ -37,6 +37,7 @@ import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.data.champion.SkillRank;
 import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.PlayerDataUtil;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -261,6 +262,18 @@ public final class CraftingListener implements Listener {
                 LifeSkillType.CRAFTING, 25, false, false), 0L);
         return;
       }
+    }
+  }
+
+  @EventHandler(priority = EventPriority.MONITOR)
+  public void onEssenceInfuseFailsafe(CraftItemEvent event) {
+    if (event.isCancelled()) {
+      return;
+    }
+    var result = event.getInventory().getResult();
+    if (result == null || result.getType() == Material.END_CRYSTAL) {
+      MessageUtils.sendMessage(event.getWhoClicked(), ChatColor.RED + "Crafting failed!");
+      event.setCancelled(true);
     }
   }
 

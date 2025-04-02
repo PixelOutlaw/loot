@@ -87,13 +87,39 @@ public final class SocketGem {
   @Setter(value = AccessLevel.NONE)
   private ItemStack builtItem;
 
+  private static Map<String, String> CONVERTZ = Map.ofEntries(
+      Map.entry("deflect_i", "parry_i"),
+      Map.entry("deflect_ii", "parry_ii"),
+      Map.entry("deflect_iii", "parry_iii"),
+      Map.entry("deflect_iv", "parry_iv"),
+      Map.entry("discovery_i", "discovery"),
+      Map.entry("discovery_ii", "discovery"),
+      Map.entry("discovery_iii", "discovery"),
+      Map.entry("discovery_iv", "discovery"),
+      Map.entry("fortune_i", "fortune"),
+      Map.entry("fortune_ii", "fortune"),
+      Map.entry("fortune_iii", "fortune"),
+      Map.entry("fortune_iv", "fortune"),
+      Map.entry("sharpen_i", "impact_i"),
+      Map.entry("sharpen_ii", "impact_ii"),
+      Map.entry("sharpen_iii", "impact_iii"),
+      Map.entry("sharpen_iv", "impact_iv"),
+      Map.entry("shoot_i", "impact_i"),
+      Map.entry("shoot_ii", "impact_ii"),
+      Map.entry("shoot_iii", "impact_iii"),
+      Map.entry("shoot_iv", "impact_iv"),
+      Map.entry("imbue", "elemental_energy")
+  );
+
   public SocketGem(String id) {
     this.id = id;
     this.lore = new ArrayList<>();
   }
 
   public static SocketGem get(String id) {
-    return gems.getOrDefault(id.toLowerCase().replace(" ", "_"), null);
+    var trueId = id.toLowerCase().replace(" ", "_");
+    trueId = CONVERTZ.getOrDefault(trueId, trueId);
+    return gems.getOrDefault(trueId, null);
   }
 
   public static SocketGem get(ItemStack stack) {
@@ -178,7 +204,7 @@ public final class SocketGem {
       }
     }
     for (String s : this.lore) {
-      lore.add(centerSmallText(s));
+      lore.add(centerSmallText(PaletteUtil.color(s)));
     }
     lore.add("");
     lore.addAll(List.of(
@@ -210,6 +236,34 @@ public final class SocketGem {
     ItemRenderer.applyCommonFlags(builtItem);
   }
 
+  public static List<String> getExportLore(SocketGem gem) {
+    List<String> lore = new ArrayList<>();
+    for (var stuff : gem.percentStats.entrySet()) {
+      int val = Math.round(stuff.getValue());
+      if (val >= 0) {
+        lore.add("|orange|+" + val + "% " + stuff.getKey().getName());
+      } else {
+        lore.add("|red|" + val + "% " + stuff.getKey().getName());
+      }
+    }
+    for (var stuff : gem.stats.entrySet()) {
+      int val = Math.round(stuff.getValue());
+      if (val >= 0) {
+        lore.add("|orange|+" + val + " " + stuff.getKey().getName());
+      } else {
+        lore.add("|red|" + val + " " + stuff.getKey().getName());
+      }
+    }
+    for (var stuff : gem.traits) {
+      lore.addAll(stuff.getAdditionalTextRaw());
+    }
+    for (var stuff : gem.loreAbilities) {
+      lore.addAll(stuff.getRawDescription());
+    }
+    lore.addAll(gem.lore);
+    return lore;
+  }
+
   public static void loadFromFile(LootPlugin plugin, SmartYamlConfiguration file) {
     gems.clear();
     for (String key : file.getKeys(false)) {
@@ -228,7 +282,7 @@ public final class SocketGem {
         gem.setWeightPerLevel(cs.getDouble("weight-per-level"));
         gem.setCustomModelData(cs.getInt("custom-model-data", 2000));
         gem.setItemGroup(ItemGroup.get(cs.getString("item-group")));
-        gem.setLore(PaletteUtil.color(cs.getStringList("lore")));
+        gem.setLore(cs.getStringList("lore"));
         gem.setStats(StatUtil.getStatMapFromSection(cs.getConfigurationSection("stats")));
         gem.setPercentStats(StatUtil.getStatMapFromSection(cs.getConfigurationSection("percentage-stats")));
         gem.setTraits(getTraits(trueId, cs.getStringList("traits")));

@@ -33,6 +33,7 @@ import info.faceland.loot.items.Tier;
 import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.utils.CraftingUtil;
 import info.faceland.loot.utils.EssenceUtil;
+import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.MaterialUtil;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
@@ -222,15 +223,20 @@ public final class PreCraftListener implements Listener {
       }
       equipmentItem = loopItem;
     }
-
     if (essenceStack == null || equipmentItem == null) {
       craftingInventory.getResult().setType(Material.BARRIER);
       craftingInventory.getResult().setItemMeta(wrongTypeMeta);
       return;
     }
     EquipmentData data = PersistHelper.getEquipmentData(equipmentItem);
+    if (data == null) {
+      craftingInventory.getResult().setType(Material.BARRIER);
+      craftingInventory.getResult().setItemMeta(wrongTypeMeta);
+      return;
+    }
+    PersistHelper.validateCraftStats(data);
     StoredStat stat = PersistHelper.getEssenceStat(essenceStack);
-    if (data == null || stat == null) {
+    if (stat == null) {
       craftingInventory.getResult().setType(Material.BARRIER);
       craftingInventory.getResult().setItemMeta(wrongTypeMeta);
       return;
@@ -270,7 +276,7 @@ public final class PreCraftListener implements Listener {
 
     // TODO: use tier limits on stat combos
     for (var s : existingStats) {
-      if (s.getStat() == stat.getStat()) {
+      if (s == null || s.getStat() == null || stat.getStat() == null || s.getStat() == stat.getStat()) {
         craftingInventory.getResult().setType(Material.BARRIER);
         craftingInventory.getResult().setItemMeta(dupeStatMeta);
         return;

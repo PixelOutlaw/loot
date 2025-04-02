@@ -59,6 +59,9 @@ public class StoredStat implements Serializable {
       StoredStat removed = new StoredStat(stringData.get("statId"), doubleData.get("statRoll"));
       removed.copyFrom(this);
       setBoolean("essence", true);
+      setCrafted(false);
+      setDistorted(false);
+      setCachedValue(0);
       return removed;
     } else {
       setBoolean("essence", false);

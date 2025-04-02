@@ -27,7 +27,7 @@ public class ItemStat {
 
   private final List<String> namePrefixes = new ArrayList<>();
   private int minimumItemLevel;
-  private boolean hide;
+  private boolean hide, showPlus;
   private StrifeStat stat;
   private boolean percentage;
 

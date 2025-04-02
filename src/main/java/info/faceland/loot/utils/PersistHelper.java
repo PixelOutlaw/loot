@@ -104,6 +104,16 @@ public class PersistHelper {
     }
   }
 
+  public static void validateCraftStats(EquipmentData data) {
+    int originalSize = data.getBonusStats().size();
+    data.getBonusStats().removeIf(bs -> bs.getStat() == null && bs.isCrafted());
+    int craftDiff = originalSize - data.getBonusStats().size();
+    while (craftDiff > 0) {
+      data.addRandomEssenceSlot();
+      craftDiff--;
+    }
+  }
+
   public static StoredStat getEssenceStat(ItemStack stack) {
     if ("essence".equals(getItemType(stack))) {
       try {

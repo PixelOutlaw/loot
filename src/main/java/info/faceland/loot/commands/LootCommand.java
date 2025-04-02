@@ -17,6 +17,7 @@
 package info.faceland.loot.commands;
 
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
+import static info.faceland.loot.utils.ItemRenderer.buildStatResponse;
 
 import com.destroystokyo.paper.Namespaced;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
@@ -36,7 +37,10 @@ import com.tealcube.minecraft.bukkit.shade.google.gson.Gson;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.ItemRarity;
+import info.faceland.loot.data.StatResponse;
 import info.faceland.loot.data.export.ExportEntry;
+import info.faceland.loot.data.pdc.StoredStat;
+import info.faceland.loot.groups.ItemGroup;
 import info.faceland.loot.items.CosmeticHead;
 import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.items.EnchantmentTome;
@@ -65,6 +69,7 @@ import land.face.dinvy.DeluxeInvyPlugin;
 import land.face.dinvy.entity.PlayerData;
 import land.face.dinvy.windows.equipment.EquipmentMenu.DeluxeSlot;
 import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.stats.StrifeTrait;
 import land.face.strife.util.PlayerDataUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -177,96 +182,186 @@ public class LootCommand extends BaseCommand {
 
     List<ExportEntry> exportGems = new ArrayList<>();
     for (SocketGem gem : SocketGem.getGems().values()) {
-      ExportEntry exportGem = new ExportEntry();
-      exportGem.setTitle("Socket Gem");
-      exportGem.setName("|lime|" + gem.getName());
-      exportGem.setStrippedName(ChatColor.stripColor(PaletteUtil.color(exportGem.getName())));
-      List<String> lore = new ArrayList<>(gem.getLore());
-      lore.removeIf(str -> str.contains("Ս") || str.contains("tag_unique"));
-      exportGem.setDescription(lore);
-      // todo: groups
-      //exportGem.setGroupNames(buildItemTags(gem.getItemGroup()));
-      exportGem.getGroupNames().add("Upgrade");
-      if (gem.getWeight() == 0) {
-        exportGem.setSpecialFlag(gem.getBonusWeight() > 0 ? "transmute" : "event");
-        exportGem.setRarity(
-            gem.getBonusWeight() > 500 ? "Common" :
-                gem.getBonusWeight() > 50 ? "Uncommon" :
-                    gem.getBonusWeight() > 5 ? "Rare" : "Epic");
-      } else {
-        exportGem.setRarity(
-            gem.getWeight() > 500 ? "Common" :
-                gem.getWeight() > 50 ? "Uncommon" :
-                    gem.getWeight() > 5 ? "Rare" : "Epic");
+      try {
+        ExportEntry exportGem = new ExportEntry();
+        exportGem.setTitle("Socket Gem");
+        exportGem.setName("|lime|" + gem.getName());
+        exportGem.setDescription(SocketGem.getExportLore(gem));
+        exportGem.getGroupNames().add(gem.getItemGroup().getName());
+        exportGem.getGroupNames().add("Upgrade");
+        if (gem.getWeight() == 0) {
+          exportGem.setSpecialFlag(gem.getBonusWeight() > 0 ? "transmute" : "event");
+          exportGem.setRarity(
+              gem.getBonusWeight() > 500 ? "Common" :
+                  gem.getBonusWeight() > 50 ? "Uncommon" :
+                      gem.getBonusWeight() > 5 ? "Rare" : "Epic");
+        } else {
+          exportGem.setRarity(
+              gem.getWeight() > 500 ? "Common" :
+                  gem.getWeight() > 50 ? "Uncommon" :
+                      gem.getWeight() > 5 ? "Rare" : "Epic");
+        }
+        exportGems.add(exportGem);
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-      exportGems.add(exportGem);
     }
 
     List<ExportEntry> exportTomes = new ArrayList<>();
     for (EnchantmentTome tome : plugin.getEnchantTomeManager().getEnchantmentTomes()) {
-      if (tome.getWeight() == 0) {
-        continue;
+      try {
+        if (tome.getWeight() == 0) {
+          continue;
+        }
+        ExportEntry exportTome = new ExportEntry();
+        exportTome.setTitle("Enchantment Tome");
+        exportTome.setName("|blue|" + tome.getName());
+        List<String> lore = new ArrayList<>();
+        lore.add(tome.getDescription());
+        exportTome.setDescription(lore);
+        exportTome.getGroupNames().add(tome.getItemGroup().getName());
+        exportTome.getGroupNames().add("Upgrade");
+        exportTome.getGroupNames().add("Enchanting");
+        exportTome.setRarity(
+            tome.getWeight() > 500 ? "Common" :
+                tome.getWeight() > 200 ? "Uncommon" : "Rare"
+        );
+        exportTomes.add(exportTome);
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-      ExportEntry exportTome = new ExportEntry();
-      exportTome.setTitle("Enchantment Tome");
-      exportTome.setName("|blue|" + tome.getName());
-      exportTome.setStrippedName(ChatColor.stripColor(PaletteUtil.color(exportTome.getName())));
-      List<String> lore = new ArrayList<>(List.of("For enchanting items!"));
-      lore.add(tome.getDescription());
-      lore.removeIf(str -> str.contains("Ս") || str.contains("tag_upgrade"));
-      exportTome.setDescription(lore);
-      // todo: groups
-      //exportTome.setGroupNames(buildItemTags(tome.getItemGroups()));
-      exportTome.getGroupNames().add("Upgrade");
-      exportTome.getGroupNames().add("Enchanting");
-      exportTome.setRarity(
-          tome.getWeight() > 500 ? "Common" :
-              tome.getWeight() > 200 ? "Uncommon" : "Rare");
-      exportTomes.add(exportTome);
     }
 
     List<ExportEntry> exportUniques = new ArrayList<>();
     for (var unique : plugin.getCustomItemManager().getCustomItems()) {
-      if (unique.getWeight() > 10000 || !unique.isExport()) {
-        continue;
+      try {
+        if (unique.getWeight() > 10000 || !unique.isExport() || unique.getCoreStats().isEmpty()) {
+          continue;
+        }
+        ExportEntry exportUnique = new ExportEntry();
+        exportUnique.setTitle("Unique Item");
+        exportUnique.setName("|orange|" + unique.getItemName());
+        exportUnique.setTier(unique.getTier().getPlainName());
+        List<String> lore = new ArrayList<>();
+        if (unique.getTier().isSkillRequirement()) {
+          lore.add("|white|Skill Requirement: " + unique.getItemLevel());
+        } else {
+          lore.add("|white|Level Requirement: " + unique.getItemLevel());
+        }
+        lore.add("");
+        for (var stat : unique.getCoreStats()) {
+          if (stat.getStat() == null || stat.getStat().isHide()) {
+            continue;
+          }
+          StoredStat stored1 = new StoredStat(stat.getStat().getId(), 1f);
+          stored1.setUniqueMult(stat.getValueModifier(), unique.getId());
+          int lvl = unique.getItemLevel();
+          StatResponse sr1 = buildStatResponse(plugin, lvl, 0, 2, stored1, 0);
+          if (sr1 == null) {
+            continue;
+          }
+          var str = ChatColor.stripColor(sr1.getStatString());
+          lore.add("|lgray|" + str);
+        }
+        lore.add("");
+        for (var stat : unique.getBonusStats()) {
+          if (stat.getStat() == null || stat.getStat().isHide()) {
+            continue;
+          }
+          StoredStat stored1 = new StoredStat(stat.getStat().getId(), 0f);
+          stored1.setUniqueMult(stat.getValueModifier(), unique.getId());
+          StoredStat stored2 = new StoredStat(stat.getStat().getId(), 1f);
+          stored2.setUniqueMult(stat.getValueModifier(), unique.getId());
+          int lvl = unique.getItemLevel();
+          StatResponse sr1 = buildStatResponse(plugin, lvl, 0, 2, stored1, 0);
+          StatResponse sr2 = buildStatResponse(plugin, lvl, 0, 2, stored2, 0);
+          if (sr1 == null || sr2 == null) {
+            continue;
+          }
+          var str = ChatColor.stripColor(sr1.getStatString());
+          int val1 = stored1.getCachedValue();
+          int val2 = stored2.getCachedValue();
+          if (val1 == val2) {
+            if (val1 < 0) {
+              lore.add("|red|" + str);
+            } else {
+              lore.add("|yellow|" + str);
+            }
+          } else {
+            str = str.replace(Integer.toString(val1), "{}");
+            str = str.replace("{}", "(" + Math.abs(val1) + " to " + Math.abs(val2) + ")");
+            if (val1 < 0) {
+              lore.add("|red| -" + str);
+            } else {
+              lore.add("|yellow|" + str);
+            }
+          }
+
+        }
+        lore.add("");
+        exportUnique.setEnchantable(unique.isEnchantable());
+        exportUnique.setGemSlots(unique.getSocketSlots());
+        exportUnique.setExtendSlots(unique.getExtendSlots());
+        exportUnique.setDescription(lore);
+
+        List<String> passives = new ArrayList<>();
+        unique.getPassives().forEach(passiveStr -> passives.addAll(
+            plugin.getStrifePlugin().getLoreAbilityManager().getLoreAbilityFromId(passiveStr).getRawDescription()));
+        unique.getTraits().forEach(traitStr -> passives.addAll(StrifeTrait.valueOf(traitStr).getAdditionalTextRaw()));
+        exportUnique.setPassives(passives);
+
+        List<String> flavor = new ArrayList<>();
+        unique.getRawFlavorText().forEach(s -> flavor.add("|gray||i|" + ChatColor.stripColor(s)));
+        exportUnique.setFlavorText(flavor);
+        exportUnique.setRarity(switch (unique.getTooltip().getKey()) {
+          case "equipment_common" -> "Common";
+          case "equipment_uncommon" -> "Uncommon";
+          case "equipment_epic" -> "Epic";
+          default -> "Rare";
+        });
+        var gs = new ArrayList<String>();
+        for (var entry : ItemGroup.GROUPS.entrySet()) {
+          if (entry.getValue().getValidTiers().contains(unique.getTier().getId())) {
+            gs.add(entry.getValue().getName());
+          }
+        }
+        exportUnique.setGroupNames(gs);
+        exportUniques.add(exportUnique);
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-      ExportEntry exportUnique = new ExportEntry();
-      exportUnique.setTitle("Unique Item");
-      exportUnique.setName(unique.getItemName());
-      exportUnique.setStrippedName(ChatColor.stripColor(PaletteUtil.color(exportUnique.getName())));
-      // TODO: gotta send stats in export
-      List<String> lore = new ArrayList<>(unique.getRawFlavorText());
-      lore.removeIf(str -> str.contains("\uD86D\uDFEA") || str.contains("tag_unique"));
-      exportUnique.setDescription(lore);
-      exportUnique.setRarity(
-          unique.getWeight() > 1000 ? "Common" :
-              unique.getWeight() > 100 ? "Uncommon" :
-                  unique.getWeight() > 10 ? "Rare" : "Epic");
-      Tier t = unique.getTier();
-      // TODO match to new item groups
-      exportUnique.setGroupNames(List.of("Misc"));
-      exportUniques.add(exportUnique);
     }
 
     List<ExportEntry> exportScrolls = new ArrayList<>();
     for (UpgradeScroll scroll : plugin.getScrollManager().getScrolls()) {
-      ExportEntry exportScroll = new ExportEntry();
-      exportScroll.setTitle("Upgrade Scroll");
-      exportScroll.setName("|green|" + scroll.getPrefix() + " Upgrade Scroll");
-      exportScroll.setStrippedName(ChatColor.stripColor(PaletteUtil.color(exportScroll.getName())));
-      List<String> lore = new ArrayList<>(LootPlugin.staticAbuse.get(scroll.getId()));
-      lore.removeIf(str -> str.contains("Ս") || str.contains("tag_upgrade"));
-      if (StringUtils.isBlank(lore.get(0))) {
-        lore.remove(0);
+      try {
+        ExportEntry exportScroll = new ExportEntry();
+        exportScroll.setTitle("Upgrade Scroll");
+        exportScroll.setName("|green|" + scroll.getPrefix() + " Upgrade Scroll");
+        List<String> lore = new ArrayList<>(scroll.getLore());
+        lore.removeFirst();
+        lore.removeFirst();
+        if (StringUtils.isBlank(lore.getFirst())) {
+          lore.removeFirst();
+        }
+        exportScroll.setDescription(lore);
+        exportScroll.setRarity(
+            scroll.getWeight() > 8500 ? "Common" :
+                scroll.getWeight() > 2500 ? "Uncommon" :
+                    scroll.getWeight() > 150 ? "Rare" : "Epic");
+        exportScroll.setGroupNames(List.of("Upgrade", "Enchanting"));
+        exportScrolls.add(exportScroll);
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-      exportScroll.setDescription(lore);
-      exportScroll.setRarity(
-          scroll.getWeight() > 1000 ? "Common" :
-              scroll.getWeight() > 250 ? "Uncommon" :
-                  scroll.getWeight() > 50 ? "Rare" : "Epic");
-      exportScroll.setGroupNames(List.of("Upgrade", "Enchanting"));
-      exportScrolls.add(exportScroll);
     }
+
+    List<String> tags = new ArrayList<>();
+    for (var tag : ItemGroup.GROUPS.values()) {
+      tags.add(tag.getName());
+    }
+    tags.add("Upgrade");
+    tags.add("Enchanting");
 
     try (FileWriter writer = new FileWriter(plugin.getDataFolder() + "/export/gems.json")) {
       gson.toJson(exportGems, writer);
@@ -288,6 +383,11 @@ public class LootCommand extends BaseCommand {
     } catch (IOException e) {
       e.printStackTrace();
     }
+    try (FileWriter writer = new FileWriter(plugin.getDataFolder() + "/export/tags.json")) {
+      gson.toJson(tags, writer);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   @Subcommand("reward")
@@ -295,7 +395,7 @@ public class LootCommand extends BaseCommand {
   @CommandPermission("loot.reward")
   public void memeCommand(CommandSender sender, OnlinePlayer player, int minLevel, int maxLevel,
       String rarity) {
-    Tier t = DropUtil.getTier(player.getPlayer());
+    Tier t = DropUtil.getTier(player.getPlayer(), maxLevel);
     if (t == null) {
       sendMessage(sender,
           plugin.getSettings().getString("language.commands.spawn.other-failure", ""));
@@ -417,7 +517,7 @@ public class LootCommand extends BaseCommand {
         @Default("false") boolean distorted,
         @Default("false") boolean soulbound
     ) {
-      Tier t = tier.equalsIgnoreCase("random") ? Tier.getRandomTier() : Tier.get(tier);
+      Tier t = tier.equalsIgnoreCase("random") ? Tier.getRandomTier(level) : Tier.get(tier);
       ItemRarity r = rarity.equalsIgnoreCase("random") ? null : plugin.getRarityManager().getRarity(rarity);
       if (r == null) {
         r = plugin.getRarityManager().getRandomRarity(1, -1);

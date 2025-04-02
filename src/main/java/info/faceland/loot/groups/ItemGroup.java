@@ -38,11 +38,13 @@ public final class ItemGroup {
 
   private final String id;
   private final String name;
+  private final String exportName;
   private final List<String> validTiers;
 
-  public ItemGroup(String id, String name, List<String> validTiers) {
+  public ItemGroup(String id, String name, String exportName, List<String> validTiers) {
     this.id = id;
     this.name = name;
+    this.exportName = exportName;
     this.validTiers = validTiers;
   }
 
@@ -79,9 +81,11 @@ public final class ItemGroup {
         continue;
       }
       ConfigurationSection cs = file.getConfigurationSection(key);
+      var name = cs.getString("name", "changeme");
       ItemGroup group = new ItemGroup(
           key,
-          cs.getString("name", "changeme"),
+          name,
+          cs.getString("export-name", name),
           cs.getStringList("valid-tiers")
       );
       GROUPS.put(key, group);

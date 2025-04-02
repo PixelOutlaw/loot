@@ -57,6 +57,7 @@ public final class Tier {
   private static final Map<String, Tier> TIERS = new HashMap<>();
   public static final Map<Recipe, Tier> RECIPES = new HashMap<>();
   public static final Set<Material> EVERY_MAT = new HashSet<>();
+  public static final Map<Integer, Double> SPAWN_WEIGHT_BY_LEVEL = new HashMap<>();
 
   private boolean skillRequirement = false;
   private String id;
@@ -74,6 +75,7 @@ public final class Tier {
   private int customDataStart;
   private int customDataInterval;
   private int essenceId;
+  private int minItemLevel;
   private FilterFlagA filterFlag;
   private Map<String, Integer> statCategoryLimits = new HashMap<>();
   private Map<String, Integer> minimumSocketsByRarity = new HashMap<>();
@@ -119,9 +121,16 @@ public final class Tier {
   }
 
   public static Tier getRandomTier() {
-    double selectedWeight = LootPlugin.RNG.nextFloat() * getTotalTierWeight();
+    return getRandomTier(50);
+  }
+
+  public static Tier getRandomTier(int level) {
+    double selectedWeight = LootPlugin.RNG.nextFloat() * SPAWN_WEIGHT_BY_LEVEL.get(level);
     double currentWeight = 0;
     for (Tier t : TIERS.values()) {
+      if (level < t.getMinItemLevel()) {
+        continue;
+      }
       double calcWeight = t.getSpawnWeight();
       if (calcWeight >= 0) {
         currentWeight += calcWeight;
@@ -141,9 +150,12 @@ public final class Tier {
     return new HashSet<>(TIERS.keySet());
   }
 
-  private static double getTotalTierWeight() {
+  private static double getTotalTierWeight(int itemLevel) {
     double weight = 0;
     for (Tier t : TIERS.values()) {
+      if (itemLevel < t.getMinItemLevel()) {
+        continue;
+      }
       double d = t.getSpawnWeight();
       if (d > 0D) {
         weight += d;
@@ -217,6 +229,7 @@ public final class Tier {
     TIERS.clear();
     RECIPES.clear();
     EVERY_MAT.clear();
+    SPAWN_WEIGHT_BY_LEVEL.clear();
     Map<String, SmartYamlConfiguration> equipmentTypes = new HashMap<>();
     File folder = new File(dataFolder, "equipment_types");
     File[] listOfFiles = folder.listFiles();
@@ -254,6 +267,7 @@ public final class Tier {
         tier.setUpgradeScale(tierYAML.getInt("upgrade-scale", 1));
         tier.setCustomDataStart(tierYAML.getInt("base-custom-data", -1));
         tier.setCustomDataInterval(tierYAML.getInt("custom-data-level-interval", 200));
+        tier.setMinItemLevel(tierYAML.getInt("min-item-level", 0));
         tier.setEssenceId(tierYAML.getInt("essence-id", 0));
         tier.setEssenceGroup(tierYAML.getStringList("essence-group"));
         Set<Namespaced> breakSpaces = new HashSet<>();
@@ -328,6 +342,9 @@ public final class Tier {
       }
     }
     Bukkit.getLogger().info("[Loot] Loaded " + TIERS.size() + " tiers!");
+    for (int i = -1; i <= 300; i++) {
+      SPAWN_WEIGHT_BY_LEVEL.put(i, getTotalTierWeight(i));
+    }
   }
 
   private static Recipe constructCraftRecipe(Tier tier) {

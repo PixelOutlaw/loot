@@ -118,7 +118,7 @@ public class LootUtil {
       case TIER_ITEM -> {
         ItemRarity rarity = plugin.getRarityManager().getRandomRarity(rarityMultiplier, -1);
         BuiltItem builtItem = plugin.getNewItemBuilder()
-            .withTier(Tier.getRandomTier())
+            .withTier(Tier.getRandomTier(itemLevel))
             .withRarity(rarity)
             .withLevel(Math.max(1, Math.min(itemLevel, 100)))
             .withItemGenerationReason(ItemGenerationReason.EXTERNAL)

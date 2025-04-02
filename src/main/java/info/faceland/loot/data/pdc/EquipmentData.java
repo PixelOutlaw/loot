@@ -468,11 +468,28 @@ public class EquipmentData implements Serializable {
       return false;
     }
     Collections.shuffle(tierStats);
-    var selectedStat = tierStats.get(0);
+    var selectedStat = tierStats.getFirst();
     StoredStat ss = new StoredStat(selectedStat.getId(), Math.pow(Math.random(), 2.2));
     if (isDistorted()) {
       ss.setDistorted(true);
     }
+    bonusStats.add(ss);
+    sortBonusStats();
+    return true;
+  }
+
+  public boolean addRandomEssenceSlot() {
+    var tierStats = EssenceUtil.generateValidStatList(getTier(), bonusStats);
+    if (tierStats.isEmpty()) {
+      return false;
+    }
+    Collections.shuffle(tierStats);
+    var selectedStat = tierStats.getFirst();
+    StoredStat ss = new StoredStat(selectedStat.getId(), Math.pow(Math.random(), 2.2));
+    if (isDistorted()) {
+      ss.setDistorted(true);
+    }
+    ss.setEssenceSlot(true);
     bonusStats.add(ss);
     sortBonusStats();
     return true;
@@ -484,7 +501,7 @@ public class EquipmentData implements Serializable {
 
   public boolean distort() {
     booleanData.put("distorted", true);
-    List<StoredStat> eligibileStats = new ArrayList<>();
+    List<StoredStat> eligibleStats = new ArrayList<>();
     for (StoredStat b : bonusStats) {
       b.setInverted(false);
       if (b.isDistorted() || b.isEssenceSlot()) {
@@ -494,12 +511,12 @@ public class EquipmentData implements Serializable {
       if (b.getCachedValue() < 0) {
         continue;
       }
-      eligibileStats.add(b);
+      eligibleStats.add(b);
     }
-    if (eligibileStats.isEmpty()) {
+    if (eligibleStats.isEmpty()) {
       return false;
     }
-    eligibileStats.get(LootPlugin.RNG.nextInt(eligibileStats.size())).setInverted(true);
+    eligibleStats.get(LootPlugin.RNG.nextInt(eligibleStats.size())).setInverted(true);
     sortBonusStats();
     return true;
   }

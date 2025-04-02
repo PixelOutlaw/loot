@@ -3,12 +3,12 @@ package info.faceland.loot.utils;
 import com.google.common.collect.Lists;
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
-import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
-import info.faceland.loot.LootPlugin;
 import info.faceland.loot.items.SocketGem;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.bukkit.ChatColor;
 
 public class ItemStyleUtil {
@@ -62,6 +62,8 @@ public class ItemStyleUtil {
       "\uF822丽",
       "\uF822举"
   );
+
+  private static final Map<Character, Float> NORMAL_CHAR_WIDTHS = buildCharWidths();
 
   public static List<String> breakText(String s, boolean large) {
     int maxLineSize = large ? 138 : 112;
@@ -282,7 +284,7 @@ public class ItemStyleUtil {
   public static int countSubtitleSize(String s) {
     s = s.toLowerCase();
     int size = s.length() * 6;
-    size -= StringUtils.countMatches(s, ' ') * 3; // space is 4 chars, base is 6, so sub 3
+    size -= StringUtils.countMatches(s, ' ') * 2;
     size -= StringUtils.countMatches(s, 'z');
     size -= StringUtils.countMatches(s, 'x');
     size -= StringUtils.countMatches(s, 'k');
@@ -307,39 +309,48 @@ public class ItemStyleUtil {
   }
 
   public static int countNormalTextSize(String s) {
-    int size = s.length() * 6;
-    size -= StringUtils.countMatches(s, '.') * 4;
-    size -= StringUtils.countMatches(s, '*');
-    size -= StringUtils.countMatches(s, ',') * 4;
-    size -= StringUtils.countMatches(s, '1');
-    size -= StringUtils.countMatches(s, '!') * 4;
-    size -= StringUtils.countMatches(s, ':') * 4;
-    size -= StringUtils.countMatches(s, 'i') * 4;
-    size -= StringUtils.countMatches(s, 'I') * 2;
-    size -= StringUtils.countMatches(s, 'l') * 3;
-    size -= StringUtils.countMatches(s, '\'') * 3;
-    size -= StringUtils.countMatches(s, 't') * 2;
-    size -= StringUtils.countMatches(s, 'f');
-    size -= StringUtils.countMatches(s, '[') * 2;
-    size -= StringUtils.countMatches(s, ']') * 2;
-    size -= StringUtils.countMatches(s, '(') * 2;
-    size -= StringUtils.countMatches(s, ')') * 2;
-    //size -= StringUtils.countMatches(s, '/') * 2;
-    size -= StringUtils.countMatches(s, ' ') * 2;
-    size += StringUtils.countMatches(s, '丐') * 29;
-    size += StringUtils.countMatches(s, '丑') * 41;
-    size += StringUtils.countMatches(s, '丒') * 39;
-    size += StringUtils.countMatches(s, '专') * 53;
-    size += StringUtils.countMatches(s, '且') * 65;
-    size += StringUtils.countMatches(s, '丕') * 21;
-    size += StringUtils.countMatches(s, '世') * 41;
-    size += StringUtils.countMatches(s, '丗') * 15;
-    size += StringUtils.countMatches(s, '丘') * 34;
-    size += StringUtils.countMatches(s, '丙') * 32;
-    size += StringUtils.countMatches(s, '业') * 39;
-    size += StringUtils.countMatches(s, '丛') * 40;
-    size += StringUtils.countMatches(s, '东') * 34;
-    size += StringUtils.countMatches(s, '丝') * 33; //todo: air jump
-    return size;
+    float size = 0;
+    for (var c : s.toCharArray()) {
+      size += NORMAL_CHAR_WIDTHS.getOrDefault(c, 6f);
+    }
+    return (int) size;
+  }
+
+  private static Map<Character, Float> buildCharWidths() {
+    Map<Character, Float> chars = new HashMap<>();
+    chars.put('.', 2f);
+    chars.put('*', 5f);
+    chars.put(',', 2f);
+    chars.put('1', 5f);
+    chars.put('!', 2f);
+    chars.put(':', 2f);
+    chars.put('i', 2f);
+    chars.put('I', 4f);
+    chars.put('l', 3f);
+    chars.put('\'', 3f);
+    chars.put('t', 4f);
+    chars.put('f', 5f);
+    chars.put('[', 4f);
+    chars.put(']', 4f);
+    chars.put('(', 4f);
+    chars.put(')', 4f);
+    chars.put(' ', 4f);
+    chars.put('丐', 36f);
+    chars.put('丑', 48f);
+    chars.put('丒', 46f);
+    chars.put('专', 58f);
+    chars.put('且', 70f);
+    chars.put('丕', 26f);
+    chars.put('世', 48f);
+    chars.put('丗', 22f);
+    chars.put('丘', 42f);
+    chars.put('丙', 40f);
+    chars.put('业', 46f);
+    chars.put('丛', 48f);
+    chars.put('东', 42f);
+    chars.put('丝', 40f); // air
+    chars.put('九', 40f); // rage
+    chars.put('僶', 40f); // unknown
+    return chars;
   }
 }

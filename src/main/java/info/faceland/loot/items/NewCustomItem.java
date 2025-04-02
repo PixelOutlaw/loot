@@ -266,6 +266,8 @@ public class NewCustomItem {
       boolean hide = strs.contains("h");
       strs.remove("h");
       strs.remove("c");
+      boolean showPlus = !core || strs.contains("sp");
+      strs.remove("sp");
       StrifeStat stat = StrifeStat.valueOf(strs.get(1));
       float min = Float.parseFloat(strs.get(2));
       float max = strs.size() == 3 ? min : Float.parseFloat(strs.get(3));
@@ -274,6 +276,7 @@ public class NewCustomItem {
 
       ItemStat itemStat = new ItemStat(trueStatId);
       itemStat.setHide(hide);
+      itemStat.setShowPlus(showPlus);
       itemStat.setMinBaseValue(min);
       itemStat.setMaxBaseValue(max);
       itemStat.setMinHue(core ? 0.05f : 0.3083f);
