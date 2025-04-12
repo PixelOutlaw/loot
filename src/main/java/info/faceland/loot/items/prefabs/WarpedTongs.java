@@ -18,20 +18,20 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
-import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY_SMALL;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
-import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
-import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
-import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.ItemStyleUtil;
 import info.faceland.loot.utils.PersistHelper;
 import java.util.List;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -52,26 +52,26 @@ public final class WarpedTongs {
     meta.setDisplayName(FaceColor.RED + name);
     meta.setCustomModelData(3);
     meta.setMaxStackSize(99);
-    List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF801\uF808丌\uF808\uF802"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
-        centerSmallText(PaletteUtil.color("|lgray|A strange tool that can")),
-        centerSmallText(PaletteUtil.color("|lgray|warp the inherent power")),
-        centerSmallText(PaletteUtil.color("|lgray|of equipment...")),
-        "",
-        centerSmallText(PaletteUtil.color("|pink|Changes the secondary")),
-        centerSmallText(PaletteUtil.color("|pink|stat on normal equipment")),
-        centerSmallText(PaletteUtil.color("|pink|to a different one!")),
-        "",
-        centerSmallText(PaletteUtil.color("|yellow|Has a 35% chance to not")),
-        centerSmallText(PaletteUtil.color("|yellow|be consumed on use!")),
-        "",
-        centerSmallText(PaletteUtil.color("|gray||i|When used, a powerful")),
-        centerSmallText(PaletteUtil.color("|gray||i|distorting magic leaks")),
-        centerSmallText(PaletteUtil.color("|gray||i|from these impossibly")),
-        centerSmallText(PaletteUtil.color("|gray||i|cold tongs..."))
+    List<TextComponent> lore = List.of(
+        noShadow(Component.text("\uF801\uF808丌\uF808\uF802")),
+        ItemStyleUtil.smallNameLoreLine(name),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|A strange tool that can"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|warp the inherent power"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|of equipment..."))),
+        Component.empty(),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|pink|Changes the secondary"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|pink|stat on normal equipment"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|pink|to a different one!"))),
+        Component.empty(),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|yellow|Has a 35% chance to not"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|yellow|be consumed on use!"))),
+        Component.empty(),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|When used, a powerful"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|distorting magic leaks"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|from these impossibly"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|cold tongs...")))
     );
-    meta.setLore(lore);
+    meta.lore(lore);
     meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();

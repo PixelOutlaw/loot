@@ -138,7 +138,7 @@ public class EnchantUtil {
         sendMessage(player, LootPlugin.getInstance().getSettings().getString("language.enchant.degrade", ""));
       } else if (equipmentData.getMissingEnchantPower() > 80) {
         sendMessage(player, LootPlugin.getInstance().getSettings().getString("language.enchant.bar-low", ""));
-        ToastUtils.sendToast(player, FaceColor.NO_SHADOW + UnicodeUtil.unicodePlacehold("<toast_low_enchant>"), ItemUtils.BLANK);
+        ToastUtils.sendToast(player, UnicodeUtil.unicodePlacehold("<toast_low_enchant>"), ItemUtils.BLANK);
       }
       PersistHelper.setEquipmentData(stack, equipmentData);
       EquipmentUpdateEvent e = new EquipmentUpdateEvent(player, data, new HashSet<>(), false);

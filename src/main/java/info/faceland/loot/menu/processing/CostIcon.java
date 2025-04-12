@@ -39,6 +39,7 @@ public class CostIcon extends MenuItem {
 
   @Override
   public ItemStack getFinalIcon(Player player) {
+    /*
     switch (row) {
       case ONE -> {
         ItemStack stack = menu.getSelectedItem().get(player).clone();
@@ -59,6 +60,8 @@ public class CostIcon extends MenuItem {
         return stack;
       }
     }
+
+     */
     return new ItemStack(Material.AIR);
   }
 

@@ -1,5 +1,9 @@
 package info.faceland.loot.utils;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.TRUE_WHITE;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
+
 import com.google.common.collect.Lists;
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
@@ -9,6 +13,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import land.face.strife.managers.GuiManager;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 
 public class ItemStyleUtil {
@@ -26,24 +34,25 @@ public class ItemStyleUtil {
   public static final String GEM_T3_2 = "丬";
   public static final String GEM_T4_2 = "中";
 
-  public static final String UNTRADEABLE_NORMAL =
-      GUI.spacesOf(12) + FaceColor.NO_SHADOW + "俎" + GUI.spacesOf(-123 + -13);
-  public static final String UNTRADEABLE_SMALL =
-      GUI.spacesOf(5) + FaceColor.NO_SHADOW + "俎" + GUI.spacesOf(-123 + -6);
+  public static final TextComponent UNTRADEABLE_NORMAL = noShadow(color(Component.text(
+      GUI.spacesOf(12) + "俎" + GUI.spacesOf(-123 + -13)), TRUE_WHITE));
+  public static final TextComponent UNTRADEABLE_SMALL = noShadow(color(Component.text(
+      GUI.spacesOf(5) + "俎" + GUI.spacesOf(-123 + -6)), TRUE_WHITE));
 
   public static final String CORRUPTION = "俾";
 
-  public static final String HALFWAY = GUI.spacesOf(74);
-  public static final String HALFWAY_SMALL = GUI.spacesOf(67);
+  public static final TextComponent HALFWAY =  Component.text(GUI.spacesOf(74));
+  public static final TextComponent HALFWAY_SMALL =  Component.text(GUI.spacesOf(67));
+  public static final TextComponent JUMP_BACK = Component.text("\uF80B");
 
-  public static final String BUFFER_1_GEM = HALFWAY + GUI.spacesOf(-5);
-  public static final String BUFFER_2_GEM = HALFWAY + GUI.spacesOf(-25);
-  public static final String BUFFER_3_GEM = HALFWAY + GUI.spacesOf(-34);
-  public static final String BUFFER_4_GEM = HALFWAY + GUI.spacesOf(-48);
+  public static final TextComponent BUFFER_1_GEM = HALFWAY.append(Component.text(GUI.spacesOf(-5)));
+  public static final TextComponent BUFFER_2_GEM = HALFWAY.append(Component.text(GUI.spacesOf(-25)));
+  public static final TextComponent BUFFER_3_GEM = HALFWAY.append(Component.text(GUI.spacesOf(-34)));
+  public static final TextComponent BUFFER_4_GEM = HALFWAY.append(Component.text(GUI.spacesOf(-48)));
 
-  public static final String SPACING_2_GEMS = GUI.spacesOf(27);
-  public static final String SPACING_3_GEMS = GUI.spacesOf(18);
-  public static final String SPACING_4_GEMS = GUI.spacesOf(17);
+  public static final TextComponent SPACING_2_GEMS = Component.text(GUI.spacesOf(27));
+  public static final TextComponent SPACING_3_GEMS = Component.text(GUI.spacesOf(18));
+  public static final TextComponent SPACING_4_GEMS = Component.text(GUI.spacesOf(17));
 
   public static List<String> upgradeNumbers = List.of(
       "丰",
@@ -65,6 +74,7 @@ public class ItemStyleUtil {
 
   private static final Map<Character, Float> NORMAL_CHAR_WIDTHS = buildCharWidths();
 
+  /*
   public static List<String> breakText(String s, boolean large) {
     int maxLineSize = large ? 138 : 112;
     String[] strs = s.split(" ");
@@ -90,46 +100,52 @@ public class ItemStyleUtil {
     }
     return lore;
   }
+  */
 
-  public static String centerText(String s, boolean large) {
-    return large ? centerLargeText(s) : centerSmallText(s);
+  public static TextComponent centerText(TextComponent s, boolean large) {
+    return centerText(s, large, true);
   }
 
-  public static String centerLargeText(String s) {
-    return centerLargeText(s, "");
+  public static TextComponent centerText(TextComponent s, boolean large, boolean jumpBack) {
+    return large ? centerLargeText(s, jumpBack) : centerSmallText(s, jumpBack);
   }
 
-  public static String centerSmallText(String s) {
-    return centerSmallText(s, "");
+  public static TextComponent centerLargeText(TextComponent s) {
+    return centerLargeText(s, true);
   }
 
-  public static String centerLargeText(String s, String extra) {
-    String stripped = ChatColor.stripColor(s);
-    return HALFWAY + GUI.spacesOf(-countNormalTextSize(stripped) / 2) + s + extra + "\uF80B";
+  public static TextComponent centerSmallText(TextComponent s)  {
+    return centerSmallText(s, true);
   }
 
-  public static String centerSmallText(String s, String extra) {
-    String stripped = ChatColor.stripColor(s);
-    return HALFWAY_SMALL + GUI.spacesOf(-countNormalTextSize(stripped) / 2) + s + extra + "\uF80B";
+  public static TextComponent centerLargeText(TextComponent s, boolean jumpBack) {
+    var txt = HALFWAY.append(Component.text(GUI.spacesOf(-countNormalTextSize(s) / 2)).append(s));
+    return jumpBack ? txt.append(JUMP_BACK) : txt;
   }
 
-  public static String generateGemString(int slots, int extendSlots, List<SocketGem> sockets) {
+  public static TextComponent centerSmallText(TextComponent s, boolean jumpBack)  {
+    var txt = HALFWAY_SMALL.append(Component.text(GUI.spacesOf(-countNormalTextSize(s) / 2))).append(s);
+    return jumpBack ? txt.append(JUMP_BACK) : txt;
+  }
+
+  public static TextComponent generateGemString(int slots, int extendSlots, List<SocketGem> sockets) {
     return switch (slots) {
-      case 1 -> BUFFER_1_GEM + socketSlotStyle(sockets, 0, extendSlots > 0);
-      case 2 -> BUFFER_2_GEM + socketSlotStyle(sockets, 0, extendSlots > 1) +
-          SPACING_2_GEMS + socketSlotStyle(sockets, 1, extendSlots > 0);
-      case 3 -> BUFFER_3_GEM + socketSlotStyle(sockets, 0, extendSlots > 2) +
+      case 1 -> color(Component.text(BUFFER_1_GEM + socketSlotStyle(sockets, 0, extendSlots > 0) +
+          "\uF81B"), TRUE_WHITE);
+      case 2 -> color(Component.text(BUFFER_2_GEM + socketSlotStyle(sockets, 0, extendSlots > 1) +
+          SPACING_2_GEMS + socketSlotStyle(sockets, 1, extendSlots > 0) + "\uF81B"), TRUE_WHITE);
+      case 3 -> color(Component.text(BUFFER_3_GEM + socketSlotStyle(sockets, 0, extendSlots > 2) +
           SPACING_3_GEMS + socketSlotStyle(sockets, 1, extendSlots > 1) +
-          SPACING_3_GEMS + socketSlotStyle(sockets, 2, extendSlots > 0);
-      default -> BUFFER_4_GEM + socketSlotStyle(sockets, 0, extendSlots > 3) +
+          SPACING_3_GEMS + socketSlotStyle(sockets, 2, extendSlots > 0) + "\uF81B"), TRUE_WHITE);
+      default -> color(Component.text(BUFFER_4_GEM + socketSlotStyle(sockets, 0, extendSlots > 3) +
           SPACING_4_GEMS + socketSlotStyle(sockets, 1, extendSlots > 2) +
           SPACING_4_GEMS + socketSlotStyle(sockets, 2, extendSlots > 1) +
-          SPACING_4_GEMS + socketSlotStyle(sockets, 3, extendSlots > 0);
+          SPACING_4_GEMS + socketSlotStyle(sockets, 3, extendSlots > 0) + "\uF81B"), TRUE_WHITE);
     };
   }
 
-  public static String getCorruptAddon() {
-    return FaceColor.TRUE_WHITE + " 應";
+  public static TextComponent getCorruptAddon() {
+    return Component.text(" 應").color(NamedTextColor.WHITE);
   }
 
   public static String socketSlotStyle(List<SocketGem> sockets, int index, boolean extend) {
@@ -143,12 +159,12 @@ public class ItemStyleUtil {
     if (gem == null) {
       return GEM_T1;
     }
-    return switch (gem.getCustomModelData()) {
-      case 2000 -> GEM_T1;
-      case 2001 -> GEM_T2;
-      case 2002 -> GEM_T3;
-      case 2003 -> GEM_T4;
-      case 2004 -> GEM_T3_2;
+    return switch (gem.getRarity()) {
+      case "common" -> GEM_T1;
+      case "uncommon" -> GEM_T2;
+      case "rare" -> GEM_T3;
+      case "epic" -> GEM_T4;
+      case "unique" -> GEM_T3_2;
       default -> GEM_T4_2;
     };
   }
@@ -215,6 +231,11 @@ public class ItemStyleUtil {
         .replace(" ", "乚\uF802");
   }
 
+  public static TextComponent nameLoreLine(String name, boolean edited) {
+    return HALFWAY.append(Component.text(GUI.spacesOf(-countTitleSize(name) / 2))
+        .append(noShadow(Component.text(doNameThing(name, edited) + "\uF80C")).color(NamedTextColor.WHITE)));
+  }
+
   public static String doNameThing(String s, boolean edited) {
     String str = s.toLowerCase()
         .replace("a", "俐")
@@ -248,6 +269,11 @@ public class ItemStyleUtil {
       str += "俻";
     }
     return str;
+  }
+
+  public static TextComponent smallNameLoreLine(String name) {
+    return HALFWAY_SMALL.append(Component.text(GUI.spacesOf(-countTitleSize(name) / 2))
+        .append(noShadow(Component.text(doSmallNameThing(name) + "\uF80C").color(NamedTextColor.WHITE))));
   }
 
   public static String doSmallNameThing(String s) {
@@ -308,10 +334,15 @@ public class ItemStyleUtil {
     return size;
   }
 
-  public static int countNormalTextSize(String s) {
+  public static int countNormalTextSize(TextComponent s) {
     float size = 0;
-    for (var c : s.toCharArray()) {
-      size += NORMAL_CHAR_WIDTHS.getOrDefault(c, 6f);
+    for (var component : s.children()) {
+      if (component instanceof TextComponent) {
+        var str = ((TextComponent) component).content();
+        for (var letter : str.toCharArray()) {
+          size += NORMAL_CHAR_WIDTHS.getOrDefault(letter, 6f);
+        }
+      }
     }
     return (int) size;
   }

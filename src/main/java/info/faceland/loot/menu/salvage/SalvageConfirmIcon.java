@@ -21,6 +21,7 @@ package info.faceland.loot.menu.salvage;
 import static info.faceland.loot.utils.MaterialUtil.getLevelRequirement;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.pdc.EquipmentData;
@@ -48,8 +49,7 @@ public class SalvageConfirmIcon extends MenuItem {
   private final SalvageMenu menu;
 
   SalvageConfirmIcon(SalvageMenu menu) {
-    super(TextUtils.color("&cClick To Destroy!"), new ItemStack(Material.BARRIER));
-    ItemStackExtensionsKt.setCustomModelData(getIcon(), 50);
+    super(TextUtils.color("&cClick To Destroy!"), ItemUtils.BLANK.clone());
     this.menu = menu;
   }
 

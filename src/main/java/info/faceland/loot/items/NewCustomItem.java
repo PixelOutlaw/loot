@@ -16,6 +16,7 @@
  */
 package info.faceland.loot.items;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.*;
 import static info.faceland.loot.LootPlugin.ITEM_DATA_CLASS;
 import static info.faceland.loot.LootPlugin.ITEM_DATA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
@@ -23,13 +24,12 @@ import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY;
-import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY_SMALL;
+import static info.faceland.loot.utils.ItemStyleUtil.centerText;
 import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
-import static info.faceland.loot.utils.ItemStyleUtil.doNameThing;
-import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
@@ -43,12 +43,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import land.face.strife.StrifePlugin;
 import land.face.strife.stats.StrifeStat;
 import land.face.strife.util.StatUtil;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -67,7 +68,7 @@ public class NewCustomItem {
   private final String id;
 
   private Material material;
-  private int customDataNumber;
+  private NamespacedKey model;
 
   private String itemName;
   private String plateString;
@@ -81,7 +82,8 @@ public class NewCustomItem {
   private int quality;
   private List<UniqueItemStat> coreStats = new ArrayList<>();
   private List<UniqueItemStat> bonusStats = new ArrayList<>();
-  private List<String> jokeStats = new ArrayList<>();
+  private List<TextComponent> jokeStats = new ArrayList<>();
+  private List<String> rawJokeStats = new ArrayList<>();
 
   private boolean enchantable = false;
 
@@ -92,7 +94,7 @@ public class NewCustomItem {
   private int extendSlots = 0;
 
   private List<String> styling = new ArrayList<>();
-  private List<String> flavorText = new ArrayList<>();
+  private List<TextComponent> flavorText = new ArrayList<>();
   private List<String> rawFlavorText = new ArrayList<>();
 
   private Set<ItemFlag> flags;
@@ -137,27 +139,21 @@ public class NewCustomItem {
     ItemMeta meta = cachedStack.getItemMeta();
 
     String name = ChatColor.stripColor(itemName);
-    List<String> lore = new ArrayList<>();
+    List<TextComponent> lore = new ArrayList<>();
     if (StringUtils.isNotBlank(plateString)) {
-      lore.add(PaletteUtil.color(plateString));
+      lore.add(noShadow(Component.text(plateString)));
     } else {
-      lore.add(PaletteUtil.color("|ns|\uF808丄\uF808\uF801"));
+      lore.add(noShadow(Component.text("\uF808丄\uF808\uF801")));
     }
     if (printName) {
-      if (large) {
-        lore.add(HALFWAY + GUI.spacesOf(-countTitleSize(name) / 2) +
-            FaceColor.TRUE_WHITE + doNameThing(name, false) + "\uF80C");
-      } else {
-        lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C");
-      }
+      lore.add(large ? ItemStyleUtil.nameLoreLine(name, false) : ItemStyleUtil.smallNameLoreLine(name));
     } else {
-      lore.add("");
+      lore.add(Component.empty());
     }
     lore.addAll(flavorText);
 
     meta.setDisplayName(color + itemName);
-    meta.setCustomModelData(customDataNumber);
-    meta.setLore(lore);
+    meta.lore(lore);
     meta.setTooltipStyle(tooltip);
     if (stackSize != -1) {
       meta.setMaxStackSize(stackSize);
@@ -171,23 +167,11 @@ public class NewCustomItem {
     pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, id);
 
     cachedStack.setItemMeta(meta);
+
+    ItemUtils.setCustomData(cachedStack, List.of(id));
+
     ItemRenderer.applyCommonFlags(cachedStack);
     return cachedStack.clone();
-  }
-
-  public void setFlavorText(List<String> lore) {
-    rawFlavorText = new ArrayList<>(lore);
-    this.flavorText = new ArrayList<>();
-    for (String s : lore) {
-      this.flavorText.add(ItemStyleUtil.centerText(s, large));
-    }
-    /*
-    lore = ItemStyleUtil.breakText(StringUtils.join(lore, " "), large);
-    this.flavorText = new ArrayList<>();
-    for (String s : lore) {
-      this.flavorText.add(ItemStyleUtil.centerText(s, large));
-    }
-    */
   }
 
   public static NewCustomItem fromConfigSection(LootPlugin plugin, String key, ConfigurationSection section) {
@@ -201,7 +185,12 @@ public class NewCustomItem {
 
     // item construction
     ci.setItemName(PaletteUtil.color(section.getString("name", "changeme")));
-    ci.setCustomDataNumber(section.getInt("model-data", 0));
+    var model = section.getString("model");
+    try {
+      ci.setModel(StringUtils.isBlank(model) ? null : NamespacedKey.fromString(model));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     ci.setItemLevel(section.getInt("item-level", 1));
     ci.setStackSize(section.getInt("stack-size", -1));
     ci.setTier(Tier.get(section.getString("tier")));
@@ -218,8 +207,15 @@ public class NewCustomItem {
     ci.setSocketSlots(section.getInt("socket-slots"));
     ci.setExtendSlots(section.getInt("extend-slots"));
     ci.setStyling(PaletteUtil.color(section.getStringList("styling")));
-    ci.setFlavorText(PaletteUtil.color(section.getStringList("flavor-text")));
-    ci.setJokeStats(PaletteUtil.color(section.getStringList("joke-stats")));
+
+    ci.setRawFlavorText(section.getStringList("flavor-text"));
+    ci.setFlavorText(PaletteUtil.loadComponents(section, "flavor-text"));
+    ci.getFlavorText().replaceAll(textComponent -> centerText(textComponent, ci.isLarge()));
+
+    ci.setRawJokeStats(section.getStringList("joke-stats"));
+    ci.setJokeStats(PaletteUtil.loadComponents(section, "joke-stats"));
+    ci.getJokeStats().replaceAll(textComponent -> centerText(textComponent, ci.isLarge()));
+
     ci.getCoreStats().clear();
     for (String s : section.getStringList("core-stats")) {
       ci.getCoreStats().add(getOrCreateStat(plugin, key, s, true));

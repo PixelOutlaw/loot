@@ -19,6 +19,7 @@
 package info.faceland.loot.listeners;
 
 import info.faceland.loot.LootPlugin;
+import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.menu.gemcutter.GemcutterMenu;
 import land.face.strife.StrifePlugin;
 import ninja.amp.ampmenus.menus.MenuHolder;
@@ -69,7 +70,7 @@ public record GemcutterListener(LootPlugin plugin) implements Listener {
       return;
     }
     ItemStack stack = event.getCurrentItem();
-    if (stack == null || stack.getType() == Material.AIR || stack.getType() != Material.CHARCOAL) {
+    if (stack == null || stack.getType() == Material.AIR || CraftMaterial.hasGemResult(stack)) {
       return;
     }
     if (LootPlugin.getInstance().getStrifePlugin() != null && LootPlugin.getInstance()

@@ -16,20 +16,19 @@
  */
 package info.faceland.loot.items;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
-import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY_SMALL;
+import static info.faceland.loot.utils.ItemStyleUtil.JUMP_BACK;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
-import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
-import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
-import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.ItemStyleUtil;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import java.util.ArrayList;
@@ -41,6 +40,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import me.arcaniax.hdb.api.HeadDatabaseAPI;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -124,13 +125,13 @@ public final class CosmeticHead {
     meta.setDisplayName(FaceColor.BLUE + name);
     meta.setCustomModelData(modelData);
 
-    List<String> lore = new ArrayList<>();
-    lore.add(PaletteUtil.color("|ns|\uF801\uF808侽\uF808\uF802"));
-    lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C");
+    List<TextComponent> lore = new ArrayList<>();
+    lore.add(noShadow(Component.text("\uF801\uF808侽\uF808\uF802")));
+    lore.add(ItemStyleUtil.smallNameLoreLine(name));
     for (String s : description) {
-      lore.add(centerSmallText(s) + "\uF80B");
+      lore.add(centerSmallText(PaletteUtil.convert(s)).append(JUMP_BACK));
     }
-    meta.setLore(lore);
+    meta.lore(lore);
     meta.setMaxStackSize(99);
     if (weight <= 500) {
       meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));

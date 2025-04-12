@@ -18,6 +18,7 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
@@ -30,8 +31,11 @@ import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.ItemStyleUtil;
 import info.faceland.loot.utils.PersistHelper;
 import java.util.List;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -52,21 +56,21 @@ public final class MissingStat {
     meta.setDisplayName(FaceColor.PURPLE + name);
     meta.setCustomModelData(3002);
     meta.setMaxStackSize(99);
-    List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF801\uF808丏\uF808\uF802"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
-        centerSmallText(PaletteUtil.color("|lgray|Some items are missing a")),
-        centerSmallText(PaletteUtil.color("|lgray|stat! That's okay, you can")),
-        centerSmallText(PaletteUtil.color("|lgray|put it back on if it wasn't")),
-        centerSmallText(PaletteUtil.color("|lgray|on the floor for too long")),
-        "",
-        centerSmallText(PaletteUtil.color("|yellow|Adds an extra stat to an")),
-        centerSmallText(PaletteUtil.color("|yellow|item, up to the maximum")),
-        centerSmallText(PaletteUtil.color("|yellow|amount for its rarity")),
-        "",
-        centerSmallText(PaletteUtil.color("|gray||i|Oh! That's where it went!"))
+    List<TextComponent> lore = List.of(
+        noShadow(Component.text("\uF801\uF808丏\uF808\uF802")),
+        ItemStyleUtil.smallNameLoreLine(name),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|Some items are missing a"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|stat! That's okay, you can"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|put it back on if it wasn't"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|on the floor for too long"))),
+        Component.empty(),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|yellow|Adds an extra stat to an"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|yellow|item, up to the maximum"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|yellow|amount for its rarity"))),
+        Component.empty(),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|Oh! That's where it went!")))
     );
-    meta.setLore(lore);
+    meta.lore(lore);
     meta.setTooltipStyle(NamespacedKey.fromString("item_rare"));
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();

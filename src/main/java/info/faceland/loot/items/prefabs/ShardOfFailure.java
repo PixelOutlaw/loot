@@ -17,6 +17,7 @@
 package info.faceland.loot.items.prefabs;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.utils.ItemRenderer;
@@ -60,7 +61,7 @@ public final class ShardOfFailure {
         "|gray||i|because it was made by",
         "|gray||i|{name} :)"
     )));
-    ItemStackExtensionsKt.setCustomModelData(stack, 500);
+    ItemUtils.setCustomData(stack, List.of("fail-shard"));
     item = stack;
     ItemRenderer.applyCommonFlags(item);
   }

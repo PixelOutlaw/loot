@@ -16,6 +16,7 @@
  */
 package info.faceland.loot.items;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
@@ -30,6 +31,7 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.ItemStyleUtil;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import java.awt.Color;
@@ -40,6 +42,8 @@ import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -142,21 +146,20 @@ public final class UpgradeScroll {
     stack = new ItemStack(Material.PAPER);
     ItemMeta meta = stack.getItemMeta();
     String name = ChatColor.stripColor(WordUtils.capitalize(id) + " Scroll");
-    List<String> lore = new ArrayList<>();
+    List<TextComponent> lore = new ArrayList<>();
 
-    lore.add(PaletteUtil.color("|ns|\uF801\uF808上\uF808\uF802"));
-    lore.add(
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C");
+    lore.add(noShadow(Component.text("\uF801\uF808上\uF808\uF802")));
+    lore.add(ItemStyleUtil.smallNameLoreLine(name));
     stack.setType(Material.PAPER);
     for (String s : PaletteUtil.color(this.lore)) {
-      lore.add(centerSmallText(s));
+      lore.add(centerSmallText(PaletteUtil.convert(s)));
     }
     lore.remove(2);
     lore.remove(2);
     meta.setDisplayName(net.md_5.bungee.api.ChatColor.of(new Color(122, 101, 215)) + name);
     meta.setCustomModelData(customData);
     meta.setMaxStackSize(99);
-    meta.setLore(lore);
+    meta.lore(lore);
     if (weight <= 150) {
       meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
     } else if (weight <= 2500) {

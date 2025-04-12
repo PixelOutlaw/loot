@@ -57,6 +57,19 @@ public final class InventoryUtil {
     thechan = DiscordSRV.getPlugin().getMainTextChannel();
   }
 
+  public static boolean consumeItem(Player player, String itemId) {
+    for (ItemStack item : player.getInventory().getContents()) {
+      if (item == null) {
+        continue;
+      }
+      if (itemId.equals(PersistHelper.getItemId(item))) {
+        item.setAmount(item.getAmount() - 1);
+        return true;
+      }
+    }
+    return false;
+  }
+
   public static void sendToDiscord(Player player, ItemStack his, String format) {
     sendToDiscord(player, his, format, true);
   }

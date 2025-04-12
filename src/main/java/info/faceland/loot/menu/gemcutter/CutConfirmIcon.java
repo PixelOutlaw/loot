@@ -18,6 +18,8 @@
  */
 package info.faceland.loot.menu.gemcutter;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
+import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.items.CraftMaterial;
@@ -37,8 +39,7 @@ public class CutConfirmIcon extends MenuItem {
   private final GemcutterMenu menu;
 
   CutConfirmIcon(GemcutterMenu menu) {
-    super(TextUtils.color("&cClick to cut a gem!"), new ItemStack(Material.BARRIER));
-    ItemStackExtensionsKt.setCustomModelData(getIcon(), 50);
+    super(PaletteUtil.color("|lgreen_wave|Click to cut a gem!"), ItemUtils.BLANK.clone());
     this.menu = menu;
   }
 

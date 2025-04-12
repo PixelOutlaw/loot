@@ -18,20 +18,20 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
-import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY_SMALL;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
-import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
-import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
-import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.ItemStyleUtil;
 import info.faceland.loot.utils.PersistHelper;
 import java.util.List;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -52,24 +52,24 @@ public final class AwakeningStone {
     meta.setDisplayName(FaceColor.RED + name);
     meta.setCustomModelData(16);
     meta.setMaxStackSize(99);
-    List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF801\uF808丌\uF808\uF802"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
-        centerSmallText(PaletteUtil.color("|lgray|This item will unleash")),
-        centerSmallText(PaletteUtil.color("|lgray|the power of non-unique")),
-        centerSmallText(PaletteUtil.color("|lgray|equipment items!")),
-        "",
-        centerSmallText(PaletteUtil.color("|yellow|Adds an extra stat to an")),
-        centerSmallText(PaletteUtil.color("|yellow|item, up to one greater")),
-        centerSmallText(PaletteUtil.color("|yellow|than the normal maximum")),
-        centerSmallText(PaletteUtil.color("|yellow|for that rarity!")),
-        "",
-        centerSmallText(PaletteUtil.color("|gray||i|All weapons, armor, and")),
-        centerSmallText(PaletteUtil.color("|gray||i|tools possess a latent")),
-        centerSmallText(PaletteUtil.color("|gray||i|power... it's just really")),
-        centerSmallText(PaletteUtil.color("|gray||i|really sleepy"))
+    List<TextComponent> lore = List.of(
+        noShadow(Component.text("\uF801\uF808丌\uF808\uF802")),
+        ItemStyleUtil.smallNameLoreLine(name),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|This item will unleash"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|the power of non-unique"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|equipment items!"))),
+        Component.empty(),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|yellow|Adds an extra stat to an"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|yellow|item, up to one greater"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|yellow|than the normal maximum"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|yellow|for that rarity!"))),
+        Component.empty(),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|All weapons, armor, and"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|tools possess a latent"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|power... it's just really"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|really sleepy")))
     );
-    meta.setLore(lore);
+    meta.lore(lore);
     meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();

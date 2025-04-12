@@ -473,18 +473,17 @@ public final class LootPlugin extends FacePlugin {
       ConfigurationSection cs = mortarYAML.getConfigurationSection(key);
       CraftMaterial cm = CraftMaterial.get(cs.getString("unique", "fard"));
       Material material;
-      int modelData;
+      String itemId = null;
       if (cm == null) {
         try {
           material = Material.valueOf(cs.getString("material", "APPLE"));
-          modelData = cs.getInt("model-data", -1);
         } catch (Exception e) {
           Bukkit.getLogger().info("[Loot] Mortar bad material " + key);
           continue;
         }
       } else {
         material = cm.getMaterial();
-        modelData = cm.getModelData();
+        itemId = cm.getId();
       }
       CraftMaterial rcm = CraftMaterial.get(cs.getString("result", "fard"));
       if (rcm == null) {
@@ -501,7 +500,7 @@ public final class LootPlugin extends FacePlugin {
         Bukkit.getLogger().info("[Loot] Mortar recipe " + key + " has an invalid skill xp!");
       }
 
-      mortarMenu.importResult(material, modelData, rcm.item(), skillType, xp);
+      mortarMenu.importResult(material, itemId, rcm.item(), skillType, xp);
     }
   }
 

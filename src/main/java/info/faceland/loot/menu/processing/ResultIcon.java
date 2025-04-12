@@ -38,6 +38,7 @@ public class ResultIcon extends MenuItem {
 
   @Override
   public ItemStack getFinalIcon(Player player) {
+    /*
     switch (row) {
       case ONE -> {
         ItemStack stack = menu.getSelectedItem().get(player).clone();
@@ -55,6 +56,8 @@ public class ResultIcon extends MenuItem {
             ItemUtils.getModelData(stack)).getOutputThree().getReward();
       }
     }
+
+     */
     return new ItemStack(Material.AIR);
   }
 

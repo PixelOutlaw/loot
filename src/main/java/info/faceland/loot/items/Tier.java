@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nullable;
 import land.face.market.data.PlayerMarketState.FilterFlagA;
 import land.face.strife.stats.StrifeStat;
 import land.face.strife.util.StatUtil;
@@ -72,8 +73,6 @@ public final class Tier {
   private List<String> essenceGroup;
   private int upgradeScale;
   private double spawnWeight;
-  private int customDataStart;
-  private int customDataInterval;
   private int essenceId;
   private int minItemLevel;
   private FilterFlagA filterFlag;
@@ -100,24 +99,8 @@ public final class Tier {
     return TIERS.getOrDefault(id, null);
   }
 
-  public static Tier get(ItemStack stack) {
+  public static Tier get(@Nullable ItemStack stack) {
     return ModifyEquipmentUtil.getTier(stack);
-  }
-
-  public static Tier determine(ItemStack stack) {
-    if (stack == null) {
-      return null;
-    }
-    Material material = stack.getType();
-    int data = ItemUtils.getModelData(stack);
-    for (var t : TIERS.values()) {
-      int start = t.getCustomDataStart();
-      int max = start + 100 / t.getCustomDataInterval();
-      if (t.getMaterial() == material && data >= start && data <= max) {
-        return t;
-      }
-    }
-    return null;
   }
 
   public static Tier getRandomTier() {
@@ -265,8 +248,6 @@ public final class Tier {
         tier.setBonusStats(bonusStats);
         tier.setSpawnWeight(tierYAML.getDouble("spawn-weight"));
         tier.setUpgradeScale(tierYAML.getInt("upgrade-scale", 1));
-        tier.setCustomDataStart(tierYAML.getInt("base-custom-data", -1));
-        tier.setCustomDataInterval(tierYAML.getInt("custom-data-level-interval", 200));
         tier.setMinItemLevel(tierYAML.getInt("min-item-level", 0));
         tier.setEssenceId(tierYAML.getInt("essence-id", 0));
         tier.setEssenceGroup(tierYAML.getStringList("essence-group"));
@@ -363,8 +344,8 @@ public final class Tier {
           "|lgray|higher quality materials increase",
           "|lgray|the odds of a rarer result!"
       )));
-      m.setCustomModelData(tier.getCustomDataStart());
     });
+    ItemUtils.setCustomData(result, List.of(tier.id, "common", "t1"));
     ItemRenderer.applyCommonFlags(result);
 
     ShapedRecipe recipe = new ShapedRecipe(key, result);

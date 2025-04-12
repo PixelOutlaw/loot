@@ -104,7 +104,7 @@ public final class CraftingListener implements Listener {
   @EventHandler(priority = EventPriority.LOWEST)
   public void onSpecialCraftEquipment(CraftItemEvent event) {
     ItemStack resultStack = event.getCurrentItem();
-    if (Tier.determine(resultStack) == null) {
+    if (Tier.get(resultStack) == null) {
       return;
     }
 
@@ -160,7 +160,7 @@ public final class CraftingListener implements Listener {
 
     Player player = (Player) event.getWhoClicked();
 
-    Tier tier = Tier.determine(resultStack);
+    Tier tier = Tier.get(resultStack);
     if (tier == null) {
       Bukkit.getLogger().warning("[Loot] Attempted to craft item with unknown tier... " + resultStack.getType());
       return;

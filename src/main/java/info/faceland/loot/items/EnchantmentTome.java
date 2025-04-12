@@ -16,6 +16,7 @@
  */
 package info.faceland.loot.items;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
@@ -33,14 +34,18 @@ import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.groups.ItemGroup;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.ItemStyleUtil;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.security.PermitAll;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -137,18 +142,18 @@ public class EnchantmentTome {
     String name = this.name;
     ItemMeta meta = builtItem.getItemMeta();
     ItemStat is = LootPlugin.getInstance().getStatManager().getStat(stat);
-    List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF801\uF808出\uF808\uF802"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
-        FaceColor.WHITE + centerSmallText("Used On: " + FaceColor.CYAN + itemGroup.getName()),
-        FaceColor.WHITE + centerSmallText("Adds: " + FaceColor.BLUE + is.getStat().getName()) + "\uF80C",
-        "",
-        FaceColor.LIGHT_GRAY + centerSmallText("Use this magical book at"),
-        FaceColor.LIGHT_GRAY + centerSmallText("an enchanting table to"),
-        FaceColor.LIGHT_GRAY + centerSmallText("empower your equipment!")
+    List<TextComponent> lore = List.of(
+        noShadow(Component.text("\uF801\uF808出\uF808\uF802")),
+        ItemStyleUtil.smallNameLoreLine(name),
+        centerSmallText(PaletteUtil.convert(FaceColor.WHITE + "Used On: " + FaceColor.CYAN + itemGroup.getName())),
+        centerSmallText(PaletteUtil.convert(FaceColor.WHITE + "Adds: " + FaceColor.BLUE + is.getStat().getName() + "\uF80C")),
+        Component.empty(),
+        centerSmallText(PaletteUtil.convert(FaceColor.LIGHT_GRAY + "Use this magical book at")),
+        centerSmallText(PaletteUtil.convert(FaceColor.LIGHT_GRAY + "an enchanting table to")),
+        centerSmallText(PaletteUtil.convert(FaceColor.LIGHT_GRAY + "empower your equipment!"))
     );
     meta.setDisplayName(FaceColor.BLUE + name);
-    meta.setLore(lore);
+    meta.lore(lore);
     meta.setMaxStackSize(99);
     if (weight == 0) {
       meta.setTooltipStyle(NamespacedKey.fromString("item_common"));

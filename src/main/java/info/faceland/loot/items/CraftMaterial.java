@@ -1,18 +1,16 @@
 package info.faceland.loot.items;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
-import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY_SMALL;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
-import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
-import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
-import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.ItemStyleUtil;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import java.util.ArrayList;
@@ -24,6 +22,8 @@ import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -53,6 +53,8 @@ public class CraftMaterial {
   private int modelData = 1;
   private List<String> description = new ArrayList<>();
   private Set<String> preferredStats = new HashSet<>();
+  private String gemResult = null;
+  private String pulverizeResult = null;
 
   @Getter(value=AccessLevel.NONE)
   @Setter(value=AccessLevel.NONE)
@@ -82,6 +84,11 @@ public class CraftMaterial {
 
   public static Map<String, CraftMaterial> getMaterials() {
     return new HashMap<>(materials);
+  }
+
+  public static boolean hasGemResult(ItemStack stack) {
+    CraftMaterial cr = CraftMaterial.get(stack);
+    return cr != null && cr.getGemResult() != null;
   }
 
   public ItemStack item() {
@@ -181,6 +188,7 @@ public class CraftMaterial {
     result.setItemLevel(section.getInt("item-level", 1));
     result.setQuality(section.getInt("quality", 1));
     result.setModelData(section.getInt("model-data", 0));
+    result.setName(section.getString("gem-result", null));
     result.setDescription(PaletteUtil.color(section.getStringList("description")));
     result.setPreferredStats(new HashSet<>(section.getStringList("preferred-stats")));
     return result;
@@ -195,7 +203,7 @@ public class CraftMaterial {
     ItemMeta meta = cachedStack.getItemMeta();
     meta.setDisplayName(FaceColor.YELLOW + name);
     meta.setCustomModelData(modelData);
-    List<String> lore = new ArrayList<>();
+    List<TextComponent> lore = new ArrayList<>();
     String symbol = switch (quality) {
       case 0, 1 -> "丁";
       case 2 -> "丂";
@@ -203,20 +211,20 @@ public class CraftMaterial {
       case 4 -> "丄";
       default -> "丅";
     };
-    lore.add(PaletteUtil.color("|ns|\uF808" + symbol + "\uF808\uF801"));
-    lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C");
-    lore.add("");
+    lore.add(noShadow(Component.text("\uF808" + symbol + "\uF808\uF801")));
+    lore.add(ItemStyleUtil.smallNameLoreLine(name));
+    lore.add(Component.empty());
     if (itemLevel > 0) {
-      lore.add(centerSmallText(FaceColor.WHITE + "Material Level: " + itemLevel));
-      lore.add("");
+      lore.add(centerSmallText(PaletteUtil.convert(FaceColor.WHITE + "Material Level: " + itemLevel)));
+      lore.add(Component.empty());
     } else if (itemLevel < 0 ) {
-      lore.add(centerSmallText(FaceColor.WHITE + "Material Level: X"));
-      lore.add("");
+      lore.add(centerSmallText(PaletteUtil.convert(FaceColor.WHITE + "Material Level: X")));
+      lore.add(Component.empty());
     }
     for (String s : description) {
-      lore.add(centerSmallText(s));
+      lore.add(centerSmallText(PaletteUtil.convert(s)));
     }
-    meta.setLore(lore);
+    meta.lore(lore);
     meta.setMaxStackSize(99);
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();

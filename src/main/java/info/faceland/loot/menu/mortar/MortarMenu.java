@@ -20,12 +20,15 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.PulverizeResult;
+import info.faceland.loot.items.CraftMaterial;
+import info.faceland.loot.utils.PersistHelper;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.champion.LifeSkillType;
 import ninja.amp.ampmenus.menus.ItemMenu;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -104,21 +107,16 @@ public class MortarMenu extends ItemMenu {
   }
 
   public PulverizeResult fetchResult(ItemStack stack) {
-    String key = stack.getType().toString() + ItemUtils.getModelData(stack);
-    PulverizeResult result = results.getOrDefault(key, null);
-    if (result != null) {
-      return result;
-    }
-    return results.getOrDefault(stack.getType().toString(), null);
+    return results.getOrDefault(PersistHelper.getItemId(stack),
+        results.getOrDefault(stack.getType().toString(), null));
   }
 
-  public void importResult(Material material, int modelData, ItemStack result, LifeSkillType skill, float xp) {
-    if (modelData == -1) {
+  public void importResult(Material material, String itemId, ItemStack result, LifeSkillType skill, float xp) {
+    if (itemId == null) {
       results.put(material.toString(), new PulverizeResult(result, skill, xp));
       return;
     }
-    String key = material.toString() + modelData;
-    results.put(key, new PulverizeResult(result, skill, xp));
+    results.put(itemId, new PulverizeResult(result, skill, xp));
   }
 
 }

@@ -23,6 +23,8 @@ import info.faceland.loot.LootPlugin;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import ninja.amp.ampmenus.menus.ItemMenu;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -33,7 +35,7 @@ public class LoreglassMenu extends ItemMenu {
   private final LootPlugin plugin;
 
   private final Map<Player, ItemStack> selectedStacks = new WeakHashMap<>();
-  private static final Map<Integer, String> PERCENT_TEXTS = buildInspectPercents();
+  private static final Map<Integer, TextComponent> PERCENT_TEXTS = buildInspectPercents();
 
   /*
   00 01 02 03 04 05 06 07 08
@@ -71,14 +73,14 @@ public class LoreglassMenu extends ItemMenu {
     update(player);
   }
 
-  public static String getPercentText(float roll) {
+  public static TextComponent getPercentText(float roll) {
     int val = Math.round(100 * roll);
     val = Math.max(0, Math.min(100, val));
     return PERCENT_TEXTS.get(val);
   }
 
-  private static Map<Integer, String> buildInspectPercents() {
-    Map<Integer, String> sneed = new HashMap<>();
+  private static Map<Integer, TextComponent> buildInspectPercents() {
+    Map<Integer, TextComponent> sneed = new HashMap<>();
     for (int i = 0; i <= 100; i++) {
       int number = i;
       if (i < 1) {
@@ -86,7 +88,7 @@ public class LoreglassMenu extends ItemMenu {
       } else if (i > 99) {
         number = 99;
       }
-      String str = FaceColor.NO_SHADOW + " 懻";
+      String str = " 懻";
       if (i < 10) {
         str += GUI.spacesOf(-19);
       } else {
@@ -105,7 +107,7 @@ public class LoreglassMenu extends ItemMenu {
           .replaceAll("9", "\uF801懹");
       num += "\uF801懺";
       str += num;
-      sneed.put(i, str);
+      sneed.put(i, Component.text(str));
     }
     return sneed;
   }

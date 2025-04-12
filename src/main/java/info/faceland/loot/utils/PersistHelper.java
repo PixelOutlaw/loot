@@ -9,6 +9,7 @@ import static info.faceland.loot.LootPlugin.ITEM_STATS_CLASS;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.shade.google.gson.Gson;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.pdc.EquipmentData;
@@ -16,9 +17,9 @@ import info.faceland.loot.data.pdc.GenericItemStats;
 import info.faceland.loot.data.pdc.StoredStat;
 import info.faceland.loot.items.NewCustomItem;
 import info.faceland.loot.items.UniqueItemStat;
-import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -138,7 +139,7 @@ public class PersistHelper {
     }
   }
 
-  public static EquipmentData getEquipmentData(ItemStack stack) {
+  public static EquipmentData getEquipmentData(@Nullable ItemStack stack) {
     if (stack == null || stack.getType() == Material.AIR) {
       //System.out.println("invalid material for data");
       return null;
@@ -183,11 +184,12 @@ public class PersistHelper {
 
   public static void syncUniqueEquipment(ItemStack stack, EquipmentData data, NewCustomItem ci) {
     stack.setType(ci.getMaterial());
-    ItemStackExtensionsKt.setCustomModelData(stack, ci.getCustomDataNumber());
+    ItemUtils.setCustomData(stack, List.of(ci.getId()));
+    ItemUtils.setItemModel(stack, ci.getModel());
+
     if (!data.isNameEdited()) {
       data.setString("name", ci.getItemName());
     }
-    data.setInt("modelData", ci.getCustomDataNumber());
     data.setLevel(ci.getItemLevel());
     data.setTier(ci.getTier());
     data.setRarity("RARE");

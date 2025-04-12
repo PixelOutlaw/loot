@@ -9,6 +9,7 @@ import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.Tier;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 import land.face.strife.data.champion.SkillRank;
 import org.bukkit.inventory.ItemStack;
 
@@ -53,7 +54,7 @@ public class ModifyEquipmentUtil {
     }
   }
 
-  public static Tier getTier(ItemStack stack) {
+  public static Tier getTier(@Nullable ItemStack stack) {
     EquipmentData data = PersistHelper.getEquipmentData(stack);
     return data == null ? null : data.getTier();
   }

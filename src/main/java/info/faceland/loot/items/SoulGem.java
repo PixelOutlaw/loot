@@ -16,11 +16,13 @@
  */
 package info.faceland.loot.items;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.*;
 import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY_SMALL;
+import static info.faceland.loot.utils.ItemStyleUtil.JUMP_BACK;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
 import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
 import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
@@ -34,7 +36,6 @@ import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,6 +48,9 @@ import land.face.strife.util.StatUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -70,7 +74,7 @@ public final class SoulGem  {
   private double weight;
   private int modelData;
   private float breakChance;
-  private List<String> description;
+  private List<TextComponent> description;
 
   private boolean hideStats;
 
@@ -78,6 +82,13 @@ public final class SoulGem  {
   private Set<LoreAbility> loreAbilities = new HashSet<>();
   private Map<StrifeStat, Float> stats = new HashMap<>();
   private Map<StrifeStat, Float> percentStats = new HashMap<>();
+
+  private TextComponent BREAK_CHANCE = color(Component.text("Break Chance: "), WHITE);
+  private TextComponent BREAK_LEVEL1 = color(Component.text("Very Low"), GREEN);
+  private TextComponent BREAK_LEVEL2 = color(Component.text("Low"), LIME);
+  private TextComponent BREAK_LEVEL3 = color(Component.text("Average"), YELLOW);
+  private TextComponent BREAK_LEVEL4 = color(Component.text("High"), ORANGE);
+  private TextComponent BREAK_LEVEL5 = color(Component.text("Extremely High"), RED);
 
   @Getter(value=AccessLevel.NONE)
   @Setter(value=AccessLevel.NONE)
@@ -137,36 +148,35 @@ public final class SoulGem  {
     ItemMeta meta = builtItem.getItemMeta();
     meta.setDisplayName(FaceColor.PINK + name);
     meta.setCustomModelData(modelData);
-    List<String> lore = new ArrayList<>();
-    lore.add(PaletteUtil.color("|ns|\uF801\uF808俊\uF808\uF802"));
-    lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C");
+    List<TextComponent> lore = new ArrayList<>();
+    lore.add(noShadow(Component.text("\uF801\uF808俊\uF808\uF802")));
+    lore.add(HALFWAY_SMALL.append(Component.text(GUI.spacesOf(-countTitleSize(name) / 2)).append(
+        Component.text(doSmallNameThing(name) + "\uF80C").color(NamedTextColor.WHITE))));
     if (breakChance < 0.2) {
-      lore.add(centerSmallText(FaceColor.WHITE + "Break Chance: " + FaceColor.GREEN + "Very Low"));
+      lore.add(centerSmallText(BREAK_CHANCE.append(BREAK_LEVEL1)));
     } else if (breakChance < 0.4) {
-      lore.add(centerSmallText(FaceColor.WHITE + "Break Chance: " + FaceColor.LIME + "Low"));
+      lore.add(centerSmallText(BREAK_CHANCE.append(BREAK_LEVEL2)));
     } else if (breakChance < 0.6) {
-      lore.add(centerSmallText(FaceColor.WHITE + "Break Chance: " + FaceColor.YELLOW + "Average"));
+      lore.add(centerSmallText(BREAK_CHANCE.append(BREAK_LEVEL3)));
     } else if (breakChance < 0.8) {
-      lore.add(centerSmallText(FaceColor.WHITE + "Break Chance: " + FaceColor.ORANGE + "High"));
+      lore.add(centerSmallText(BREAK_CHANCE.append(BREAK_LEVEL4)));
     } else {
-      lore.add(centerSmallText(FaceColor.WHITE + "Break Chance: " + FaceColor.RED + "Extremely High"));
+      lore.add(centerSmallText(BREAK_CHANCE.append(BREAK_LEVEL5)));
     }
-    lore.add("");
+    lore.add(Component.empty());
     if (!hideStats && !(stats.isEmpty() && percentStats.isEmpty())) {
       for (var e : stats.entrySet()) {
-        lore.add(centerSmallText(
-            FaceColor.PINK + "+" + e.getValue().intValue() + " " + e.getKey().getName()) + "\uF80B");
+        lore.add(centerSmallText(color(Component.text(
+            "+" + e.getValue().intValue() + " " + e.getKey().getName()), PINK).append(JUMP_BACK)));
       }
       for (var e : percentStats.entrySet()) {
-        lore.add(centerSmallText(
-            FaceColor.PINK + "+" + e.getValue().intValue() + "% " + e.getKey().getName()) + "\uF80B");
+        lore.add(centerSmallText(color(Component.text(
+            "+" + e.getValue().intValue() + "% " + e.getKey().getName()), PINK).append(JUMP_BACK)));
       }
-      lore.add("");
+      lore.add(Component.empty());
     }
-    for (String s : description) {
-      lore.add(centerSmallText(s) + "\uF80B");
-    }
-    meta.setLore(lore);
+    description.forEach(s -> lore.add(centerSmallText(s).append(JUMP_BACK)));
+    meta.lore(lore);
     meta.setMaxStackSize(99);
     if (weight <= 500) {
       meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
@@ -218,7 +228,7 @@ public final class SoulGem  {
     result.setModelData(section.getInt("model-data", 0));
     result.setHideStats(section.getBoolean("hide-stats", false));
     result.setBreakChance((float) section.getDouble("break-chance", 0.2));
-    result.setDescription(PaletteUtil.color(section.getStringList("description")));
+    result.setDescription(PaletteUtil.loadComponents(section, "description"));
     result.setStats(StatUtil.getStatMapFromSection(section.getConfigurationSection("stats")));
     result.setPercentStats(StatUtil.getStatMapFromSection(section.getConfigurationSection("percent-stats")));
     result.setWeight(section.getDouble("weight", 0));

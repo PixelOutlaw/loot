@@ -18,6 +18,7 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
@@ -30,8 +31,11 @@ import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.ItemStyleUtil;
 import info.faceland.loot.utils.PersistHelper;
 import java.util.List;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -48,23 +52,23 @@ public final class ClawOfTheVoid {
   public static void rebuild() {
     item = new ItemStack(Material.NETHER_STAR);
     ItemMeta meta = item.getItemMeta();
-    String name = "Orb Of Many Faces";
+    String name = "Claw Of The Void";
     meta.setDisplayName(FaceColor.RED + name);
     meta.setCustomModelData(11);
     meta.setMaxStackSize(99);
-    List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF801\uF808丌\uF808\uF802"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
-        centerSmallText(PaletteUtil.color("|lgray|This orb can be used at")),
-        centerSmallText(PaletteUtil.color("|lgray|an enchantment table to")),
-        centerSmallText(PaletteUtil.color("|green|reroll |lgray|an item's stats!")),
-        "",
-        centerSmallText(PaletteUtil.color("|gray||i|The chaotic energy in this")),
-        centerSmallText(PaletteUtil.color("|gray||i|orb makes you wonder...")),
-        centerSmallText(PaletteUtil.color("|gray||i|Does a sphere have zero")),
-        centerSmallText(PaletteUtil.color("|gray||i|faces? Or... infinite..?"))
+    List<TextComponent> lore = List.of(
+        noShadow(Component.text("\uF801\uF808丌\uF808\uF802")),
+        ItemStyleUtil.smallNameLoreLine(name),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|This orb can be used at"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|an enchantment table to"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|green|reroll |lgray|an item's stats!"))),
+        Component.empty(),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|The chaotic energy in this"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|orb makes you wonder..."))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|Does a sphere have zero"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|faces? Or... infinite..?")))
     );
-    meta.setLore(lore);
+    meta.lore(lore);
     meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();

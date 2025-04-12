@@ -80,7 +80,7 @@ public class GemcutterMenu extends ItemMenu {
         .getStrifePlugin().getChampionManager().getChampion(player), LifeSkillType.CRAFTING);
     int maxLvl = CraftingUtil.getMaxActionLevel(rank);
     CraftMaterial selectedMaterial = CraftMaterial.get(selectedStack);
-    if (selectedMaterial == null) {
+    if (selectedMaterial == null || selectedMaterial.getGemResult() == null) {
       player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
       return;
     }
@@ -92,21 +92,17 @@ public class GemcutterMenu extends ItemMenu {
     }
     SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
     float effectiveCraftLevel = data.getLevelWithBonus();
-    int modelData = ItemUtil.getCustomData(selectedStack);
-    Material material = Material.DIAMOND;
-    if (modelData >= 1000 && modelData < 2000) {
-      material = Material.RED_DYE;
-    } else if (modelData < 3000) {
-      material = Material.EMERALD;
-    } else if (modelData < 4000) {
-      material = Material.LAPIS_LAZULI;
-    } else if (modelData < 5000) {
-      material = Material.ORANGE_DYE;
-    } else if (modelData < 6000) {
-      material = Material.PURPLE_DYE;
-    } else if (modelData < 7000) {
-      material = Material.PINK_DYE;
-    }
+    
+    Material material = switch (selectedMaterial.getGemResult()) {
+      case "ruby" -> Material.RED_DYE;
+      case "emerald" -> Material.EMERALD;
+      case "sapphire" -> Material.LAPIS_LAZULI;
+      case "topaz" -> Material.ORANGE_DYE;
+      case "onyx" -> Material.BLACK_DYE;
+      case "amethyst" -> Material.PURPLE_DYE;
+      case "opal" -> Material.PINK_DYE;
+      default -> Material.DIAMOND;
+    };
 
     float upgradeChance = 0.15f * ((effectiveCraftLevel + 100) / (itemLevel + 100));
     int stars = 1;

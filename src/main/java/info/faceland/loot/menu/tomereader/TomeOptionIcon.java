@@ -18,6 +18,7 @@
  */
 package info.faceland.loot.menu.tomereader;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import ninja.amp.ampmenus.events.ItemClickEvent;
@@ -33,8 +34,7 @@ public class TomeOptionIcon extends MenuItem {
   private final int index;
 
   TomeOptionIcon(ReaderMenu menu, int index) {
-    super(TextUtils.color("&cClick to cut a gem!"), new ItemStack(Material.BARRIER));
-    ItemStackExtensionsKt.setCustomModelData(getIcon(), 50);
+    super(TextUtils.color("&cClick to cut a gem!"), ItemUtils.BLANK.clone());
     this.menu = menu;
     this.index = index;
   }

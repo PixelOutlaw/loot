@@ -5,7 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.inventory.ItemStack;
 
-@Getter @Setter
+@Getter
+@Setter
 public class PulverizeResult {
 
   private final LifeSkillType skillType;

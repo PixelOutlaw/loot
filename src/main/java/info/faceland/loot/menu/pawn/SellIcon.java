@@ -19,6 +19,7 @@
 package info.faceland.loot.menu.pawn;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
@@ -43,7 +44,6 @@ public class SellIcon extends MenuItem {
   private final List<String> lore = new ArrayList<>();
 
   private static final DecimalFormat DF = new DecimalFormat("###.#");
-  private static final ItemStack defaultStack = buildStack();
 
   SellIcon(PawnMenu menu) {
     super(TextUtils.color("&e&lSell Items"), new ItemStack(Material.GOLD_INGOT));
@@ -56,7 +56,7 @@ public class SellIcon extends MenuItem {
 
   @Override
   public ItemStack getFinalIcon(Player player) {
-    ItemStack stack = defaultStack.clone();
+    ItemStack stack = ItemUtils.BLANK.clone();
     ItemStackExtensionsKt.setDisplayName(stack, getDisplayName());
     List<String> newLore = new ArrayList<>();
     int tradeLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.TRADING);
@@ -114,11 +114,5 @@ public class SellIcon extends MenuItem {
           .playSound(event.getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_BIT, 1, 0.5f);
     }
     event.setWillUpdate(true);
-  }
-
-  private static ItemStack buildStack() {
-    ItemStack stack = new ItemStack(Material.BARRIER);
-    ItemStackExtensionsKt.setCustomModelData(stack, 50);
-    return stack;
   }
 }

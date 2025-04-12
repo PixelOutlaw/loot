@@ -87,11 +87,6 @@ public class ConversionUtil {
       SocketExtender.update(stack);
       return;
     }
-    if (ArcaneEnhancer.isSimilar(stack)) {
-      //System.out.println("-- Detected enhancer!");
-      ArcaneEnhancer.update(stack);
-      return;
-    }
     if (TinkerersGear.isSimilar(stack)) {
       //System.out.println("-- Detected tinker!");
       TinkerersGear.update(stack);
@@ -118,21 +113,6 @@ public class ConversionUtil {
     if (food != null) {
       RpgFood.syncStack(stack, food);
       return;
-    }
-    if (stack.getType() == Material.SADDLE) {
-      int modelData = ItemUtils.getModelData(stack);
-      for (var nci : LootPlugin.getInstance().getCustomItemManager().getCustomItems()) {
-        if (nci.getMaterial() == Material.SADDLE && nci.getCustomDataNumber() == modelData) {
-          ItemMeta meta = stack.getItemMeta();
-          PersistentDataContainer pdc = meta.getPersistentDataContainer();
-          pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
-          pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, "unique");
-          pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, nci.getId());
-          stack.setItemMeta(meta);
-          ItemRenderer.renderItem(stack, true);
-          return;
-        }
-      }
     }
     String name = ChatColor.stripColor(ItemStackExtensionsKt.getDisplayName(stack));
     if (StringUtils.isNotBlank(name) && !name.contains("Potion") && !name.contains(" Key")) {

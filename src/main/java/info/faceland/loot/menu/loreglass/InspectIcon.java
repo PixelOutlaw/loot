@@ -18,6 +18,7 @@
  */
 package info.faceland.loot.menu.loreglass;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.pdc.EquipmentData;
@@ -40,10 +41,9 @@ public class InspectIcon extends MenuItem {
   private final LoreglassMenu menu;
 
   InspectIcon(LootPlugin plugin, LoreglassMenu menu) {
-    super(TextUtils.color("&cClick to cut a gem!"), new ItemStack(Material.BARRIER));
+    super(TextUtils.color("&cClick to cut a gem!"), ItemUtils.BLANK.clone());
     this.plugin = plugin;
     this.menu = menu;
-    ItemStackExtensionsKt.setCustomModelData(getIcon(), 50);
   }
 
   @Override

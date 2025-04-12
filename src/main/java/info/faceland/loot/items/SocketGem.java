@@ -16,6 +16,7 @@
  */
 package info.faceland.loot.items;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
@@ -31,6 +32,7 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.groups.ItemGroup;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.ItemStyleUtil;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import java.util.ArrayList;
@@ -47,6 +49,8 @@ import land.face.strife.util.StatUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -71,7 +75,8 @@ public final class SocketGem {
   private double weight;
   private double weightPerLevel;
   private double bonusWeight;
-  private int customModelData;
+  private String rarity;
+  private NamespacedKey tooltip;
   private String prefix = "";
   private String suffix = "";
   private List<String> lore;
@@ -108,7 +113,8 @@ public final class SocketGem {
       Map.entry("shoot_ii", "impact_ii"),
       Map.entry("shoot_iii", "impact_iii"),
       Map.entry("shoot_iv", "impact_iv"),
-      Map.entry("imbue", "elemental_energy")
+      Map.entry("imbue", "elemental_energy"),
+      Map.entry("insight", "muscle_memory")
   );
 
   public SocketGem(String id) {
@@ -170,62 +176,53 @@ public final class SocketGem {
     ItemMeta meta = builtItem.getItemMeta();
     String name = ChatColor.stripColor(this.name);
 
-    List<String> lore = new ArrayList<>();
-    lore.add(PaletteUtil.color("|ns|\uF801\uF808丈\uF808\uF802"));
+    List<TextComponent> lore = new ArrayList<>();
+    lore.add(noShadow(Component.text("\uF801\uF808丈\uF808\uF802")));
     // Todo: remove manual character replace
-    lore.add(HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE +
-        doSmallNameThing(name.replace("â", "a")) + "\uF80C");
-    lore.add(centerSmallText(FaceColor.WHITE + "Used On: " + FaceColor.CYAN + itemGroup.getName()));
-    lore.add("");
+    var tempName = name.replace("â", "a");
+    lore.add(ItemStyleUtil.smallNameLoreLine(tempName));
+    lore.add(centerSmallText(PaletteUtil.convert(FaceColor.WHITE + "Used On: " + FaceColor.CYAN + itemGroup.getName())));
+    lore.add(Component.empty());
     for (var stuff : percentStats.entrySet()) {
       int val = Math.round(stuff.getValue());
       if (val >= 0) {
-        lore.add(centerSmallText(FaceColor.ORANGE + "+" + val + "% " + stuff.getKey().getName()));
+        lore.add(centerSmallText(PaletteUtil.convert(FaceColor.ORANGE + "+" + val + "% " + stuff.getKey().getName())));
       } else {
-        lore.add(centerSmallText(FaceColor.RED.s() + (val + "% " + stuff.getKey().getName())));
+        lore.add(centerSmallText(PaletteUtil.convert(FaceColor.RED.s() + (val + "% " + stuff.getKey().getName()))));
       }
     }
     for (var stuff : stats.entrySet()) {
       int val = Math.round(stuff.getValue());
       if (val >= 0) {
-        lore.add(centerSmallText(FaceColor.ORANGE + "+" + val + " " + stuff.getKey().getName()));
+        lore.add(centerSmallText(PaletteUtil.convert(FaceColor.ORANGE + "+" + val + " " + stuff.getKey().getName())));
       } else {
-        lore.add(centerSmallText(FaceColor.RED.s() + val + " " + stuff.getKey().getName()));
+        lore.add(centerSmallText(PaletteUtil.convert(FaceColor.RED.s() + val + " " + stuff.getKey().getName())));
       }
     }
     for (var stuff : traits) {
       for (String s : stuff.getAdditionalText()) {
-        lore.add(centerSmallText(s));
+        lore.add(centerSmallText(PaletteUtil.convert(s)));
       }
     }
     for (var stuff : loreAbilities) {
       for (String s : stuff.getDescription()) {
-        lore.add(centerSmallText(s));
+        lore.add(centerSmallText(PaletteUtil.convert(s)));
       }
     }
     for (String s : this.lore) {
-      lore.add(centerSmallText(PaletteUtil.color(s)));
+      lore.add(centerSmallText(PaletteUtil.convert(PaletteUtil.color(s))));
     }
-    lore.add("");
+    lore.add(Component.empty());
     lore.addAll(List.of(
-        FaceColor.LIGHT_GRAY + centerSmallText("Visit an enchanting table"),
-        FaceColor.LIGHT_GRAY + centerSmallText("to use this gem on items"),
-        FaceColor.LIGHT_GRAY + centerSmallText("with empty socket slots!")
+        centerSmallText(PaletteUtil.convert(FaceColor.LIGHT_GRAY + "Visit an enchanting table")),
+        centerSmallText(PaletteUtil.convert(FaceColor.LIGHT_GRAY + "to use this gem on items")),
+        centerSmallText(PaletteUtil.convert(FaceColor.LIGHT_GRAY + "with empty socket slots!"))
     ));
 
     meta.setDisplayName(FaceColor.LIME + name);
-    meta.setCustomModelData(customModelData);
     meta.setMaxStackSize(99);
-    meta.setLore(lore);
-    if (weight <= 10) {
-      meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
-    } else if (weight <= 150) {
-      meta.setTooltipStyle(NamespacedKey.fromString("item_rare"));
-    } else if (weight <= 3000) {
-      meta.setTooltipStyle(NamespacedKey.fromString("item_uncommon"));
-    } else {
-      meta.setTooltipStyle(NamespacedKey.fromString("item_common"));
-    }
+    meta.lore(lore);
+    meta.setTooltipStyle(tooltip);
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
@@ -280,7 +277,21 @@ public final class SocketGem {
         gem.setWeight(cs.getDouble("weight"));
         gem.setBonusWeight(cs.getDouble("bonus-weight"));
         gem.setWeightPerLevel(cs.getDouble("weight-per-level"));
-        gem.setCustomModelData(cs.getInt("custom-model-data", 2000));
+        var rarityWeight = Math.max(gem.getWeight(), gem.getBonusWeight());
+        var unique = !(key.endsWith(" I") || key.endsWith(" II") || key.endsWith(" III") || key.endsWith(" IV"));
+        if (rarityWeight <= 10) {
+          gem.setTooltip(NamespacedKey.fromString("item_epic"));
+          gem.setRarity(unique ? "unique_epic" : "epic");
+        } else if (rarityWeight <= 50) {
+          gem.setTooltip(NamespacedKey.fromString("item_rare"));
+          gem.setRarity(unique ? "unique" : "rare");
+        } else if (rarityWeight <= 3000) {
+          gem.setTooltip(NamespacedKey.fromString("item_uncommon"));
+          gem.setRarity(unique ? "unique" : "uncommon");
+        } else {
+          gem.setTooltip(NamespacedKey.fromString("item_common"));
+          gem.setRarity(unique ? "unique" : "common");
+        }
         gem.setItemGroup(ItemGroup.get(cs.getString("item-group")));
         gem.setLore(cs.getStringList("lore"));
         gem.setStats(StatUtil.getStatMapFromSection(cs.getConfigurationSection("stats")));

@@ -18,16 +18,15 @@
  */
 package info.faceland.loot.menu;
 
-import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import ninja.amp.ampmenus.events.ItemClickEvent;
 import ninja.amp.ampmenus.items.MenuItem;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class BlankIcon extends MenuItem {
 
-  private static ItemStack stack = buildStack();
+  private static final ItemStack stack = ItemUtils.FILLER.clone();
 
   public BlankIcon() {
     super(" ", stack);
@@ -42,12 +41,5 @@ public class BlankIcon extends MenuItem {
   public void onItemClick(ItemClickEvent event) {
     super.onItemClick(event);
     event.setWillUpdate(false);
-  }
-
-  private static ItemStack buildStack() {
-    stack = new ItemStack(Material.IRON_BARS);
-    ItemStackExtensionsKt.setCustomModelData(stack, 99);
-    ItemStackExtensionsKt.setDisplayName(stack, " ");
-    return stack;
   }
 }

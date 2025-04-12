@@ -17,6 +17,7 @@
 package info.faceland.loot.menu.upgrade;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
@@ -216,14 +217,14 @@ public class EnchantMenu extends ItemMenu {
   }
 
   private void updateConfirmIcon(Player player) {
-    ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 61);
+    ItemUtils.setItemModel(confirmIcon.getIcon(), "faceland:icons/enchant_invalid");
     List<String> lore = new ArrayList<>();
     if (selectedEquipment == null || selectedEquipment.getType() == Material.AIR) {
-      updateConfirmDisplay(StringExtensionsKt.chatColorize("&eNo Equipment Item..."), noEquipmentLore, 61);
+      updateConfirmDisplay(StringExtensionsKt.chatColorize("&eNo Equipment Item..."), noEquipmentLore, "faceland:icons/enchant_incomplete");
       return;
     }
     if (selectedUpgradeItem == null || selectedUpgradeItem.getType() == Material.AIR) {
-      updateConfirmDisplay(StringExtensionsKt.chatColorize("&eNo Upgrade Item..."), noUpgradeItemLore, 61);
+      updateConfirmDisplay(StringExtensionsKt.chatColorize("&eNo Upgrade Item..."), noUpgradeItemLore, "faceland:icons/enchant_incomplete");
       return;
     }
     switch (PersistHelper.getItemType(selectedUpgradeItem)) {
@@ -249,17 +250,17 @@ public class EnchantMenu extends ItemMenu {
         // NOTHING
       }
     }
-    updateConfirmDisplay(validUpgrade, lore, 60);
+    updateConfirmDisplay(validUpgrade, lore, "faceland:icons/enchant_ready");
   }
 
   private void updateEnchantDisplay(Player player, List<String> lore) {
     EnchantmentTome tome = EnchantmentTome.get(selectedUpgradeItem);
     if (!EnchantUtil.canBeEnchanted(player, tome, selectedEquipment)) {
-      updateConfirmDisplay(invalidEnchant, noEnchantTagLore, 62);
+      updateConfirmDisplay(invalidEnchant, noEnchantTagLore, "faceland:icons/enchant_invalid");
       return;
     }
     if (!MaterialUtil.isInGroup(selectedEquipment, tome.getItemGroup())) {
-      updateConfirmDisplay(invalidEnchant, badTomeTypeLore, 62);
+      updateConfirmDisplay(invalidEnchant, badTomeTypeLore, "faceland:icons/enchant_invalid");
       return;
     }
     if (StringUtils.isNotBlank(tome.getStat())) {
@@ -272,8 +273,8 @@ public class EnchantMenu extends ItemMenu {
 
       StatResponse srMin = plugin.getStatManager().getFinalStat(stat, enchantPower, rarity, RollStyle.MIN, 1, 0);
       StatResponse srMax = plugin.getStatManager().getFinalStat(stat, enchantPower, rarity, RollStyle.MAX, 1, 0);
-      String minStat = ChatColor.stripColor(srMin.getStatString());
-      String maxStat = ChatColor.stripColor(srMax.getStatString());
+      String minStat = srMin.getStatString().content();
+      String maxStat = srMax.getStatString().content();
 
       for (String s : validEnchantLore) {
         lore.add(s.replace("{min}", minStat).replace("{max}", maxStat));
@@ -290,60 +291,60 @@ public class EnchantMenu extends ItemMenu {
       lore.add(FaceColor.LIGHT_GRAY + " enchanting skill, applied");
       lore.add(FaceColor.LIGHT_GRAY + " after all other numbers!");
     }
-    updateConfirmDisplay(validEnchant, ListExtensionsKt.chatColorize(lore), 60);
+    updateConfirmDisplay(validEnchant, ListExtensionsKt.chatColorize(lore), "faceland:icons/enchant_ready");
   }
 
   private void updateExtenderDisplay() {
     if (MaterialUtil.indexOfExtend(TextUtils.getLore(selectedEquipment)) == -1) {
-      updateConfirmDisplay(invalidExtend, invalidExtendLore, 62);
+      updateConfirmDisplay(invalidExtend, invalidExtendLore, "faceland:icons/enchant_invalid");
       return;
     }
-    updateConfirmDisplay(validExtend, validExtendLore, 60);
+    updateConfirmDisplay(validExtend, validExtendLore, "faceland:icons/enchant_ready");
   }
 
   private void updateArcaneDisplay(Player player) {
     if (!PersistHelper.isEnchanted(selectedUpgradeItem)) {
-      updateConfirmDisplay(itemNotEnchanted, itemNotEnchantedLore, 62);
+      updateConfirmDisplay(itemNotEnchanted, itemNotEnchantedLore, "faceland:icons/enchant_invalid");
       return;
     }
     if (PersistHelper.isEnhanced(selectedUpgradeItem)) {
-      updateConfirmDisplay(alreadyEnhanced, alreadyEnhancedLore, 62);
+      updateConfirmDisplay(alreadyEnhanced, alreadyEnhancedLore, "faceland:icons/enchant_invalid");
       return;
     }
     Champion champion = LootPlugin.getInstance().getStrifePlugin().getChampionManager().getChampion(player);
     if (MaterialUtil.getLevelRequirement(selectedEquipment) > EnchantMenu.getEnhanceRequirement(
         SkillRank.getRank(champion, LifeSkillType.ENCHANTING))) {
-      updateConfirmDisplay(noEnhanceLevel, noEnhanceLevelLore, 62);
+      updateConfirmDisplay(noEnhanceLevel, noEnhanceLevelLore, "faceland:icons/enchant_invalid");
       return;
     }
-    updateConfirmDisplay(validEnhance, validEnhanceLore, 60);
+    updateConfirmDisplay(validEnhance, validEnhanceLore, "faceland:icons/enchant_ready");
   }
 
   private void updatePurityDisplay() {
     if (!PersistHelper.isEnchanted(selectedEquipment)) {
-      updateConfirmDisplay(itemNotEnchanted, itemNotEnchantedLore, 62);
+      updateConfirmDisplay(itemNotEnchanted, itemNotEnchantedLore, "faceland:icons/enchant_invalid");
       return;
     }
-    updateConfirmDisplay(validPurity, validPurityLore, 60);
+    updateConfirmDisplay(validPurity, validPurityLore, "faceland:icons/enchant_ready");
   }
 
   private void updateTinkerDisplay() {
     EquipmentData equipmentData = PersistHelper.getEquipmentData(selectedEquipment);
     if (equipmentData == null) {
-      updateConfirmDisplay(invalidTinker, hasCraftStatLore, 62);
+      updateConfirmDisplay(invalidTinker, hasCraftStatLore, "faceland:icons/enchant_invalid");
       return;
     }
     boolean canExtract = equipmentData.canExtractStat(false);
     if (!canExtract) {
-      updateConfirmDisplay(invalidTinker, noTinkerStatsLore, 62);
+      updateConfirmDisplay(invalidTinker, noTinkerStatsLore, "faceland:icons/enchant_invalid");
       return;
     }
     var stats = equipmentData.getExtractableStats();
     if (stats.isEmpty()) {
-      updateConfirmDisplay(invalidTinker, noTinkerStatsLore, 62);
+      updateConfirmDisplay(invalidTinker, noTinkerStatsLore, "faceland:icons/enchant_invalid");
       return;
     }
-    updateConfirmDisplay(validTinker, validTinkerLore, 60);
+    updateConfirmDisplay(validTinker, validTinkerLore, "faceland:icons/enchant_ready");
   }
 
   private void updateRerollDisplay() {
@@ -357,7 +358,7 @@ public class EnchantMenu extends ItemMenu {
             "",
             "|lime|Good luck!"
         )),
-        60
+        "faceland:icons/enchant_ready"
     );
   }
 
@@ -370,7 +371,7 @@ public class EnchantMenu extends ItemMenu {
             "|lgray|section stronger, but flip one",
             "|lgray|to a negative value!"
         )),
-        60
+        "faceland:icons/enchant_ready"
     );
   }
 
@@ -382,7 +383,7 @@ public class EnchantMenu extends ItemMenu {
             "|lgray|This will add a stat to a",
             "|lgray|non-unique item!"
         )),
-        60
+        "faceland:icons/enchant_ready"
     );
   }
 
@@ -394,7 +395,7 @@ public class EnchantMenu extends ItemMenu {
             "|lgray|This will flip the rolls",
             "|lgray|on randomized stats!"
         )),
-        60
+        "faceland:icons/enchant_ready"
     );
   }
 
@@ -406,7 +407,7 @@ public class EnchantMenu extends ItemMenu {
             "|lgray|This will lower the randomized",
             "|lgray|rolls on your item??"
         )),
-        60
+        "faceland:icons/enchant_ready"
     );
   }
 
@@ -416,7 +417,7 @@ public class EnchantMenu extends ItemMenu {
       updateConfirmDisplay(PaletteUtil.color("|red|Not Equipment"),
           PaletteUtil.color(List.of("",
               "|lgray|The selected item is not normal equipment"
-          )), 62
+          )), "faceland:icons/enchant_invalid"
       );
       return;
     }
@@ -428,7 +429,7 @@ public class EnchantMenu extends ItemMenu {
               "|lgray|unique items, as unique items",
               "|lgray|always have the same secondary",
               "|lgray|stat"
-          )), 62
+          )), "faceland:icons/enchant_invalid"
       );
       return;
     }
@@ -438,7 +439,7 @@ public class EnchantMenu extends ItemMenu {
               "|lgray|This equipment item only has",
               "|lgray|one possible option for its",
               "|lgray|secondary stat!"
-          )), 62
+          )), "faceland:icons/enchant_invalid"
       );
       return;
     }
@@ -460,7 +461,7 @@ public class EnchantMenu extends ItemMenu {
     updateConfirmDisplay(
         PaletteUtil.color("|teal|Warp Item"),
         lore,
-        60
+        "faceland:icons/enchant_ready"
     );
   }
 
@@ -471,8 +472,7 @@ public class EnchantMenu extends ItemMenu {
             "",
             "|lgray|This increases the rarity of",
             "|lgray|a non-unique item!"
-        )),
-        60
+        )), "faceland:icons/enchant_ready"
     );
   }
 
@@ -491,8 +491,7 @@ public class EnchantMenu extends ItemMenu {
             "|lime|value and the maximum value, so",
             "|lime|this is more effective on items",
             "|lime|with lower rolls!"
-        )),
-        60
+        )), "faceland:icons/enchant_ready"
     );
   }
 
@@ -504,14 +503,13 @@ public class EnchantMenu extends ItemMenu {
             "|lgray|Makes an item more normal by",
             "|lgray|making all random rolls exactly",
             "|lgray|50% between min/max!"
-        )),
-        60
+        )), "faceland:icons/enchant_ready"
     );
   }
 
   private void updateScrollDisplay(UpgradeScroll scroll, Player player, List<String> lore) {
     if (!MaterialUtil.isUpgradePossible(selectedEquipment)) {
-      updateConfirmDisplay(invalidUpgrade, invalidUpgradeLore, 62);
+      updateConfirmDisplay(invalidUpgrade, invalidUpgradeLore, "faceland:icons/enchant_invalid");
       return;
     }
     if (!MaterialUtil.canBeUpgraded(selectedUpgradeItem, selectedEquipment)) {
@@ -521,26 +519,26 @@ public class EnchantMenu extends ItemMenu {
               "|lgray|This scroll can only upgrade",
               "|lgray|items up to |cyan|+" + scroll.getMaxLevel()
           )),
-          62
+          "faceland:icons/enchant_invalid"
       );
     }
 
     EquipmentData data = PersistHelper.getEquipmentData(selectedEquipment);
 
     if (data == null || data.getTier() == null) {
-      updateConfirmDisplay(invalidUpgrade, invalidUpgradeLore, 62);
+      updateConfirmDisplay(invalidUpgrade, invalidUpgradeLore, "faceland:icons/enchant_invalid");
       return;
     }
 
     if (data.getTier().getUpgradeScale() > 15) {
-      updateConfirmDisplay(invalidUpgrade, invalidUpgradeLore, 62);
+      updateConfirmDisplay(invalidUpgrade, invalidUpgradeLore, "faceland:icons/enchant_invalid");
       return;
     }
 
     int itemPlus = data.getUpgradeLevel() * data.getTier().getUpgradeScale();
 
     if (!MaterialUtil.meetsUpgradeRange(scroll, itemPlus)) {
-      updateConfirmDisplay(invalidUpgrade, badScrollRangeLore, 62);
+      updateConfirmDisplay(invalidUpgrade, badScrollRangeLore, "faceland:icons/enchant_invalid");
       return;
     }
 
@@ -587,26 +585,26 @@ public class EnchantMenu extends ItemMenu {
     if (!PersistHelper.isEnchanted(selectedEquipment)) {
       confirmIcon.setDisplayName(itemNotEnchanted);
       lore.addAll(itemNotEnchantedLore);
-      ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
+      ItemUtils.setItemModel(confirmIcon.getIcon(), "faceland:icons/enchant_invalid");
       TextUtils.setLore(confirmIcon.getIcon(), lore);
       return;
     }
     if (PersistHelper.isEnhanced(selectedEquipment)) {
       confirmIcon.setDisplayName(cannotRefill);
       lore.addAll(arcaneEnchanted);
-      ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
+      ItemUtils.setItemModel(confirmIcon.getIcon(), "faceland:icons/enchant_invalid");
       TextUtils.setLore(confirmIcon.getIcon(), lore);
       return;
     }
     if (PersistHelper.getMissingEnchantPower(selectedEquipment) < 1) {
       confirmIcon.setDisplayName(cannotRefill);
       lore.addAll(fullEnchantment);
-      ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 62);
+      ItemUtils.setItemModel(confirmIcon.getIcon(), "faceland:icons/enchant_invalid");
       TextUtils.setLore(confirmIcon.getIcon(), lore);
       return;
     }
     confirmIcon.setDisplayName(validRefill);
-    ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), 60);
+    ItemUtils.setItemModel(confirmIcon.getIcon(), "faceland:icons/enchant_ready");
     lore.addAll(validRefillLore);
   }
 
@@ -614,17 +612,17 @@ public class EnchantMenu extends ItemMenu {
     SocketGem socketGem = SocketGem.get(selectedUpgradeItem);
     if (socketGem != null) {
       if (plugin.getSocketGemManager().getOpenSocketIndex(selectedEquipment) == -1) {
-        updateConfirmDisplay(invalidSocket, noSocketSlotsLore, 62);
+        updateConfirmDisplay(invalidSocket, noSocketSlotsLore, "faceland:icons/enchant_invalid");
         return;
       }
       if (!MaterialUtil.isInGroup(selectedEquipment, socketGem.getItemGroup())) {
-        updateConfirmDisplay(invalidSocket, invalidSocketTypeLore, 62);
+        updateConfirmDisplay(invalidSocket, invalidSocketTypeLore, "faceland:icons/enchant_invalid");
         return;
       }
-      updateConfirmDisplay(validSocket, validSocketLore, 60);
+      updateConfirmDisplay(validSocket, validSocketLore, "faceland:icons/enchant_ready");
       return;
     }
-    updateConfirmDisplay(invalidSocket, invalidSocketTypeLore, 60);
+    updateConfirmDisplay(invalidSocket, invalidSocketTypeLore, "faceland:icons/enchant_ready");
   }
 
   boolean doUpgrade(Player player) {
@@ -783,9 +781,9 @@ public class EnchantMenu extends ItemMenu {
     };
   }
 
-  private void updateConfirmDisplay(String displayName, List<String> lore, int modelData) {
+  private void updateConfirmDisplay(String displayName, List<String> lore, String model) {
     confirmIcon.setDisplayName(displayName);
-    ItemStackExtensionsKt.setCustomModelData(confirmIcon.getIcon(), modelData);
+    ItemUtils.setItemModel(confirmIcon.getIcon(), model);
     TextUtils.setLore(confirmIcon.getIcon(), lore);
   }
 

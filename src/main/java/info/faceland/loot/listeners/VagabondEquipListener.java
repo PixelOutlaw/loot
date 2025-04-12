@@ -148,22 +148,22 @@ public final class VagabondEquipListener implements Listener {
 
       switch (slot) {
         case "HELMET" -> {
-          item = DeluxeInvyPlugin.getInstance().getPlayerManager().trimArmor(item, 50);
+          item = DeluxeInvyPlugin.getInstance().getPlayerManager().trimArmor(item, "faceland:icons/empty");
           event.getLivingEntity().getEquipment().setItem(EquipmentSlot.HEAD, item);
           event.getLivingEntity().getEquipment().setDropChance(EquipmentSlot.HEAD, 0f);
         }
         case "BODY" -> {
-          item = DeluxeInvyPlugin.getInstance().getPlayerManager().trimArmor(item, 50);
+          item = DeluxeInvyPlugin.getInstance().getPlayerManager().trimArmor(item, "faceland:icons/empty");
           event.getLivingEntity().getEquipment().setItem(EquipmentSlot.CHEST, item);
           event.getLivingEntity().getEquipment().setDropChance(EquipmentSlot.CHEST, 0f);
         }
         case "LEGS" -> {
-          item = DeluxeInvyPlugin.getInstance().getPlayerManager().trimArmor(item, 50);
+          item = DeluxeInvyPlugin.getInstance().getPlayerManager().trimArmor(item, "faceland:icons/empty");
           event.getLivingEntity().getEquipment().setItem(EquipmentSlot.LEGS, item);
           event.getLivingEntity().getEquipment().setDropChance(EquipmentSlot.LEGS, 0f);
         }
         case "BOOTS" -> {
-          item = DeluxeInvyPlugin.getInstance().getPlayerManager().trimArmor(item, 50);
+          item = DeluxeInvyPlugin.getInstance().getPlayerManager().trimArmor(item, "faceland:icons/empty");
           event.getLivingEntity().getEquipment().setItem(EquipmentSlot.FEET, item);
           event.getLivingEntity().getEquipment().setDropChance(EquipmentSlot.FEET, 0f);
         }
@@ -172,7 +172,7 @@ public final class VagabondEquipListener implements Listener {
           event.getLivingEntity().getEquipment().setDropChance(EquipmentSlot.HAND, 0f);
         }
         case "OFF_HAND" -> {
-          item = DeluxeInvyPlugin.getInstance().getPlayerManager().trimArmor(item, 50);
+          item = DeluxeInvyPlugin.getInstance().getPlayerManager().trimArmor(item, "faceland:icons/empty");
           event.getLivingEntity().getEquipment().setItem(EquipmentSlot.OFF_HAND, item);
           event.getLivingEntity().getEquipment().setDropChance(EquipmentSlot.OFF_HAND, 0f);
         }

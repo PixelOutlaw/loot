@@ -388,7 +388,7 @@ public final class PreCraftListener implements Listener {
     int itemLevel = crData.getItemLevel() == -1 ? player.getLevel() : (int) crData.getItemLevel();
     if (maxCraftLevel < itemLevel) {
       craftingInventory.getResult().setType(Material.BARRIER);
-      ItemStackExtensionsKt.setCustomModelData(craftingInventory.getResult(), 150);
+      //ItemStackExtensionsKt.setCustomModelData(craftingInventory.getResult(), 150);
       ItemStackExtensionsKt.setDisplayName(craftingInventory.getResult(),
           FaceColor.RED + FaceColor.BOLD.s() + FaceColor.UNDERLINE.s() + "Crafting Level Too Low!");
       TextUtils.setLore(craftingInventory.getResult(), List.of(
@@ -404,10 +404,10 @@ public final class PreCraftListener implements Listener {
       return;
     }
 
-    Tier tier = Tier.determine(result);
+    Tier tier = Tier.get(result);
     if (tier == null) {
       craftingInventory.getResult().setType(Material.BARRIER);
-      ItemStackExtensionsKt.setCustomModelData(craftingInventory.getResult(), 150);
+      //ItemStackExtensionsKt.setCustomModelData(craftingInventory.getResult(), 150);
       ItemStackExtensionsKt.setDisplayName(craftingInventory.getResult(),
           FaceColor.RED + FaceColor.BOLD.s() + FaceColor.UNDERLINE.s() + "Something Went Wrong!");
       TextUtils.setLore(craftingInventory.getResult(), List.of(

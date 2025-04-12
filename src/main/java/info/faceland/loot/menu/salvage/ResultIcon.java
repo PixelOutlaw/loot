@@ -18,6 +18,7 @@
  */
 package info.faceland.loot.menu.salvage;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import ninja.amp.ampmenus.events.ItemClickEvent;
@@ -40,8 +41,7 @@ public class ResultIcon extends MenuItem {
   @Override
   public ItemStack getFinalIcon(Player player) {
     if (menu.getResult(player) == null) {
-      ItemStack stack = new ItemStack(Material.BARRIER);
-      ItemStackExtensionsKt.setCustomModelData(stack, 50);
+      ItemStack stack = ItemUtils.BLANK.clone();
       ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&eSalvaged materials will appear here!"));
       return stack;
     }

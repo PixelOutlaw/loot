@@ -18,6 +18,7 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
@@ -30,9 +31,12 @@ import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.ItemStyleUtil;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.List;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -70,15 +74,15 @@ public final class SocketExtender {
     ItemMeta meta = EXTENDER.getItemMeta();
     String name = "Socket Extender";
     meta.setDisplayName(FaceColor.YELLOW + name);
-    List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF801\uF808三\uF808\uF802"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
-        centerSmallText(PaletteUtil.color("|lgray|This |red|powerful |lgray|item can be")),
-        centerSmallText(PaletteUtil.color("|lgray|used on equipment to turn")),
-        centerSmallText(PaletteUtil.color("|lgray|a |yellow|locked socket |lgray|into a")),
-        centerSmallText(PaletteUtil.color("|lgray|normal |orange|socket|lgray|!"))
+    List<TextComponent> lore = List.of(
+        noShadow(Component.text("\uF801\uF808三\uF808\uF802")),
+        ItemStyleUtil.smallNameLoreLine(name),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|This |red|powerful |lgray|item can be"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|used on equipment to turn"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|a |yellow|locked socket |lgray|into a"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|normal |orange|socket|lgray|!")))
     );
-    meta.setLore(lore);
+    meta.lore(lore);
     meta.setCustomModelData(10);
     meta.setMaxStackSize(99);
     meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));

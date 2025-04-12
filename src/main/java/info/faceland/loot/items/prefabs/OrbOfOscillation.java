@@ -18,20 +18,20 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
-import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY_SMALL;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
-import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
-import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
-import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.ItemStyleUtil;
 import info.faceland.loot.utils.PersistHelper;
 import java.util.List;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -52,24 +52,24 @@ public final class OrbOfOscillation {
     meta.setDisplayName(FaceColor.WHITE + name);
     meta.setCustomModelData(19);
     meta.setMaxStackSize(99);
-    List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF801\uF808丌\uF808\uF802"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
-        centerSmallText(PaletteUtil.color("|lgray|This item can be used at")),
-        centerSmallText(PaletteUtil.color("|lgray|an enchantment table to")),
-        centerSmallText(PaletteUtil.color("|white_flip|flip |lgray|an item's stats!")),
-        "",
-        centerSmallText(PaletteUtil.color("|pink|Random stat rolls on an")),
-        centerSmallText(PaletteUtil.color("|pink|item are inverted. Low")),
-        centerSmallText(PaletteUtil.color("|pink|rolls become high, high")),
-        centerSmallText(PaletteUtil.color("|pink|rolls become low!")),
-        "",
-        centerSmallText(PaletteUtil.color("|gray||i|Legend says that if you")),
-        centerSmallText(PaletteUtil.color("|gray||i|use two of these magical")),
-        centerSmallText(PaletteUtil.color("|gray||i|orbs in a row, literally")),
-        centerSmallText(PaletteUtil.color("|gray||i|nothing happens"))
+    List<TextComponent> lore = List.of(
+        noShadow(Component.text("\uF801\uF808丌\uF808\uF802")),
+        ItemStyleUtil.smallNameLoreLine(name),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|This item can be used at"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|an enchantment table to"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|white_flip|flip |lgray|an item's stats!"))),
+        Component.empty(),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|pink|Random stat rolls on an"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|pink|item are inverted. Low"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|pink|rolls become high, high"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|pink|rolls become low!"))),
+        Component.empty(),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|Legend says that if you"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|use two of these magical"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|orbs in a row, literally"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|nothing happens")))
     );
-    meta.setLore(lore);
+    meta.lore(lore);
     meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();

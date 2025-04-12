@@ -30,7 +30,6 @@ import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;
 import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.Tier;
-import info.faceland.loot.utils.EssenceUtil;
 import info.faceland.loot.utils.MaterialUtil;
 import info.faceland.loot.utils.ModifyEquipmentUtil;
 import info.faceland.loot.utils.PersistHelper;
@@ -68,7 +67,7 @@ public final class ItemListListener implements Listener {
       event.getListing().setFlagB(FilterFlagB.ALL);
       return;
     }
-    if (ArcaneEnhancer.isSimilar(stack)) {
+    if (ArcaneEnhancer.matches(stack)) {
       event.getListing().setCategory(Category.CATEGORY_2);
       event.getListing().setFlagA(FilterFlagA.FLAG_6);
       event.getListing().setFlagB(FilterFlagB.ALL);

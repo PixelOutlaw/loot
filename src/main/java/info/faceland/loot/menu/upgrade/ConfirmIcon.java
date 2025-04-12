@@ -19,6 +19,7 @@
 package info.faceland.loot.menu.upgrade;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import ninja.amp.ampmenus.events.ItemClickEvent;
@@ -34,7 +35,7 @@ public class ConfirmIcon extends MenuItem {
 
   ConfirmIcon(EnchantMenu menu) {
     super("", new ItemStack(Material.PAPER));
-    ItemStackExtensionsKt.setCustomModelData(getIcon(), 61);
+    ItemUtils.setItemModel(getIcon(), "faceland:icons/enchant_incomplete");
     this.menu = menu;
   }
 

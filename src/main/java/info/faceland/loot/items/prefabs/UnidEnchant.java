@@ -18,20 +18,20 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
-import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY_SMALL;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
-import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
-import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
-import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.ItemStyleUtil;
 import info.faceland.loot.utils.PersistHelper;
 import java.util.List;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -52,19 +52,19 @@ public final class UnidEnchant {
     meta.setDisplayName(FaceColor.BLUE + name);
     meta.setCustomModelData(5);
     meta.setMaxStackSize(99);
-    List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF801\uF808出\uF808\uF802"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize("UNKNOWN") / 2) + FaceColor.TRUE_WHITE + doSmallNameThing("UNKNOWN") + "\uF80C",
-        centerSmallText(PaletteUtil.color("|lgray|When identified, the effect")),
-        centerSmallText(PaletteUtil.color("|lgray|of this enchantment tome")),
-        centerSmallText(PaletteUtil.color("|lgray|is revealed!")),
-        "",
-        centerSmallText(PaletteUtil.color("|white|Right-click to identify!")),
-        "",
-        centerSmallText(PaletteUtil.color("|gray||i|Don't judge a book by")),
-        centerSmallText(PaletteUtil.color("|gray||i|its cover!"))
+    List<TextComponent> lore = List.of(
+        noShadow(Component.text("\uF801\uF808出\uF808\uF802")),
+        ItemStyleUtil.smallNameLoreLine("UNKNOWN"),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|When identified, the effect"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|of this enchantment tome"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|is revealed!"))),
+        Component.empty(),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|white|Right-click to identify!"))),
+        Component.empty(),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|Don't judge a book by"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|gray||i|its cover!")))
     );
-    meta.setLore(lore);
+    meta.lore(lore);
     meta.setTooltipStyle(NamespacedKey.fromString("item_uncommon"));
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();

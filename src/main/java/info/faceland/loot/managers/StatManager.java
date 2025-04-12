@@ -1,5 +1,7 @@
 package info.faceland.loot.managers;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.*;
+
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemStat;
@@ -10,7 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import land.face.strife.stats.StrifeStat;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -59,8 +62,7 @@ public class StatManager {
   public StatResponse getFinalStat(ItemStat itemStat, float level, float rarity, float statRoll,
       float multiplier, float flatBonus) {
     StatResponse response = new StatResponse();
-    TextComponent component = new TextComponent();
-    component.setItalic(false);
+    var component = Component.empty();
 
     int minVal = (int) Math.floor(itemStat.getValue(level, rarity, 0));
     int maxVal = (int) Math.floor(itemStat.getValue(level, rarity, 1));
@@ -68,18 +70,21 @@ public class StatManager {
     statValue = statValue == 0 ? 1 : statValue;
 
     if (statValue < 0) {
-      component.setColor(FaceColor.RED.getColor());
+      color(component, RED);
       response.setStatRoll(statRoll);
     } else if (minVal == maxVal || statValue >= maxVal) {
-      component.setColor(InventoryUtil.getRollColor(itemStat, 1));
+      var rollColor = InventoryUtil.getRollColor(itemStat, 1).getColor();
+      component = component.color(TextColor.color(rollColor.getRed(), rollColor.getGreen(), rollColor.getBlue()));
       response.setStatRoll(1);
     } else if (statRoll < 0.5 || !itemStat.isHasColorRange()) {
-      component.setColor(InventoryUtil.getRollColor(itemStat, 0f));
+      var rollColor = InventoryUtil.getRollColor(itemStat, 0).getColor();
+      component = component.color(TextColor.color(rollColor.getRed(), rollColor.getGreen(), rollColor.getBlue()));
       response.setStatRoll(statRoll);
     } else {
       float scaledRoll = (statRoll - 0.5f) * 2f;
       //float finalRoll = Math.max(0f, Math.min(1f, scaledRoll));
-      component.setColor(InventoryUtil.getRollColor(itemStat, scaledRoll));
+      var rollColor = InventoryUtil.getRollColor(itemStat, scaledRoll).getColor();
+      component = component.color(TextColor.color(rollColor.getRed(), rollColor.getGreen(), rollColor.getBlue()));
       response.setStatRoll(statRoll);
     }
     float rawStatValue = statValue;
@@ -88,20 +93,21 @@ public class StatManager {
 
     String value = Integer.toString(statValue);
     if (itemStat.getStat() != null) {
+      String percent = (itemStat.isPercentage() ? "% " : " ");
       if (statValue >= 0) {
         if (itemStat.isShowPlus()) {
-          component.setText("+" + value + (itemStat.isPercentage() ? "% " : " ") + itemStat.getStat().getName());
+          component = component.content("+" + value + percent + itemStat.getStat().getName());
         } else {
-          component.setText(value + (itemStat.isPercentage() ? "% " : " ") + itemStat.getStat().getName());
+          component = component.content(value + percent + itemStat.getStat().getName());
         }
       } else {
-        component.setText(value + (itemStat.isPercentage() ? "% " : " ") + itemStat.getStat().getName());
+        component = component.content(value + percent + itemStat.getStat().getName());
       }
     } else {
-      component.setColor(FaceColor.CRIMSON.getColor());
-      component.setText("UNKNOWN STAT");
+      color(component, CRIMSON);
+      component = component.content("UNKNOWN STAT");
     }
-    response.setStatString(component.toLegacyText());
+    response.setStatString(component);
     if (!itemStat.getNamePrefixes().isEmpty()) {
       response.setStatPrefix(itemStat.getNamePrefixes().get(LootPlugin.RNG.nextInt(itemStat.getNamePrefixes().size())));
     }

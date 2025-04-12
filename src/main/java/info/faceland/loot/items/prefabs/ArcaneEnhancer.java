@@ -18,6 +18,7 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
@@ -31,8 +32,10 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.ItemStyleUtil;
 import info.faceland.loot.utils.PersistHelper;
 import java.util.List;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -53,16 +56,16 @@ public final class ArcaneEnhancer {
     meta.setDisplayName(FaceColor.PURPLE + name);
     meta.setCustomModelData(79);
     meta.setMaxStackSize(99);
-    meta.setLore(List.of(
-        PaletteUtil.color("|ns|\uF801\uF808丏\uF808\uF802"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
-        centerSmallText(PaletteUtil.color("|lgray|Use this item to improve")),
-        centerSmallText(PaletteUtil.color("|lgray|enchanted equipment!")),
-        "",
-        centerSmallText(PaletteUtil.color("|lgray|Once used, the equipment")),
-        centerSmallText(PaletteUtil.color("|lgray|can't have its enchant")),
-        centerSmallText(PaletteUtil.color("|lgray|refilled, and will slowly")),
-        centerSmallText(PaletteUtil.color("|lgray|revert to |blue|Enchantable"))
+    meta.lore(List.of(
+        noShadow(Component.text("\uF801\uF808丏\uF808\uF802")),
+        ItemStyleUtil.smallNameLoreLine(name),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|Use this item to improve"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|enchanted equipment!"))),
+        Component.empty(),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|Once used, the equipment"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|can't have its enchant"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|refilled, and will slowly"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|revert to |blue|Enchantable")))
     ));
     meta.setTooltipStyle(NamespacedKey.fromString("item_rare"));
 
@@ -86,18 +89,6 @@ public final class ArcaneEnhancer {
     int amount = stack.getAmount();
     ItemRenderer.replace(stack, item.clone(), false);
     stack.setAmount(amount);
-  }
-
-  /* Use matches for new ones */
-  @Deprecated
-  public static boolean isSimilar(ItemStack stack) {
-    if (stack == null) {
-      return false;
-    }
-    if (item.getType() != stack.getType()) {
-      return false;
-    }
-    return ItemUtils.getModelData(stack) == 79;
   }
 
   public static boolean matches(ItemStack stack) {

@@ -72,7 +72,8 @@ public class DealIcon extends MenuItem {
     TextUtils.setLore(icon, lore, false);
 
     if (deal.getModelData() > 0) {
-      ItemStackExtensionsKt.setCustomModelData(icon, deal.getModelData());
+      // TODO: PULL DEAL FROM LOOT ITEM
+      //ItemStackExtensionsKt.setCustomModelData(icon, deal.getModelData());
     }
     return icon;
   }

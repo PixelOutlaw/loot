@@ -18,6 +18,7 @@
  */
 package info.faceland.loot.menu.salvage;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import ninja.amp.ampmenus.events.ItemClickEvent;
@@ -40,8 +41,7 @@ public class EquipmentIcon extends MenuItem {
   @Override
   public ItemStack getFinalIcon(Player player) {
     if (menu.getEquipment(player) == null || menu.getEquipment(player).getAmount() < 1) {
-      ItemStack stack = new ItemStack(Material.BARRIER);
-      ItemStackExtensionsKt.setCustomModelData(stack, 50);
+      ItemStack stack = ItemUtils.BLANK.clone();
       ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&eSelect an equipment item!"));
       return stack;
     }

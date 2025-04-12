@@ -19,6 +19,7 @@
 package info.faceland.loot.menu.mortar;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.List;
@@ -34,8 +35,7 @@ public class GrindConfirmIcon extends MenuItem {
   private final MortarMenu menu;
 
   GrindConfirmIcon(MortarMenu menu) {
-    super(TextUtils.color("&cClick to cut a gem!"), new ItemStack(Material.BARRIER));
-    ItemStackExtensionsKt.setCustomModelData(getIcon(), 50);
+    super(TextUtils.color("&cClick to cut a gem!"), ItemUtils.BLANK.clone());
     this.menu = menu;
   }
 

@@ -60,6 +60,7 @@ public class ConfirmIcon extends MenuItem {
   @Override
   public void onItemClick(ItemClickEvent event) {
     super.onItemClick(event);
+    /*
     if (event.getClickType() == ClickType.LEFT && event.getClickType() != ClickType.DOUBLE_CLICK) {
       switch (row) {
         case ONE -> {
@@ -98,12 +99,13 @@ public class ConfirmIcon extends MenuItem {
           ItemUtils.giveOrDrop(event.getPlayer(), processOutput.getReward().clone());
         }
       }
+
     }
+     */
   }
 
   private static ItemStack buildValid() {
-    ItemStack stack = new ItemStack(Material.BARRIER);
-    ItemStackExtensionsKt.setCustomModelData(stack, 50);
+    ItemStack stack = ItemUtils.BLANK.clone();
     ItemStackExtensionsKt.setDisplayName(stack, FaceColor.GREEN + "Do The Thing!");
     TextUtils.setLore(stack, List.of(
         FaceColor.GRAY + "Click to process this item!"
@@ -112,8 +114,7 @@ public class ConfirmIcon extends MenuItem {
   }
 
   private static ItemStack buildInvalid() {
-    ItemStack stack = new ItemStack(Material.BARRIER);
-    ItemStackExtensionsKt.setCustomModelData(stack, 50);
+    ItemStack stack = ItemUtils.BLANK.clone();
     ItemStackExtensionsKt.setDisplayName(stack, FaceColor.YELLOW + "Invalid Selection");
     TextUtils.setLore(stack, List.of(
         FaceColor.GRAY + "Select a valid item to process!"

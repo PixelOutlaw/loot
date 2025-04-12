@@ -260,8 +260,7 @@ public class LootCommand extends BaseCommand {
           if (sr1 == null) {
             continue;
           }
-          var str = ChatColor.stripColor(sr1.getStatString());
-          lore.add("|lgray|" + str);
+          lore.add("|lgray|" + sr1.getStatString().content());
         }
         lore.add("");
         for (var stat : unique.getBonusStats()) {
@@ -278,7 +277,7 @@ public class LootCommand extends BaseCommand {
           if (sr1 == null || sr2 == null) {
             continue;
           }
-          var str = ChatColor.stripColor(sr1.getStatString());
+          var str = sr1.getStatString().content();
           int val1 = stored1.getCachedValue();
           int val2 = stored2.getCachedValue();
           if (val1 == val2) {

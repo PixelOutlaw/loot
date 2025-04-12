@@ -1,10 +1,24 @@
 package info.faceland.loot.utils;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.BLUE;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.CRIMSON;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.CYAN;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.GRAY;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.GROW;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.LIGHT_GRAY;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.LIGHT_GREEN;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.ORANGE;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.RED;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.TRUE_WHITE;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.WHITE;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.i;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 import static info.faceland.loot.utils.ItemStyleUtil.CORRUPTION;
 import static info.faceland.loot.utils.ItemStyleUtil.ENCHANT_CHARS;
 import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY;
+import static info.faceland.loot.utils.ItemStyleUtil.JUMP_BACK;
 import static info.faceland.loot.utils.ItemStyleUtil.UNTRADEABLE_NORMAL;
 import static info.faceland.loot.utils.ItemStyleUtil.UNTRADEABLE_SMALL;
 import static info.faceland.loot.utils.ItemStyleUtil.centerLargeText;
@@ -14,10 +28,12 @@ import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
 import static info.faceland.loot.utils.ItemStyleUtil.doNameThing;
 import static info.faceland.loot.utils.ItemStyleUtil.doPrefix;
 import static info.faceland.loot.utils.ItemStyleUtil.doSuffix;
+import static land.face.strife.managers.GuiManager.noShadow;
 
 import com.google.common.collect.Multimap;
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
@@ -71,6 +87,10 @@ import land.face.strife.data.champion.SkillRank;
 import land.face.strife.stats.StrifeStat;
 import land.face.strife.stats.StrifeTrait;
 import me.elsiff.morefish.pojo.CustomFish;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.ShadowColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -88,7 +108,8 @@ import org.bukkit.persistence.PersistentDataType;
 public class ItemRenderer {
 
   private static Multimap<Attribute, AttributeModifier> BS_MAP = excreteBullshit();
-  private static String FIXED_WIDTH_BUFFER = "\uF82C\uF829\uF824";
+  private static TextComponent FIXED_WIDTH_BUFFER = Component.text("\uF82C\uF829\uF824");
+  private static TextComponent ENCHANT_THINGY = noShadow(color(Component.text("\uF806严\uF80A"), TRUE_WHITE));
   //private static NamespacedKey aa = NamespacedKey.minecraft()new NamespacedKey(this, "loot.item_data");
 
   public static void renderItem(ItemStack stack, boolean force) {
@@ -238,16 +259,16 @@ public class ItemRenderer {
         0
     );
 
-    String viewThing = SkillRank.check(rank, stat.getLevel()) ?
-        LoreglassMenu.getPercentText((float) stat.getStatRoll()) : "";
+    TextComponent viewThing = SkillRank.check(rank, stat.getLevel()) ?
+        LoreglassMenu.getPercentText((float) stat.getStatRoll()) : Component.empty();
 
-    String statText;
+    TextComponent statText;
     if (sr == null) {
-      statText = centerSmallText(FaceColor.CRIMSON + "Missing stat :(");
+      statText = centerSmallText(color(Component.text("Missing stat :("), CRIMSON));
     } else if (stat.isDistorted()) {
-      statText = centerSmallText(sr.getStatString() + ItemStyleUtil.getCorruptAddon(), viewThing);
+      statText = centerSmallText(sr.getStatString(), false).append(ItemStyleUtil.getCorruptAddon()).append(viewThing).append(JUMP_BACK);
     } else {
-      statText = centerSmallText(sr.getStatString(), viewThing);
+      statText = centerSmallText(sr.getStatString(), false).append(viewThing).append(JUMP_BACK);
     }
 
     int modelId = 100000;
@@ -256,16 +277,18 @@ public class ItemRenderer {
 
     ItemMeta meta = stack.getItemMeta();
     meta.setDisplayName(FaceColor.CYAN + "Item Essence (" + tier.getPlainName() + ")");
-    meta.setLore(List.of(
-        PaletteUtil.color("|ns|\uF808万\uF808\uF801"),
-        FaceColor.WHITE + centerSmallText("Item Type: " + FaceColor.CYAN + tier.getPlainName()),
-        FaceColor.WHITE + centerSmallText("Essence Level: " + FaceColor.LIGHT_GREEN + stat.getEssenceLevel(stat.getLevel())),
-        "",
+    meta.lore(List.of(
+        noShadow(Component.text("\uF808万\uF808\uF801")),
+        centerSmallText(color(Component.text("Item Type: "), WHITE)
+            .append(color(Component.text(tier.getPlainName()), CYAN))),
+        centerSmallText(color(Component.text("Essence Level: "), WHITE)
+            .append(color(Component.text(stat.getEssenceLevel(stat.getLevel())), LIGHT_GREEN))),
+        Component.empty(),
         statText,
-        "",
-        FaceColor.LIGHT_GRAY + centerSmallText("Craft this together with"),
-        FaceColor.LIGHT_GRAY + centerSmallText("an unfinished item with"),
-        FaceColor.LIGHT_GRAY + centerSmallText("an empty stat slot!")
+        Component.empty(),
+        centerSmallText(color(Component.text("Craft this together with"), LIGHT_GRAY)),
+        centerSmallText(color(Component.text("an unfinished item with"), LIGHT_GRAY)),
+        centerSmallText(color(Component.text("an empty stat slot!"), LIGHT_GRAY))
     ));
     meta.setCustomModelData(modelId);
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
@@ -274,7 +297,7 @@ public class ItemRenderer {
   }
 
   public static void renderEquipmentItem(LootPlugin plugin, ItemStack stack, EquipmentData data, SkillRank viewRank) {
-    List<String> lore = new ArrayList<>();
+    List<Component> lore = new ArrayList<>();
 
     NewCustomItem unique = LootPlugin.getInstance().getCustomItemManager().getUnique(PersistHelper.getItemId(stack));
     ItemRarity r = data.getItemRarity();
@@ -326,20 +349,22 @@ public class ItemRenderer {
       plus = ItemStyleUtil.upgradeNumbers.get(scaledPlus - 1);
     }
     // MAYBE CHECK FOR SMALL VS LARGE? Should always be large though
-    lore.add(FaceColor.NO_SHADOW + plate + plus);
-    lore.add(HALFWAY + GUI.spacesOf(-countTitleSize(name) / 2) +
-        FaceColor.TRUE_WHITE + doNameThing(name, data.isNameEdited()) + "\uF80C");
+    lore.add(Component.text(plate + plus).shadowColor(ShadowColor.none()));
+    lore.add(ItemStyleUtil.nameLoreLine(name, data.isNameEdited()));
     String subtitle = rarityName + " " + tier.getPlainName();
-    lore.add(HALFWAY + GUI.spacesOf(-countSubtitleSize(subtitle) / 2) + color + doSuffix(subtitle) + "\uF80C");
-    String distortion = "";
+
+    lore.add(HALFWAY.append(Component.text(GUI.spacesOf(-countSubtitleSize(subtitle) / 2))
+        .append(noShadow(color(Component.text(doSuffix(subtitle) + "\uF80C"), color)))));
+    TextComponent distortion = Component.empty();
     if (distorted) {
-      distortion = FaceColor.NO_SHADOW + GUI.spacesOf(-22) + CORRUPTION + GUI.spacesOf(-31) + FaceColor.GROW + "俽"
-          + GUI.spacesOf(-162);
+      var start = noShadow(color(Component.text(GUI.spacesOf(-22) + CORRUPTION + GUI.spacesOf(-31)), TRUE_WHITE));
+      var grow = noShadow(color(Component.text("俽" + GUI.spacesOf(-162)), GROW));
+      distortion = start.append(grow);
     }
     String modified = "";
     if (data.getLevelMod() != 0) {
       modified = switch (data.getLevelMod()) {
-        case -5 -> FaceColor.RED + "↓";
+        case -5 -> RED + "↓";
         case -3 -> FaceColor.YELLOW + "↓";
         case 5 -> FaceColor.LIGHT_GREEN + "↑";
         default -> "*";
@@ -349,18 +374,18 @@ public class ItemRenderer {
     iLevel += data.getLevelMod();
     iLevel = Math.max(1, iLevel);
     if (tier.isSkillRequirement()) {
-      String reqString = "Skill Requirement: " + iLevel + modified;
-      lore.add(distortion + FaceColor.WHITE + centerLargeText(reqString));
+      var reqString = color(Component.text("Skill Requirement: " + iLevel + modified), WHITE);
+      lore.add(distortion.append(centerLargeText(reqString)));
     } else {
-      String reqString = "Level Requirement: " + iLevel + modified;
-      lore.add(distortion + FaceColor.WHITE + centerLargeText(reqString));
+      var reqString = color(Component.text("Level Requirement: " + iLevel + modified), WHITE);
+      lore.add(distortion.append(centerLargeText(reqString)));
     }
-    lore.add("");
+    lore.add(Component.empty());
     if (unique == null) {
-      ItemStackExtensionsKt.setCustomModelData(stack,
-          tier.getCustomDataStart() + data.getCustomLevel() / tier.getCustomDataInterval());
+      var tierString = "t" + Math.min(5, 1 + data.getCustomLevel() / 20);
+      ItemUtils.setCustomData(stack, List.of(tier.getId(), r.getId(), tierString));
     } else {
-      ItemStackExtensionsKt.setCustomModelData(stack, unique.getCustomDataNumber());
+      ItemUtils.setCustomData(stack, List.of(unique.getId()));
     }
 
     if (!data.getCoreStats().isEmpty()) {
@@ -374,7 +399,7 @@ public class ItemRenderer {
         numStats++;
       }
     } else {
-      lore.add(FaceColor.GRAY + "No core stats...");
+      lore.add(color(Component.text("No core stats..."), RED));
     }
     String statPrefix = "";
     if (!data.getBonusStats().isEmpty()) {
@@ -399,44 +424,45 @@ public class ItemRenderer {
       }
       for (StoredStat stat : data.getBonusStats()) {
         StatResponse sr = tempRollMap.get(stat);
-        String corruptStr = distorted ? "" : (stat.isDistorted() ? ItemStyleUtil.getCorruptAddon() : "");
+        TextComponent corruptStr = distorted ? Component.empty() :
+            (stat.isDistorted() ? ItemStyleUtil.getCorruptAddon() : Component.empty());
         if (stat.isInverted()) {
-          String viewThing = SkillRank.check(viewRank, data.getCustomLevel()) ?
-              LoreglassMenu.getPercentText((float) stat.getStatRoll()) : "";
-          lore.add(centerLargeText(FaceColor.RED +
-              ChatColor.stripColor(sr.getStatString()).replace("+", "-") + corruptStr, viewThing));
+          TextComponent viewThing = SkillRank.check(viewRank, data.getCustomLevel()) ?
+              LoreglassMenu.getPercentText((float) stat.getStatRoll()) : Component.empty();
+          var content = color(sr.getStatString().content(sr.getStatString().content().replace("+", "-")), RED);
+          lore.add(centerLargeText(content, false).append(corruptStr).append(viewThing).append(JUMP_BACK));
         } else if (stat.isCrafted()) {
-          String viewThing = SkillRank.check(viewRank, data.getCustomLevel()) ?
-              LoreglassMenu.getPercentText((float) stat.getStatRoll()) : "";
-          lore.add(centerLargeText(FaceColor.CYAN + ChatColor.stripColor(sr.getStatString()) + corruptStr, viewThing));
+          TextComponent viewThing = SkillRank.check(viewRank, data.getCustomLevel()) ?
+              LoreglassMenu.getPercentText((float) stat.getStatRoll()) : Component.empty();
+          TextComponent statContent = color(sr.getStatString(), CYAN);
+          lore.add(centerLargeText(statContent, false).append(corruptStr).append(viewThing).append(JUMP_BACK));
           if (!stat.getOriginUnique().isBlank() && SkillRank.isRank(viewRank, SkillRank.EXPERT)) {
             var originUnique = plugin.getCustomItemManager().getUnique(stat.getOriginUnique());
             if (originUnique != null) {
-              lore.add(centerLargeText(FaceColor.GRAY + "From: " + originUnique.getItemName()));
+              lore.add(centerLargeText(color(Component.text("From: " + originUnique.getItemName()), GRAY)));
             }
           }
         } else if (stat.isEssenceSlot()) {
-          lore.add(centerLargeText(FaceColor.GRAY + "< Empty Stat Slot >"));
+          lore.add(centerLargeText(color(Component.text("< Empty Stat Slot >"), GRAY)));
         } else {
-          String viewThing = SkillRank.check(viewRank, data.getCustomLevel()) ?
-              LoreglassMenu.getPercentText((float) stat.getStatRoll()) : "";
-          lore.add(centerLargeText(sr.getStatString() + corruptStr, viewThing));
+          TextComponent viewThing = SkillRank.check(viewRank, data.getCustomLevel()) ?
+              LoreglassMenu.getPercentText((float) stat.getStatRoll()) : Component.empty();
+          lore.add(centerLargeText(sr.getStatString(), false).append(corruptStr).append(viewThing).append(JUMP_BACK));
         }
       }
       if (unique != null) {
-        for (String s : unique.getJokeStats()) {
-          lore.add(centerLargeText(s));
-        }
+        lore.addAll(unique.getJokeStats());
       }
     }
     if (data.hasEnchantmentSlot()) {
       if (data.getEnchantment() == null) {
         lore.add(FIXED_WIDTH_BUFFER);
-        lore.add(FaceColor.NO_SHADOW + "\uF806严\uF80A");
-        lore.add("");
+        lore.add(ENCHANT_THINGY);
+        lore.add(Component.empty());
       } else {
         boolean enhanced = data.isEnhanced();
-        lore.add((enhanced ? FaceColor.RED : FaceColor.WHITE) + "\uF805" + selectEnchantChar(data) + "\uF80A");
+        var barComp = Component.text("\uF805" + selectEnchantChar(data) + "\uF80A");
+        lore.add(color(barComp, enhanced ? RED : FaceColor.WHITE));
         StoredStat enchantmentStat = data.getEnchantment();
         StatResponse sr = plugin.getStatManager().getFinalStat(
             enchantmentStat.getStat(),
@@ -447,10 +473,14 @@ public class ItemRenderer {
             enhanced ? 1 : 0
         );
         enchantmentStat.setCachedValue(sr.getValue());
-        String viewThing = SkillRank.check(viewRank, enchantmentStat.getLevel()) ?
-            LoreglassMenu.getPercentText((float) enchantmentStat.getStatRoll()) + FaceColor.BLUE +
-                " (" + enchantmentStat.getLevel() + ")": "";
-        lore.add(centerLargeText(sr.getStatString(), viewThing));
+        if (SkillRank.check(viewRank, enchantmentStat.getLevel())) {
+          var comp = LoreglassMenu.getPercentText((float) enchantmentStat.getStatRoll());
+          comp = comp.append(color(Component.text(" (" + enchantmentStat.getLevel() + ")"), BLUE));
+          lore.add(centerLargeText(sr.getStatString(), false).append(comp).append(JUMP_BACK));
+        } else {
+          var comp = LoreglassMenu.getPercentText((float) enchantmentStat.getStatRoll());
+          lore.add(centerLargeText(sr.getStatString(), false).append(comp).append(JUMP_BACK));
+        }
         lore.add(FIXED_WIDTH_BUFFER);
       }
     } else {
@@ -459,75 +489,74 @@ public class ItemRenderer {
 
     boolean hasTraits = renderEquipmentTraits(data, lore);
     if (hasTraits) {
-      lore.add("");
+      lore.add(Component.empty());
     }
 
     String gemPrefix = "";
     int totalGemSlots = data.getSockets().size() + data.getEmptyGemSlots() + data.getEmptyExtendSlots();
     if (totalGemSlots > 0) {
       if (!data.getSocketGems().isEmpty()) {
-        int gemPrefixData = 0;
+        int lowestPrefixWeight = 1000;
         for (String socketStr : data.getSockets()) {
           SocketGem gem = plugin.getSocketGemManager().getSocketGem(socketStr);
           if (gem == null) {
             Bukkit.getLogger().warning("[Loot] Outdated gem detected... " + socketStr);
-            lore.add(centerLargeText(FaceColor.RED.s() + "< Outdated gem >"));
+            lore.add(centerLargeText(color(Component.text("< Outdated gem >"), RED)));
             continue;
           }
           //System.out.println("detected gem: " + gem.getId());
-          if (gem.getCustomModelData() > gemPrefixData && !StringUtils.isBlank(gem.getPrefix())) {
+          if (gem.getWeight() < lowestPrefixWeight && !StringUtils.isBlank(gem.getPrefix())) {
             gemPrefix = gem.getPrefix();
-            gemPrefixData = gem.getCustomModelData();
+            lowestPrefixWeight = (int) gem.getWeight();
           }
           for (Entry<StrifeStat, Float> entry : gem.getStats().entrySet()) {
             if (entry.getValue() > 0) {
-              lore.add(centerLargeText(FaceColor.ORANGE +
-                  "+" + Math.round(entry.getValue()) + " " + entry.getKey().getName()));
+              lore.add(centerLargeText(color(Component.text(
+                  "+" + Math.round(entry.getValue()) + " " + entry.getKey().getName()), ORANGE)));
             } else {
-              lore.add(centerLargeText(FaceColor.RED.s() +
-                  Math.round(entry.getValue()) + " " + entry.getKey().getName()));
+              lore.add(centerLargeText(color(Component.text(
+                  Math.round(entry.getValue()) + " " + entry.getKey().getName()), RED)));
             }
             //System.out.println("detected flat stat " + entry.getKey());
           }
           for (Entry<StrifeStat, Float> entry : gem.getPercentStats().entrySet()) {
             if (entry.getValue() > 0) {
-              lore.add(centerLargeText(FaceColor.ORANGE +
-                  "+" + Math.round(entry.getValue()) + "% " + entry.getKey().getName()));
+              lore.add(centerLargeText(color(Component.text(
+                  "+" + Math.round(entry.getValue()) + "% " + entry.getKey().getName()), ORANGE)));
             } else {
-              lore.add(centerLargeText(FaceColor.RED.s() +
-                  Math.round(entry.getValue()) + "% " + entry.getKey().getName()));
+              lore.add(centerLargeText(color(Component.text(
+                  Math.round(entry.getValue()) + "% " + entry.getKey().getName()), RED)));
             }
           }
           for (LoreAbility loreAbility : gem.getLoreAbilities()) {
             //System.out.println("detected la: " + loreAbility.getId());
-            for (String s : loreAbility.getDescription()) {
+            for (var s : loreAbility.getDescAsComponents()) {
               lore.add(centerLargeText(s));
             }
           }
           for (StrifeTrait strifeTrait : gem.getTraits()) {
-            for (String s : strifeTrait.getAdditionalText()) {
+            for (var s : strifeTrait.getDescAsComponents()) {
               lore.add(centerLargeText(s));
             }
           }
         }
       } else {
-        lore.add(FaceColor.ORANGE + centerLargeText("- Socket Slots -"));
+        lore.add(centerLargeText(color(Component.text("- Socket Slots -"), ORANGE)));
       }
-      lore.add(FaceColor.TRUE_WHITE +
-          ItemStyleUtil.generateGemString(totalGemSlots, data.getEmptyExtendSlots(), data.getSocketGems()) + "\uF81B");
-      lore.add("");
+      lore.add(ItemStyleUtil.generateGemString(totalGemSlots, data.getEmptyExtendSlots(), data.getSocketGems()));
+      lore.add(Component.empty());
     }
 
     if (unique != null && !unique.getFlavorText().isEmpty()) {
       lore.addAll(unique.getFlavorText());
     } else if (StringUtils.isNotBlank(data.getString("craftedBy"))) {
-      lore.add(centerLargeText(FaceColor.GRAY + FaceColor.ITALIC.s() + "Crafter: " + data.getString("craftedBy")));
+      lore.add(centerLargeText(color(i(Component.text("Crafter: " + data.getString("craftedBy"))), GRAY)));
     }
     if (SkillRank.isRank(viewRank, SkillRank.NOVICE)) {
       if (StringUtils.isBlank(data.getString("craftedBy"))) {
-        lore.add(centerLargeText(FaceColor.GRAY + FaceColor.ITALIC.s() + "Looter: " + data.getDiscoveredBy()));
+        lore.add(centerLargeText(color(i(Component.text("Looter: " + data.getDiscoveredBy())), GRAY)));
       }
-      lore.add(centerLargeText(FaceColor.GRAY + FaceColor.ITALIC.s() + "Date: " + data.getCreationDate()));
+      lore.add(centerLargeText(color(i(Component.text("Date: " + data.getCreationDate())), GRAY)));
     }
     List<String> prefixThings = new ArrayList<>();
     if (!gemPrefix.isBlank()) {
@@ -542,8 +571,12 @@ public class ItemRenderer {
     String title = "";
     if (!prefixThings.isEmpty()) {
       title = StringUtils.join(prefixThings, " ");
-      lore.set(4, HALFWAY + GUI.spacesOf(-countSubtitleSize(title) / 2) + color + doPrefix(title) + "\uF80C");
+      lore.set(4, Component.text(HALFWAY + GUI.spacesOf(-countSubtitleSize(title) / 2)).append(
+          noShadow(color(Component.text(doPrefix(title) + "\uF80C"), color)))
+      );
     }
+
+    applyUntradeable(stack, lore, true);
 
     StringBuilder nameBuilder = new StringBuilder();
     if (scaledPlus > 0) {
@@ -562,12 +595,15 @@ public class ItemRenderer {
     String fullName = nameBuilder.toString();
     if (fullName.length() > 26) {
       fullName = fullName.substring(0, 24) + "...";
+    } else {
+      fullName = nameBuilder.toString();
     }
-    ItemStackExtensionsKt.setDisplayName(stack, color + fullName);
+    String finalName = fullName;
 
-    applyUntradeable(stack, lore, true);
-
-    TextUtils.setLore(stack, lore, false);
+    stack.editMeta(m -> {
+      m.displayName(color(Component.text(finalName), color));
+      m.lore(lore);
+    });
 
     if (data.getUpgradeLevel() * tier.getUpgradeScale() >= 10) {
       stack.addUnsafeEnchantment(Enchantment.UNBREAKING, 1);
@@ -578,7 +614,7 @@ public class ItemRenderer {
     PersistHelper.setEquipmentData(stack, data, false);
   }
 
-  private static boolean renderEquipmentTraits(EquipmentData data, List<String> lore) {
+  private static boolean renderEquipmentTraits(EquipmentData data, List<Component> lore) {
     Set<LoreAbility> loreAbilities = new HashSet<>();
     Set<StrifeTrait> traits = new HashSet<>();
     for (String s : data.getPassives()) {
@@ -592,12 +628,12 @@ public class ItemRenderer {
     }
     if (!(loreAbilities.isEmpty() && traits.isEmpty())) {
       for (LoreAbility loreAbility : loreAbilities) {
-        for (var s : loreAbility.getDescription()) {
+        for (var s : loreAbility.getDescAsComponents()) {
           lore.add(centerLargeText(s));
         }
       }
       for (StrifeTrait strifeTrait : traits) {
-        for (var s : strifeTrait.getAdditionalText()) {
+        for (var s : strifeTrait.getDescAsComponents()) {
           lore.add(centerLargeText(s));
         }
       }
@@ -647,12 +683,12 @@ public class ItemRenderer {
     return sr;
   }
 
-  public static void applyUntradeable(ItemStack stack, List<String> lore, boolean large) {
+  public static void applyUntradeable(ItemStack stack, List<Component> lore, boolean large) {
     if (!PersistHelper.isTradeLocked(stack) || lore.isEmpty()) {
       return;
     }
-    String originalString = lore.getLast();
-    lore.set(lore.size() - 1, (large ? UNTRADEABLE_NORMAL : UNTRADEABLE_SMALL) + originalString);
+    var originalString = lore.getLast();
+    lore.set(lore.size() - 1, (large ? UNTRADEABLE_NORMAL : UNTRADEABLE_SMALL).append(originalString));
   }
 
   private static String selectEnchantChar(EquipmentData data) {
@@ -672,9 +708,9 @@ public class ItemRenderer {
     stack.setItemMeta(template.getItemMeta());
     if (isTradeLocked) {
       PersistHelper.setTradeLocked(stack, true);
-      var lore = stack.getItemMeta().getLore();
+      var lore = stack.getItemMeta().lore();
       ItemRenderer.applyUntradeable(stack, lore, large);
-      TextUtils.setLore(stack, lore, false);
+      stack.editMeta(m -> m.lore(lore));
     }
   }
 

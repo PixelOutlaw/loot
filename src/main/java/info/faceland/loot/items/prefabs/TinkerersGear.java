@@ -18,6 +18,7 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
@@ -30,10 +31,13 @@ import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.ItemStyleUtil;
 import info.faceland.loot.utils.MaterialUtil;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.List;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -55,19 +59,19 @@ public final class TinkerersGear {
     meta.setDisplayName(FaceColor.RED + name);
     meta.setCustomModelData(15);
     meta.setMaxStackSize(99);
-    List<String> lore = List.of(
-        PaletteUtil.color("|ns|\uF801\uF808丌\uF808\uF802"),
-        HALFWAY_SMALL + GUI.spacesOf(-countTitleSize(name) / 2) + FaceColor.TRUE_WHITE + doSmallNameThing(name) + "\uF80C",
-        centerSmallText(PaletteUtil.color("|lgray|This |red|powerful |lgray|item will")),
-        centerSmallText(PaletteUtil.color("|lgray|convert a random |lgreen|stat")),
-        centerSmallText(PaletteUtil.color("|lgray|on an item to an empty")),
-        centerSmallText(PaletteUtil.color("|lgray|stat slot!")),
-        "",
-        centerSmallText(PaletteUtil.color("|lgray|If you don't know what")),
-        centerSmallText(PaletteUtil.color("|lgray|the implications of that")),
-        centerSmallText(PaletteUtil.color("|lgray|are... |yellow||i|Don't use this yet!"))
+    List<TextComponent> lore = List.of(
+        noShadow(Component.text("\uF801\uF808丌\uF808\uF802")),
+        ItemStyleUtil.smallNameLoreLine(name),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|This |red|powerful |lgray|item will"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|convert a random |lgreen|stat"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|on an item to an empty"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|stat slot!"))),
+        Component.empty(),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|If you don't know what"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|the implications of that"))),
+        centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|are... |yellow||i|Don't use this yet!")))
     );
-    meta.setLore(lore);
+    meta.lore(lore);
     meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
