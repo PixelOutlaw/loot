@@ -32,6 +32,7 @@ import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.utils.ItemRenderer;
+import info.faceland.loot.utils.ItemStyleUtil;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.config.SmartYamlConfiguration;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
@@ -146,12 +147,11 @@ public final class SoulGem  {
   private void build() {
     builtItem = new ItemStack(Material.AMETHYST_SHARD);
     ItemMeta meta = builtItem.getItemMeta();
-    meta.setDisplayName(FaceColor.PINK + name);
+    meta.displayName(color(Component.text(name), PINK));
     meta.setCustomModelData(modelData);
     List<TextComponent> lore = new ArrayList<>();
-    lore.add(noShadow(Component.text("\uF801\uF808俊\uF808\uF802")));
-    lore.add(HALFWAY_SMALL.append(Component.text(GUI.spacesOf(-countTitleSize(name) / 2)).append(
-        Component.text(doSmallNameThing(name) + "\uF80C").color(NamedTextColor.WHITE))));
+    lore.add(fakeNoShadow(Component.text("\uF801\uF808俊\uF808\uF802")));
+    lore.add(ItemStyleUtil.smallNameLoreLine(name));
     if (breakChance < 0.2) {
       lore.add(centerSmallText(BREAK_CHANCE.append(BREAK_LEVEL1)));
     } else if (breakChance < 0.4) {

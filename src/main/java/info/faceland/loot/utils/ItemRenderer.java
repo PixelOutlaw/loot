@@ -4,6 +4,7 @@ import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.BLUE;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.CRIMSON;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.CYAN;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.GRAY;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.GREEN;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.GROW;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.LIGHT_GRAY;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.LIGHT_GREEN;
@@ -11,8 +12,10 @@ import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.ORANGE;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.RED;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.TRUE_WHITE;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.WHITE;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.YELLOW;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.i;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 import static info.faceland.loot.utils.ItemStyleUtil.CORRUPTION;
@@ -24,18 +27,13 @@ import static info.faceland.loot.utils.ItemStyleUtil.UNTRADEABLE_SMALL;
 import static info.faceland.loot.utils.ItemStyleUtil.centerLargeText;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
 import static info.faceland.loot.utils.ItemStyleUtil.countSubtitleSize;
-import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
-import static info.faceland.loot.utils.ItemStyleUtil.doNameThing;
 import static info.faceland.loot.utils.ItemStyleUtil.doPrefix;
 import static info.faceland.loot.utils.ItemStyleUtil.doSuffix;
-import static land.face.strife.managers.GuiManager.noShadow;
 
 import com.google.common.collect.Multimap;
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
-import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
-import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemRarity;
@@ -91,6 +89,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.ShadowColor;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -184,14 +183,14 @@ public class ItemRenderer {
       itemMeta.removeItemFlags(stack.getItemFlags().toArray(new ItemFlag[0]));
       itemMeta.setAttributeModifiers(BS_MAP);
       itemMeta.addItemFlags(
-          ItemFlag.HIDE_ADDITIONAL_TOOLTIP,
           ItemFlag.HIDE_ITEM_SPECIFICS,
           ItemFlag.HIDE_ARMOR_TRIM,
           ItemFlag.HIDE_ATTRIBUTES,
           ItemFlag.HIDE_DESTROYS,
           ItemFlag.HIDE_DYE,
           ItemFlag.HIDE_ENCHANTS,
-          ItemFlag.HIDE_UNBREAKABLE
+          ItemFlag.HIDE_UNBREAKABLE,
+          ItemFlag.HIDE_ADDITIONAL_TOOLTIP
       );
       //itemMeta.setTooltipStyle();
     });
@@ -276,7 +275,7 @@ public class ItemRenderer {
     modelId += Math.min(100, stat.getEssenceLevel(stat.getLevel()));
 
     ItemMeta meta = stack.getItemMeta();
-    meta.setDisplayName(FaceColor.CYAN + "Item Essence (" + tier.getPlainName() + ")");
+    meta.displayName((color(Component.text("Item Essence (" + tier.getPlainName() + ")"), CYAN)));
     meta.lore(List.of(
         noShadow(Component.text("\uF808万\uF808\uF801")),
         centerSmallText(color(Component.text("Item Type: "), WHITE)
@@ -349,7 +348,7 @@ public class ItemRenderer {
       plus = ItemStyleUtil.upgradeNumbers.get(scaledPlus - 1);
     }
     // MAYBE CHECK FOR SMALL VS LARGE? Should always be large though
-    lore.add(Component.text(plate + plus).shadowColor(ShadowColor.none()));
+    lore.add(noShadow(Component.text(plate + plus)));
     lore.add(ItemStyleUtil.nameLoreLine(name, data.isNameEdited()));
     String subtitle = rarityName + " " + tier.getPlainName();
 
@@ -361,31 +360,35 @@ public class ItemRenderer {
       var grow = noShadow(color(Component.text("俽" + GUI.spacesOf(-162)), GROW));
       distortion = start.append(grow);
     }
-    String modified = "";
+    TextComponent modified = Component.empty();
     if (data.getLevelMod() != 0) {
       modified = switch (data.getLevelMod()) {
-        case -5 -> RED + "↓";
-        case -3 -> FaceColor.YELLOW + "↓";
-        case 5 -> FaceColor.LIGHT_GREEN + "↑";
-        default -> "*";
+        case -5 -> color(Component.text("↓"), RED).decoration(TextDecoration.ITALIC, false);
+        case -3 -> color(Component.text("↓"), YELLOW).decoration(TextDecoration.ITALIC, false);
+        case 5 -> color(Component.text("↑"), LIGHT_GREEN).decoration(TextDecoration.ITALIC, false);
+        default -> Component.text("*").decoration(TextDecoration.ITALIC, false);
       };
     }
     int iLevel = data.getCustomLevel() - data.getUpgradeLevel() / 3;
     iLevel += data.getLevelMod();
     iLevel = Math.max(1, iLevel);
     if (tier.isSkillRequirement()) {
-      var reqString = color(Component.text("Skill Requirement: " + iLevel + modified), WHITE);
-      lore.add(distortion.append(centerLargeText(reqString)));
+      TextComponent reqString = color(Component.text("Skill Requirement: " + iLevel), WHITE).append(modified);
+      // TODO: ADD DISTORT
+      lore.add(centerLargeText(reqString));
     } else {
-      var reqString = color(Component.text("Level Requirement: " + iLevel + modified), WHITE);
-      lore.add(distortion.append(centerLargeText(reqString)));
+      TextComponent reqString = color(Component.text("Level Requirement: " + iLevel), WHITE).append(modified);
+      // TODO: ADD DISTORT
+      lore.add(centerLargeText(reqString));
     }
-    lore.add(Component.empty());
+    lore.add(Component.text(" "));
+    int tierNum = -1;
     if (unique == null) {
-      var tierString = "t" + Math.min(5, 1 + data.getCustomLevel() / 20);
-      ItemUtils.setCustomData(stack, List.of(tier.getId(), r.getId(), tierString));
+      tierNum = Math.min(5, 1 + data.getCustomLevel() / 20);
+      var tierString = "t" + tierNum;
+      ItemUtils.setCustomData(stack, List.of(tier.getId(), tierString + "-" + r.getId().toLowerCase()));
     } else {
-      ItemUtils.setCustomData(stack, List.of(unique.getId()));
+      ItemUtils.setCustomData(stack, List.of(tier.getId(), unique.getId()));
     }
 
     if (!data.getCoreStats().isEmpty()) {
@@ -427,16 +430,16 @@ public class ItemRenderer {
         TextComponent corruptStr = distorted ? Component.empty() :
             (stat.isDistorted() ? ItemStyleUtil.getCorruptAddon() : Component.empty());
         if (stat.isInverted()) {
-          TextComponent viewThing = SkillRank.check(viewRank, data.getCustomLevel()) ?
+          TextComponent viewThing = viewRank != null && SkillRank.check(viewRank, data.getCustomLevel()) ?
               LoreglassMenu.getPercentText((float) stat.getStatRoll()) : Component.empty();
           var content = color(sr.getStatString().content(sr.getStatString().content().replace("+", "-")), RED);
           lore.add(centerLargeText(content, false).append(corruptStr).append(viewThing).append(JUMP_BACK));
         } else if (stat.isCrafted()) {
-          TextComponent viewThing = SkillRank.check(viewRank, data.getCustomLevel()) ?
+          TextComponent viewThing = viewRank != null && SkillRank.check(viewRank, data.getCustomLevel()) ?
               LoreglassMenu.getPercentText((float) stat.getStatRoll()) : Component.empty();
           TextComponent statContent = color(sr.getStatString(), CYAN);
           lore.add(centerLargeText(statContent, false).append(corruptStr).append(viewThing).append(JUMP_BACK));
-          if (!stat.getOriginUnique().isBlank() && SkillRank.isRank(viewRank, SkillRank.EXPERT)) {
+          if (!stat.getOriginUnique().isBlank() && viewRank != null && SkillRank.isRank(viewRank, SkillRank.EXPERT)) {
             var originUnique = plugin.getCustomItemManager().getUnique(stat.getOriginUnique());
             if (originUnique != null) {
               lore.add(centerLargeText(color(Component.text("From: " + originUnique.getItemName()), GRAY)));
@@ -445,7 +448,7 @@ public class ItemRenderer {
         } else if (stat.isEssenceSlot()) {
           lore.add(centerLargeText(color(Component.text("< Empty Stat Slot >"), GRAY)));
         } else {
-          TextComponent viewThing = SkillRank.check(viewRank, data.getCustomLevel()) ?
+          TextComponent viewThing = viewRank != null && SkillRank.check(viewRank, data.getCustomLevel()) ?
               LoreglassMenu.getPercentText((float) stat.getStatRoll()) : Component.empty();
           lore.add(centerLargeText(sr.getStatString(), false).append(corruptStr).append(viewThing).append(JUMP_BACK));
         }
@@ -571,9 +574,9 @@ public class ItemRenderer {
     String title = "";
     if (!prefixThings.isEmpty()) {
       title = StringUtils.join(prefixThings, " ");
-      lore.set(4, Component.text(HALFWAY + GUI.spacesOf(-countSubtitleSize(title) / 2)).append(
-          noShadow(color(Component.text(doPrefix(title) + "\uF80C"), color)))
-      );
+      var spacing = Component.text(GUI.spacesOf(-countSubtitleSize(title) / 2));
+      lore.set(4, HALFWAY.append(spacing).append(
+          noShadow(color(Component.text(doPrefix(title)), color))).append(JUMP_BACK));
     }
 
     applyUntradeable(stack, lore, true);
@@ -601,9 +604,17 @@ public class ItemRenderer {
     String finalName = fullName;
 
     stack.editMeta(m -> {
-      m.displayName(color(Component.text(finalName), color));
+      m.displayName((color(Component.text(finalName), color)));
       m.lore(lore);
+
     });
+
+    if (tier.getTrim() != null && tierNum != -1) {
+      ItemUtils.applyCustomTrim(stack, tier.getTrim() + "_t" + tierNum);
+    }
+    if (unique != null && unique.getTrim() != null) {
+      ItemUtils.applyCustomTrim(stack, unique.getTrim());
+    }
 
     if (data.getUpgradeLevel() * tier.getUpgradeScale() >= 10) {
       stack.addUnsafeEnchantment(Enchantment.UNBREAKING, 1);

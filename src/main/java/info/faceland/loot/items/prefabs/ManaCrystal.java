@@ -18,6 +18,10 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.PINK;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.RED;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
@@ -48,11 +52,11 @@ public final class ManaCrystal {
     item = new ItemStack(Material.QUARTZ);
     ItemMeta meta = item.getItemMeta();
     String name = "Mana Crystal";
-    meta.setDisplayName(FaceColor.BLUE + name);
+    meta.displayName((color(Component.text(name), PINK)));
     meta.setCustomModelData(20);
     meta.setMaxStackSize(99);
     meta.lore(List.of(
-        noShadow(Component.text("\uF801\uF808与\uF808\uF802")),
+        fakeNoShadow(Component.text("\uF801\uF808与\uF808\uF802")),
         ItemStyleUtil.smallNameLoreLine(name),
         centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|Use this at an enchanting"))),
         centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|table to |pink|refill |lgray|an item's"))),

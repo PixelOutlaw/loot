@@ -18,6 +18,10 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.PINK;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.RED;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
@@ -49,11 +53,11 @@ public final class AspectOfPerfection {
     item = new ItemStack(Material.NETHER_STAR);
     ItemMeta meta = item.getItemMeta();
     String name = "Trace Of Perfection";
-    meta.setDisplayName(FaceColor.WHITE + name);
+    meta.displayName((color(Component.text(name), PINK)));
     meta.setCustomModelData(14);
     meta.setMaxStackSize(99);
     List<TextComponent> lore = List.of(
-        noShadow(Component.text("\uF801\uF808丌\uF808\uF802")),
+        fakeNoShadow(Component.text("\uF801\uF808丌\uF808\uF802")),
         ItemStyleUtil.smallNameLoreLine(name),
         centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|This item can be used at"))),
         centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|an enchantment table to"))),

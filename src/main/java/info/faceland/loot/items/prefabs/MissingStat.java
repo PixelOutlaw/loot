@@ -18,6 +18,10 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.PURPLE;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.RED;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
@@ -53,11 +57,11 @@ public final class MissingStat {
     item = new ItemStack(Material.NETHER_BRICK);
     ItemMeta meta = item.getItemMeta();
     String name = "Missing Stat";
-    meta.setDisplayName(FaceColor.PURPLE + name);
+    meta.displayName((color(Component.text(name), PURPLE)));
     meta.setCustomModelData(3002);
     meta.setMaxStackSize(99);
     List<TextComponent> lore = List.of(
-        noShadow(Component.text("\uF801\uF808丏\uF808\uF802")),
+        fakeNoShadow(Component.text("\uF801\uF808丏\uF808\uF802")),
         ItemStyleUtil.smallNameLoreLine(name),
         centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|Some items are missing a"))),
         centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|stat! That's okay, you can"))),

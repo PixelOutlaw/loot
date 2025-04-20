@@ -57,6 +57,7 @@ public final class Tier {
 
   private static final Map<String, Tier> TIERS = new HashMap<>();
   public static final Map<Recipe, Tier> RECIPES = new HashMap<>();
+  public static final Map<ItemStack, Tier> TIER_BY_RESULT = new HashMap<>();
   public static final Set<Material> EVERY_MAT = new HashSet<>();
   public static final Map<Integer, Double> SPAWN_WEIGHT_BY_LEVEL = new HashMap<>();
 
@@ -70,6 +71,7 @@ public final class Tier {
   private Map<StrifeStat, Float> hiddenStats;
   private Map<StrifeStat, Float> weaponMods;
   private Set<Namespaced> destroyKeys;
+  private String trim;
   private List<String> essenceGroup;
   private int upgradeScale;
   private double spawnWeight;
@@ -211,6 +213,7 @@ public final class Tier {
   public static void loadFromFile(LootPlugin plugin, File dataFolder) {
     TIERS.clear();
     RECIPES.clear();
+    TIER_BY_RESULT.clear();
     EVERY_MAT.clear();
     SPAWN_WEIGHT_BY_LEVEL.clear();
     Map<String, SmartYamlConfiguration> equipmentTypes = new HashMap<>();
@@ -226,6 +229,7 @@ public final class Tier {
         Tier tier = new Tier(key);
         tier.setPlainName(tierYAML.getString("plain-name"));
         tier.setMaterial(Material.valueOf(tierYAML.getString("material", "APPLE")));
+        tier.setTrim(tierYAML.getString("trim", null));
         EVERY_MAT.add(tier.material);
         tier.setSkillRequirement(tierYAML.getBoolean("skill-req", false));
         List<ItemStat> primaryStats = new ArrayList<>();
@@ -309,6 +313,7 @@ public final class Tier {
           try {
             var recipe = constructCraftRecipe(tier);
             RECIPES.put(recipe, tier);
+            TIER_BY_RESULT.put(recipe.getResult(), tier);
           } catch (Exception e) {
             Bukkit.getLogger().info("[Loot] Failed to build recipe for " + tier.getId());
             e.printStackTrace();
@@ -345,7 +350,7 @@ public final class Tier {
           "|lgray|the odds of a rarer result!"
       )));
     });
-    ItemUtils.setCustomData(result, List.of(tier.id, "common", "t1"));
+    ItemUtils.setCustomData(result, List.of(tier.id, "t1-common"));
     ItemRenderer.applyCommonFlags(result);
 
     ShapedRecipe recipe = new ShapedRecipe(key, result);

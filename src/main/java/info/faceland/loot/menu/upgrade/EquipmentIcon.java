@@ -18,7 +18,6 @@
  */
 package info.faceland.loot.menu.upgrade;
 
-import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import ninja.amp.ampmenus.events.ItemClickEvent;
 import ninja.amp.ampmenus.items.MenuItem;
 import org.bukkit.Material;
@@ -27,8 +26,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class EquipmentIcon extends MenuItem {
 
-  private EnchantMenu enchantMenu;
-  private String displayName = "";
+  private final EnchantMenu enchantMenu;
 
   EquipmentIcon(EnchantMenu enchantMenu) {
     super("", new ItemStack(Material.AIR));
@@ -37,9 +35,7 @@ public class EquipmentIcon extends MenuItem {
 
   @Override
   public ItemStack getFinalIcon(Player player) {
-    ItemStack stack = this.getIcon().clone();
-    ItemStackExtensionsKt.setDisplayName(stack, displayName);
-    return stack;
+    return getIcon().clone();
   }
 
   @Override
@@ -48,9 +44,5 @@ public class EquipmentIcon extends MenuItem {
     enchantMenu.setSelectedEquipment(event.getPlayer(), enchantMenu.getBlankItem());
     event.setWillUpdate(true);
     event.setWillClose(false);
-  }
-
-  public void setDisplayName(String displayName) {
-    this.displayName = displayName;
   }
 }

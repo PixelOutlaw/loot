@@ -18,6 +18,9 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.RED;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
@@ -52,11 +55,11 @@ public final class DistortionCell {
     item = new ItemStack(Material.NETHER_WART);
     ItemMeta meta = item.getItemMeta();
     String name = "Distortion Cell";
-    meta.setDisplayName(FaceColor.RED + name);
-    meta.setCustomModelData(2);
+    meta.displayName((color(Component.text(name), RED)));
+    meta.setItemModel(NamespacedKey.fromString("faceland:distort_cell"));
     meta.setMaxStackSize(99);
     List<Component> lore = List.of(
-        noShadow(Component.text("\uF801\uF808丌\uF808\uF802")),
+        fakeNoShadow(Component.text("\uF801\uF808丌\uF808\uF802")),
         ItemStyleUtil.smallNameLoreLine(name),
         centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|This weird mass of flesh"))),
         centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|can be used to make an"))),

@@ -16,6 +16,10 @@
  */
 package info.faceland.loot.items;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.LAVENDER;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.RED;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
@@ -28,6 +32,7 @@ import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.WordUtils;
 import info.faceland.loot.utils.ItemRenderer;
@@ -148,7 +153,7 @@ public final class UpgradeScroll {
     String name = ChatColor.stripColor(WordUtils.capitalize(id) + " Scroll");
     List<TextComponent> lore = new ArrayList<>();
 
-    lore.add(noShadow(Component.text("\uF801\uF808上\uF808\uF802")));
+    lore.add(fakeNoShadow(Component.text("\uF801\uF808上\uF808\uF802")));
     lore.add(ItemStyleUtil.smallNameLoreLine(name));
     stack.setType(Material.PAPER);
     for (String s : PaletteUtil.color(this.lore)) {
@@ -156,7 +161,8 @@ public final class UpgradeScroll {
     }
     lore.remove(2);
     lore.remove(2);
-    meta.setDisplayName(net.md_5.bungee.api.ChatColor.of(new Color(122, 101, 215)) + name);
+
+    meta.displayName((color(Component.text(name), LAVENDER)));
     meta.setCustomModelData(customData);
     meta.setMaxStackSize(99);
     meta.lore(lore);
@@ -176,6 +182,8 @@ public final class UpgradeScroll {
     pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, id);
 
     stack.setItemMeta(meta);
+    ItemUtils.setCustomData(stack, List.of("scroll", id));
+
     ItemRenderer.applyCommonFlags(stack);
   }
 }

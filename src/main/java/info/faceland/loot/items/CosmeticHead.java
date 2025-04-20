@@ -16,6 +16,10 @@
  */
 package info.faceland.loot.items;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.BLUE;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.GREEN;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
@@ -122,11 +126,11 @@ public final class CosmeticHead {
   private void build(boolean hbdLoaded) {
     builtItem = new ItemStack(Material.PLAYER_HEAD);
     ItemMeta meta = hbdLoaded ? HEAD_API.getItemHead(String.valueOf(hdbId)).getItemMeta() : builtItem.getItemMeta();
-    meta.setDisplayName(FaceColor.BLUE + name);
+    meta.displayName((color(Component.text(name), BLUE)));
     meta.setCustomModelData(modelData);
 
     List<TextComponent> lore = new ArrayList<>();
-    lore.add(noShadow(Component.text("\uF801\uF808侽\uF808\uF802")));
+    lore.add(fakeNoShadow(Component.text("\uF801\uF808侽\uF808\uF802")));
     lore.add(ItemStyleUtil.smallNameLoreLine(name));
     for (String s : description) {
       lore.add(centerSmallText(PaletteUtil.convert(s)).append(JUMP_BACK));

@@ -18,6 +18,10 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.BLUE;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.RED;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
@@ -49,11 +53,11 @@ public final class UnidEnchant {
     item = new ItemStack(Material.BOOK);
     ItemMeta meta = item.getItemMeta();
     String name = "Unknown Enchantment";
-    meta.setDisplayName(FaceColor.BLUE + name);
+    meta.displayName((color(Component.text(name), BLUE)));
     meta.setCustomModelData(5);
     meta.setMaxStackSize(99);
     List<TextComponent> lore = List.of(
-        noShadow(Component.text("\uF801\uF808出\uF808\uF802")),
+        fakeNoShadow(Component.text("\uF801\uF808出\uF808\uF802")),
         ItemStyleUtil.smallNameLoreLine("UNKNOWN"),
         centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|When identified, the effect"))),
         centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|of this enchantment tome"))),

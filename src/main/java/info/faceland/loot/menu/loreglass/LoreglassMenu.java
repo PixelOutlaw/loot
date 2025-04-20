@@ -16,6 +16,8 @@
  */
 package info.faceland.loot.menu.loreglass;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
+
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
@@ -107,7 +109,7 @@ public class LoreglassMenu extends ItemMenu {
           .replaceAll("9", "\uF801懹");
       num += "\uF801懺";
       str += num;
-      sneed.put(i, Component.text(str));
+      sneed.put(i, noShadow(Component.text(str)));
     }
     return sneed;
   }

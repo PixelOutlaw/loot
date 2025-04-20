@@ -2,22 +2,19 @@ package info.faceland.loot.utils;
 
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.TRUE_WHITE;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 
 import com.google.common.collect.Lists;
 import com.sentropic.guiapi.gui.GUI;
-import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.items.SocketGem;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import land.face.strife.managers.GuiManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.ChatColor;
 
 public class ItemStyleUtil {
 
@@ -25,14 +22,14 @@ public class ItemStyleUtil {
       List.of("俼", "俪", "俫", "俬", "俭", "修", "俯", "俱", "俲", "俳"));
   public static final List<String> CORRUPT_STAT_FX = List.of("懜" + "懝" + "懞" + "懟");
 
-  public static final String EMPTY_GEM = "並";
-  public static final String LOCKED_GEM = "丧";
-  public static final String GEM_T1 = "丨";
-  public static final String GEM_T2 = "丩";
-  public static final String GEM_T3 = "个";
-  public static final String GEM_T4 = "丫";
-  public static final String GEM_T3_2 = "丬";
-  public static final String GEM_T4_2 = "中";
+  public static final TextComponent EMPTY_GEM = noShadow(Component.text("並"));
+  public static final TextComponent LOCKED_GEM = noShadow(Component.text("丧"));
+  public static final TextComponent GEM_T1 = noShadow(Component.text("丨"));
+  public static final TextComponent GEM_T2 = noShadow(Component.text("丩"));
+  public static final TextComponent GEM_T3 = noShadow(Component.text("个"));
+  public static final TextComponent GEM_T4 = noShadow(Component.text("丫"));
+  public static final TextComponent GEM_T3_2 = noShadow(Component.text("丬"));
+  public static final TextComponent GEM_T4_2 = noShadow(Component.text("中"));
 
   public static final TextComponent UNTRADEABLE_NORMAL = noShadow(color(Component.text(
       GUI.spacesOf(12) + "俎" + GUI.spacesOf(-123 + -13)), TRUE_WHITE));
@@ -130,17 +127,20 @@ public class ItemStyleUtil {
 
   public static TextComponent generateGemString(int slots, int extendSlots, List<SocketGem> sockets) {
     return switch (slots) {
-      case 1 -> color(Component.text(BUFFER_1_GEM + socketSlotStyle(sockets, 0, extendSlots > 0) +
-          "\uF81B"), TRUE_WHITE);
-      case 2 -> color(Component.text(BUFFER_2_GEM + socketSlotStyle(sockets, 0, extendSlots > 1) +
-          SPACING_2_GEMS + socketSlotStyle(sockets, 1, extendSlots > 0) + "\uF81B"), TRUE_WHITE);
-      case 3 -> color(Component.text(BUFFER_3_GEM + socketSlotStyle(sockets, 0, extendSlots > 2) +
-          SPACING_3_GEMS + socketSlotStyle(sockets, 1, extendSlots > 1) +
-          SPACING_3_GEMS + socketSlotStyle(sockets, 2, extendSlots > 0) + "\uF81B"), TRUE_WHITE);
-      default -> color(Component.text(BUFFER_4_GEM + socketSlotStyle(sockets, 0, extendSlots > 3) +
-          SPACING_4_GEMS + socketSlotStyle(sockets, 1, extendSlots > 2) +
-          SPACING_4_GEMS + socketSlotStyle(sockets, 2, extendSlots > 1) +
-          SPACING_4_GEMS + socketSlotStyle(sockets, 3, extendSlots > 0) + "\uF81B"), TRUE_WHITE);
+      case 1 -> BUFFER_1_GEM
+          .append(socketSlotStyle(sockets, 0, extendSlots > 0).append(JUMP_BACK));
+      case 2 -> BUFFER_2_GEM
+          .append(socketSlotStyle(sockets, 0, extendSlots > 1).append(SPACING_2_GEMS)
+          .append(socketSlotStyle(sockets, 1, extendSlots > 0).append(JUMP_BACK)));
+      case 3 -> BUFFER_3_GEM
+          .append(socketSlotStyle(sockets, 0, extendSlots > 2).append(SPACING_3_GEMS)
+          .append(socketSlotStyle(sockets, 1, extendSlots > 1).append(SPACING_3_GEMS)
+          .append(socketSlotStyle(sockets, 2, extendSlots > 0)))).append(JUMP_BACK);
+      default -> BUFFER_4_GEM
+          .append(socketSlotStyle(sockets, 0, extendSlots > 3)).append(SPACING_4_GEMS)
+          .append(socketSlotStyle(sockets, 1, extendSlots > 2)).append(SPACING_4_GEMS)
+          .append(socketSlotStyle(sockets, 2, extendSlots > 1)).append(SPACING_4_GEMS)
+          .append(socketSlotStyle(sockets, 3, extendSlots > 0)).append(JUMP_BACK);
     };
   }
 
@@ -148,7 +148,7 @@ public class ItemStyleUtil {
     return Component.text(" 應").color(NamedTextColor.WHITE);
   }
 
-  public static String socketSlotStyle(List<SocketGem> sockets, int index, boolean extend) {
+  public static TextComponent socketSlotStyle(List<SocketGem> sockets, int index, boolean extend) {
     if (extend) {
       return LOCKED_GEM;
     }
@@ -233,7 +233,7 @@ public class ItemStyleUtil {
 
   public static TextComponent nameLoreLine(String name, boolean edited) {
     return HALFWAY.append(Component.text(GUI.spacesOf(-countTitleSize(name) / 2))
-        .append(noShadow(Component.text(doNameThing(name, edited) + "\uF80C")).color(NamedTextColor.WHITE)));
+        .append(fakeNoShadow(Component.text(doNameThing(name, edited) + "\uF80C")).color(NamedTextColor.WHITE)));
   }
 
   public static String doNameThing(String s, boolean edited) {
@@ -273,7 +273,7 @@ public class ItemStyleUtil {
 
   public static TextComponent smallNameLoreLine(String name) {
     return HALFWAY_SMALL.append(Component.text(GUI.spacesOf(-countTitleSize(name) / 2))
-        .append(noShadow(Component.text(doSmallNameThing(name) + "\uF80C").color(NamedTextColor.WHITE))));
+        .append(fakeNoShadow(Component.text(doSmallNameThing(name) + "\uF80C").color(NamedTextColor.WHITE))));
   }
 
   public static String doSmallNameThing(String s) {
@@ -336,6 +336,10 @@ public class ItemStyleUtil {
 
   public static int countNormalTextSize(TextComponent s) {
     float size = 0;
+    var mainContent = s.content();
+    for (var letter : mainContent.toCharArray()) {
+      size += NORMAL_CHAR_WIDTHS.getOrDefault(letter, 6f);
+    }
     for (var component : s.children()) {
       if (component instanceof TextComponent) {
         var str = ((TextComponent) component).content();

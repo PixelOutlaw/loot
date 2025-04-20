@@ -16,6 +16,9 @@
  */
 package info.faceland.loot.listeners.crafting;
 
+import static info.faceland.loot.items.Tier.RECIPES;
+import static info.faceland.loot.items.Tier.TIER_BY_RESULT;
+
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.ShaderStyle;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
@@ -162,7 +165,7 @@ public final class PreCraftListener implements Listener {
     if (event.getRecipe() != null) {
       String name = ItemStackExtensionsKt.getDisplayName(event.getRecipe().getResult());
       if (StringUtils.isNotBlank(name) && ChatColor.stripColor(name).contains("Equipment Crafting")) {
-        updateEquipmentCraftInvy(event.getInventory(), event.getRecipe(), (Player) event.getViewers().get(0));
+        updateEquipmentCraftInvy(event.getInventory(), event.getRecipe(), (Player) event.getViewers().getFirst());
       }
     }
   }
@@ -404,7 +407,14 @@ public final class PreCraftListener implements Listener {
       return;
     }
 
-    Tier tier = Tier.get(result);
+    // TODO: more betterer
+    Tier tier = null;
+    for (var entry : TIER_BY_RESULT.entrySet()) {
+      if (entry.getKey().isSimilar(recipe.getResult())) {
+        tier = entry.getValue();
+        break;
+      }
+    }
     if (tier == null) {
       craftingInventory.getResult().setType(Material.BARRIER);
       //ItemStackExtensionsKt.setCustomModelData(craftingInventory.getResult(), 150);

@@ -1,5 +1,7 @@
 package info.faceland.loot.items;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.YELLOW;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
@@ -8,6 +10,7 @@ import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.ItemStyleUtil;
@@ -50,7 +53,6 @@ public class CraftMaterial {
   private Material material = Material.STICK;
   private int itemLevel = 1;
   private int quality = 1;
-  private int modelData = 1;
   private List<String> description = new ArrayList<>();
   private Set<String> preferredStats = new HashSet<>();
   private String gemResult = null;
@@ -152,7 +154,6 @@ public class CraftMaterial {
         };
         mat.setMaterial(material);
         mat.setName(name);
-        mat.setModelData(2000 * quality + level);
         mat.setQuality(quality);
         mat.setItemLevel(level);
         mat.setDescription(List.of(PaletteUtil.color("|lgray|Normal crafting material")));
@@ -187,8 +188,7 @@ public class CraftMaterial {
     result.setName(section.getString("name", "CHANGEME"));
     result.setItemLevel(section.getInt("item-level", 1));
     result.setQuality(section.getInt("quality", 1));
-    result.setModelData(section.getInt("model-data", 0));
-    result.setName(section.getString("gem-result", null));
+    result.setGemResult(section.getString("gem-result", null));
     result.setDescription(PaletteUtil.color(section.getStringList("description")));
     result.setPreferredStats(new HashSet<>(section.getStringList("preferred-stats")));
     return result;
@@ -201,8 +201,7 @@ public class CraftMaterial {
   private void buildStack() {
     cachedStack = new ItemStack(material);
     ItemMeta meta = cachedStack.getItemMeta();
-    meta.setDisplayName(FaceColor.YELLOW + name);
-    meta.setCustomModelData(modelData);
+    meta.displayName((color(Component.text(name), YELLOW)));
     List<TextComponent> lore = new ArrayList<>();
     String symbol = switch (quality) {
       case 0, 1 -> "丁";
@@ -231,7 +230,10 @@ public class CraftMaterial {
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
     pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, TYPE_KEY);
     pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, id);
+
     cachedStack.setItemMeta(meta);
+    ItemUtils.setCustomData(cachedStack, List.of("material", id));
+
     ItemRenderer.applyCommonFlags(cachedStack);
   }
 }

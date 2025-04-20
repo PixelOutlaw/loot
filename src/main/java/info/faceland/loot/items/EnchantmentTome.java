@@ -16,12 +16,17 @@
  */
 package info.faceland.loot.items;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.BLUE;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.GREEN;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY_SMALL;
+import static info.faceland.loot.utils.ItemStyleUtil.JUMP_BACK;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
 import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
 import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
@@ -143,16 +148,16 @@ public class EnchantmentTome {
     ItemMeta meta = builtItem.getItemMeta();
     ItemStat is = LootPlugin.getInstance().getStatManager().getStat(stat);
     List<TextComponent> lore = List.of(
-        noShadow(Component.text("\uF801\uF808出\uF808\uF802")),
+        fakeNoShadow(Component.text("\uF801\uF808出\uF808\uF802")),
         ItemStyleUtil.smallNameLoreLine(name),
         centerSmallText(PaletteUtil.convert(FaceColor.WHITE + "Used On: " + FaceColor.CYAN + itemGroup.getName())),
-        centerSmallText(PaletteUtil.convert(FaceColor.WHITE + "Adds: " + FaceColor.BLUE + is.getStat().getName() + "\uF80C")),
+        centerSmallText(PaletteUtil.convert(FaceColor.WHITE + "Adds: " + FaceColor.BLUE + is.getStat().getName())).append(JUMP_BACK),
         Component.empty(),
         centerSmallText(PaletteUtil.convert(FaceColor.LIGHT_GRAY + "Use this magical book at")),
         centerSmallText(PaletteUtil.convert(FaceColor.LIGHT_GRAY + "an enchanting table to")),
         centerSmallText(PaletteUtil.convert(FaceColor.LIGHT_GRAY + "empower your equipment!"))
     );
-    meta.setDisplayName(FaceColor.BLUE + name);
+    meta.displayName((color(Component.text(name), BLUE)));
     meta.lore(lore);
     meta.setMaxStackSize(99);
     if (weight == 0) {

@@ -18,6 +18,10 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.BLUE;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.RED;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
@@ -49,11 +53,11 @@ public final class NormalItem {
     item = new ItemStack(Material.BRICK);
     ItemMeta meta = item.getItemMeta();
     String name = "Normal Item";
-    meta.setDisplayName(FaceColor.BLUE + name);
+    meta.displayName((color(Component.text(name), BLUE)));
     meta.setCustomModelData(3001);
     meta.setMaxStackSize(99);
     List<TextComponent> lore = List.of(
-        noShadow(Component.text("\uF801\uF808俋\uF808\uF802")),
+        fakeNoShadow(Component.text("\uF801\uF808俋\uF808\uF802")),
         ItemStyleUtil.smallNameLoreLine(name),
         centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|A normal item. It makes"))),
         centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|the stats on equipment"))),

@@ -18,17 +18,15 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.RED;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
-import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY_SMALL;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
-import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
-import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
-import com.sentropic.guiapi.gui.GUI;
-import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.ItemStyleUtil;
@@ -53,11 +51,11 @@ public final class TooltipPaint {
     item = new ItemStack(Material.NETHER_STAR);
     ItemMeta meta = item.getItemMeta();
     String name = "Tooltip Paint";
-    meta.setDisplayName(FaceColor.RED + name);
+    meta.displayName((color(Component.text(name), RED)));
     meta.setCustomModelData(17);
     meta.setMaxStackSize(99);
     List<TextComponent> lore = List.of(
-        noShadow(Component.text("\uF801\uF808丌\uF808\uF802")),
+        fakeNoShadow(Component.text("\uF801\uF808丌\uF808\uF802")),
         ItemStyleUtil.smallNameLoreLine(name),
         centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|This magical paint is used"))),
         centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|on an item's tooltip, thus"))),

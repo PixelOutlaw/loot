@@ -2,7 +2,6 @@ package info.faceland.loot.managers;
 
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.*;
 
-import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.StatResponse;
@@ -14,6 +13,8 @@ import java.util.Map;
 import land.face.strife.stats.StrifeStat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.format.TextDecoration.State;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -101,12 +102,13 @@ public class StatManager {
           component = component.content(value + percent + itemStat.getStat().getName());
         }
       } else {
-        component = component.content(value + percent + itemStat.getStat().getName());
+        component = color(component.content(value + percent + itemStat.getStat().getName()), RED);
       }
     } else {
       color(component, CRIMSON);
       component = component.content("UNKNOWN STAT");
     }
+    component = component.decorationIfAbsent(TextDecoration.ITALIC, State.FALSE);
     response.setStatString(component);
     if (!itemStat.getNamePrefixes().isEmpty()) {
       response.setStatPrefix(itemStat.getNamePrefixes().get(LootPlugin.RNG.nextInt(itemStat.getNamePrefixes().size())));

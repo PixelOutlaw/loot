@@ -18,6 +18,10 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.BLUE;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.RED;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
@@ -25,6 +29,7 @@ import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.ItemStyleUtil;
@@ -49,11 +54,10 @@ public final class PurifyingScroll {
     item = new ItemStack(Material.PAPER);
     ItemMeta meta = item.getItemMeta();
     String name = "Purification Scroll";
-    meta.setDisplayName(FaceColor.BLUE + name);
-    meta.setCustomModelData(79);
+    meta.displayName((color(Component.text(name), BLUE)));
     meta.setMaxStackSize(99);
     meta.lore(List.of(
-        noShadow(Component.text("\uF801\uF808与\uF808\uF802")),
+        fakeNoShadow(Component.text("\uF801\uF808与\uF808\uF802")),
         ItemStyleUtil.smallNameLoreLine(name),
         centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|Use this at an enchanting"))),
         centerSmallText(PaletteUtil.convert(PaletteUtil.color("|lgray|table to remove an item's"))),
@@ -65,6 +69,7 @@ public final class PurifyingScroll {
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
     pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, TYPE_KEY);
     item.setItemMeta(meta);
+    ItemUtils.setCustomData(item, List.of("scroll", "purity"));
     ItemRenderer.applyCommonFlags(item);
   }
 

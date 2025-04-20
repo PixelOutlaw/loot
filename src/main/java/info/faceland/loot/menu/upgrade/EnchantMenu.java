@@ -16,6 +16,8 @@
  */
 package info.faceland.loot.menu.upgrade;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
+
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
@@ -203,7 +205,7 @@ public class EnchantMenu extends ItemMenu {
     equipmentIcon.getIcon().setAmount(selectedEquipment.getAmount());
     equipmentIcon.getIcon().setType(selectedEquipment.getType());
     equipmentIcon.getIcon().setItemMeta(selectedEquipment.getItemMeta());
-    equipmentIcon.setDisplayName(ItemStackExtensionsKt.getDisplayName(selectedEquipment));
+    equipmentIcon.getIcon().editMeta(m -> m.displayName(selectedEquipment.getItemMeta().customName()));
     updateConfirmIcon(player);
   }
 
@@ -212,7 +214,7 @@ public class EnchantMenu extends ItemMenu {
     upgradeItemIcon.getIcon().setAmount(1);
     upgradeItemIcon.getIcon().setType(selectedUpgradeItem.getType());
     upgradeItemIcon.getIcon().setItemMeta(selectedUpgradeItem.getItemMeta());
-    upgradeItemIcon.setDisplayName(ItemStackExtensionsKt.getDisplayName(selectedUpgradeItem));
+    upgradeItemIcon.getIcon().editMeta(m -> m.displayName(selectedUpgradeItem.getItemMeta().customName()));
     updateConfirmIcon(player);
   }
 

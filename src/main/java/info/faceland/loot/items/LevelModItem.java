@@ -16,6 +16,10 @@
  */
 package info.faceland.loot.items;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.DARK_ORANGE;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.GREEN;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
@@ -125,10 +129,10 @@ public final class LevelModItem {
   private void build() {
     builtItem = new ItemStack(Material.SHULKER_SHELL);
     ItemMeta meta = builtItem.getItemMeta();
-    meta.setDisplayName(FaceColor.DARK_ORANGE + name);
+    meta.displayName((color(Component.text(name), DARK_ORANGE)));
     meta.setCustomModelData(modelData);
     List<TextComponent> lore = new ArrayList<>();
-    lore.add(noShadow(Component.text("\uF801\uF808俋\uF808\uF802")));
+    lore.add(fakeNoShadow(Component.text("\uF801\uF808俋\uF808\uF802")));
     lore.add(ItemStyleUtil.smallNameLoreLine(name));
     for (String s : description) {
       lore.add(centerSmallText(PaletteUtil.convert(s)).append(JUMP_BACK));

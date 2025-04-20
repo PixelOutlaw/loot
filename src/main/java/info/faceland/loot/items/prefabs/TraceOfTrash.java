@@ -18,6 +18,9 @@
  */
 package info.faceland.loot.items.prefabs;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.BROWN;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.GREEN;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
@@ -49,8 +52,8 @@ public final class TraceOfTrash {
     item = new ItemStack(Material.NETHER_STAR);
     ItemMeta meta = item.getItemMeta();
     String name = "Trace Of Trash";
-    meta.setDisplayName(FaceColor.BROWN + name);
-    meta.setCustomModelData(18);
+    meta.displayName((color(Component.text(name), BROWN)));
+    meta.setItemModel(NamespacedKey.fromString("faceland:trash"));
     meta.setMaxStackSize(99);
     List<TextComponent> lore = List.of(
         noShadow(Component.text("\uF808侾\uF808\uF801")),

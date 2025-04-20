@@ -16,6 +16,10 @@
  */
 package info.faceland.loot.items;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.LIME;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.RED;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
@@ -28,6 +32,7 @@ import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.groups.ItemGroup;
@@ -177,7 +182,7 @@ public final class SocketGem {
     String name = ChatColor.stripColor(this.name);
 
     List<TextComponent> lore = new ArrayList<>();
-    lore.add(noShadow(Component.text("\uF801\uF808丈\uF808\uF802")));
+    lore.add(fakeNoShadow(Component.text("\uF801\uF808丈\uF808\uF802")));
     // Todo: remove manual character replace
     var tempName = name.replace("â", "a");
     lore.add(ItemStyleUtil.smallNameLoreLine(tempName));
@@ -219,7 +224,7 @@ public final class SocketGem {
         centerSmallText(PaletteUtil.convert(FaceColor.LIGHT_GRAY + "with empty socket slots!"))
     ));
 
-    meta.setDisplayName(FaceColor.LIME + name);
+    meta.displayName((color(Component.text(name), LIME)));
     meta.setMaxStackSize(99);
     meta.lore(lore);
     meta.setTooltipStyle(tooltip);
@@ -230,6 +235,12 @@ public final class SocketGem {
     pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, id);
 
     builtItem.setItemMeta(meta);
+    if (id.contains("ransmute")) {
+      ItemUtils.setCustomData(builtItem, List.of("socket-gem", "transmute"));
+    } else {
+      ItemUtils.setCustomData(builtItem, List.of("socket-gem", rarity));
+    }
+
     ItemRenderer.applyCommonFlags(builtItem);
   }
 

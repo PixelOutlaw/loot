@@ -19,6 +19,7 @@
 package info.faceland.loot.listeners.crafting;
 
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
+import static info.faceland.loot.items.Tier.TIER_BY_RESULT;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import info.faceland.loot.LootPlugin;
@@ -113,8 +114,10 @@ public final class CraftingListener implements Listener {
     if (event.getAction() == InventoryAction.NOTHING) {
       sendMessage(player, plugin.getSettings().getString("language.craft.no-weird", ""));
       event.setCancelled(true);
-    } else if (event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT
-        || event.getClick() == ClickType.NUMBER_KEY) {
+      return;
+    }
+    if (event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT ||
+        event.getClick() == ClickType.NUMBER_KEY || event.isShiftClick()) {
       sendMessage(player, plugin.getSettings().getString("language.craft.no-shift", ""));
       event.setCancelled(true);
     }
@@ -123,14 +126,13 @@ public final class CraftingListener implements Listener {
   @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
   public void onCraftEquipment(InventoryClickEvent event) {
     if (event.getRawSlot() == 0 && event.getSlot() == 0 && event.getSlotType() == SlotType.RESULT) {
-      if (event.getClick() == ClickType.CONTROL_DROP) {
+      if (event.getClick() == ClickType.CONTROL_DROP || event.isShiftClick()) {
         MessageUtils.sendMessage(event.getWhoClicked(),
             "&e&oSorry, this crafting operation is blocked due to bugs! No items have been consumed, even if your game client may say they were until you close the crafting grid...");
         event.setCancelled(true);
         return;
       }
-      if (event.getAction() == InventoryAction.DROP_ONE_SLOT && (event.getCursor() != null
-          && event.getCursor().getType() != Material.AIR)) {
+      if (event.getAction() == InventoryAction.DROP_ONE_SLOT && event.getCursor().getType() != Material.AIR) {
         MessageUtils.sendMessage(event.getWhoClicked(),
             "&e&oSorry, this crafting operation is blocked due to bugs! No items have been consumed, even if your game client may say they were until you close the crafting grid...");
         event.setCancelled(true);
@@ -141,6 +143,10 @@ public final class CraftingListener implements Listener {
   @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
   public void onCraftEquipment(CraftItemEvent event) {
     if (event.isCancelled()) {
+      return;
+    }
+    if (event.isShiftClick()) {
+      event.setCancelled(true);
       return;
     }
     ItemStack resultStack = event.getCurrentItem();
@@ -160,7 +166,14 @@ public final class CraftingListener implements Listener {
 
     Player player = (Player) event.getWhoClicked();
 
-    Tier tier = Tier.get(resultStack);
+    // TODO: IMPROVE, INEFFICIENT
+    Tier tier = null;
+    for (var entry : TIER_BY_RESULT.entrySet()) {
+      if (entry.getKey().isSimilar(event.getRecipe().getResult())) {
+        tier = entry.getValue();
+        break;
+      }
+    }
     if (tier == null) {
       Bukkit.getLogger().warning("[Loot] Attempted to craft item with unknown tier... " + resultStack.getType());
       return;

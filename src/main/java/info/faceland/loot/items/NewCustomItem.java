@@ -69,6 +69,7 @@ public class NewCustomItem {
 
   private Material material;
   private NamespacedKey model;
+  private String trim;
 
   private String itemName;
   private String plateString;
@@ -152,7 +153,7 @@ public class NewCustomItem {
     }
     lore.addAll(flavorText);
 
-    meta.setDisplayName(color + itemName);
+    meta.displayName(((PaletteUtil.convert(color + itemName))));
     meta.lore(lore);
     meta.setTooltipStyle(tooltip);
     if (stackSize != -1) {
@@ -196,6 +197,7 @@ public class NewCustomItem {
     ci.setTier(Tier.get(section.getString("tier")));
     ci.setQuality(section.getInt("quality", 1));
     ci.setPlateString(section.getString("nameplate", "\uF819\uF818\uF812\uF804乞\uF81C\uF81A\uF81A\uF808\uF804"));
+    ci.setTrim(section.getString("trim", null));
     var tt = section.getString("tooltip-id", null);
     ci.setTooltip(tt == null ? null : NamespacedKey.fromString(tt));
     ci.setColor(FaceColor.valueOf(section.getString("color", "ORANGE")));
