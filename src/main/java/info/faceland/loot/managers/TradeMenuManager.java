@@ -2,7 +2,8 @@ package info.faceland.loot.managers;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.data.ItemStat;
+import info.faceland.loot.data.Trade;
+import info.faceland.loot.data.TradeMerchant;
 import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.items.EnchantmentTome;
 import info.faceland.loot.items.NewCustomItem;
@@ -10,21 +11,17 @@ import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import teammt.villagerguiapi.classes.VillagerInventory;
-import teammt.villagerguiapi.classes.VillagerTrade;
 
 public class TradeMenuManager {
 
   private final LootPlugin plugin;
-  private final Map<String, List<VillagerTrade>> storedTrades = new HashMap<>();
+  private final Map<String, TradeMerchant> storedTrades = new HashMap<>();
 
   public TradeMenuManager(LootPlugin plugin) {
     this.plugin = plugin;
@@ -35,15 +32,13 @@ public class TradeMenuManager {
       Bukkit.getLogger().warning("[Loot] Trade " + tradeId + " doesn't exist! Can't open for " + player.getName());
       return;
     }
-    VillagerInventory cr = new VillagerInventory(new ArrayList<>(storedTrades.get(tradeId)), player);
-    cr.setName(PaletteUtil.culturallyEnrich(menuName));
-    cr.open();
+    storedTrades.get(tradeId).open(player, PaletteUtil.culturallyEnrich(menuName));
   }
 
   public void loadVillagerTrades(ConfigurationSection trade) {
     for (String nameSection : trade.getKeys(false)) {
-      List<VillagerTrade> trades = new ArrayList<>(); // Create a new list of items
       ConfigurationSection section = trade.getConfigurationSection(nameSection);
+      TradeMerchant merchantMenu = new TradeMerchant();
       for (String key : section.getKeys(false)) {
         try {
           String optionOne = section.getString(key + ".item-one");
@@ -87,17 +82,16 @@ public class TradeMenuManager {
           resulttem.setAmount(resultQuantity);
           PersistHelper.setTradeLocked(resulttem, section.getBoolean(key + ".result-trade-locked", false));
           ItemRenderer.renderItem(resulttem, true);
-          if (stack2 == null) {
-            trades.add(new VillagerTrade(stack1, resulttem, 9999));
-          } else {
-            trades.add(new VillagerTrade(stack1, stack2, resulttem, 9999));
-          }
+
+          String permission = section.getString(key + ".permission", "");
+
+          merchantMenu.addTrade(new Trade(stack1, stack2, resulttem, permission));
         } catch (Exception e) {
           Bukkit.getLogger().warning("[Loot] Failed to load trade " + key + " for section " + nameSection);
           e.printStackTrace();
         }
       }
-      storedTrades.put(nameSection, trades);
+      storedTrades.put(nameSection, merchantMenu);
     }
   }
 

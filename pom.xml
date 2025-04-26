@@ -64,10 +64,6 @@
       <url>https://mvn.lumine.io/repository/maven-public/</url>
     </repository>
     <repository>
-      <id>teammt-plugins-public</id>
-      <url>https://masecla.dev/nexus/repository/mt-plugins-public/</url>
-    </repository>
-    <repository>
       <id>codemc-releases</id>
       <url>https://repo.codemc.io/repository/maven-releases/</url>
     </repository>
