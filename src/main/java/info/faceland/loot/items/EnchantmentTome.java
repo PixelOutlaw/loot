@@ -18,6 +18,7 @@ package info.faceland.loot.items;
 
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.BLUE;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.GREEN;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.LAVENDER;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
@@ -51,6 +52,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -84,6 +86,7 @@ public class EnchantmentTome {
   private String description;
 
   private ItemStack builtItem;
+  private ItemStack idIcon;
 
   public EnchantmentTome(String id) {
     this.id = id;
@@ -109,6 +112,10 @@ public class EnchantmentTome {
 
   public ItemStack item() {
     return builtItem.clone();
+  }
+
+  public ItemStack identifyIcon() {
+    return idIcon.clone();
   }
 
   public ItemMeta meta() {
@@ -178,7 +185,17 @@ public class EnchantmentTome {
     pdc.set(ITEM_EXTRA_KEY, PersistentDataType.STRING, id);
 
     builtItem.setItemMeta(meta);
+
     ItemRenderer.applyCommonFlags(builtItem);
+
+    idIcon = builtItem.clone();
+    var extra = idIcon.getItemMeta().lore();
+    extra.add(Component.empty());
+    extra.add(Component.text("峎 ").color(NamedTextColor.WHITE)
+        .append(color(Component.text("Select Tome!"), LAVENDER)));
+    extra.add(Component.text("峏 ").color(NamedTextColor.WHITE)
+        .append(color(Component.text("Select Tome And ID Again!"), LAVENDER)));
+    idIcon.editMeta(m -> m.lore(extra));
   }
 
   public static void loadFromFile(LootPlugin plugin, SmartYamlConfiguration file) {

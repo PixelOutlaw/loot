@@ -27,6 +27,7 @@ import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.ItemStyleUtil;
@@ -48,7 +49,7 @@ public final class WarpedTongs {
   private static ItemStack item;
 
   public static void rebuild() {
-    item = new ItemStack(Material.NETHER_WART);
+    item = new ItemStack(Material.NETHER_STAR);
     ItemMeta meta = item.getItemMeta();
     String name = "Warped Tongs";
     meta.displayName((color(Component.text(name), RED)));
@@ -81,6 +82,7 @@ public final class WarpedTongs {
 
     item.setItemMeta(meta);
     ItemRenderer.applyCommonFlags(item);
+    ItemUtils.setCustomData(item, List.of(TYPE_KEY));
   }
 
   public static ItemStack item() {

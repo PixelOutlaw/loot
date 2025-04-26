@@ -28,6 +28,7 @@ import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.ItemStyleUtil;
@@ -49,11 +50,10 @@ public final class OrbOfManyFaces {
   private static ItemStack item;
 
   public static void rebuild() {
-    item = new ItemStack(Material.NETHER_STAR);
+    item = new ItemStack(Material.BRICK);
     ItemMeta meta = item.getItemMeta();
     String name = "Orb Of Many Faces";
     meta.displayName((color(Component.text(name), RED)));
-    meta.setItemModel(NamespacedKey.fromString("faceland:faceorb"));
     meta.setMaxStackSize(99);
     List<TextComponent> lore = List.of(
         fakeNoShadow(Component.text("\uF801\uF808丌\uF808\uF802")),
@@ -76,6 +76,7 @@ public final class OrbOfManyFaces {
 
     item.setItemMeta(meta);
     ItemRenderer.applyCommonFlags(item);
+    ItemUtils.setCustomData(item, List.of(TYPE_KEY));
   }
 
   public static ItemStack item() {

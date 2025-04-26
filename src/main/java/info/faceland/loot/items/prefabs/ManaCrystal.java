@@ -29,6 +29,7 @@ import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.ItemStyleUtil;
@@ -69,6 +70,7 @@ public final class ManaCrystal {
     pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, TYPE_KEY);
     item.setItemMeta(meta);
     ItemRenderer.applyCommonFlags(item);
+    ItemUtils.setCustomData(item, List.of(TYPE_KEY));
   }
 
   public static ItemStack item() {

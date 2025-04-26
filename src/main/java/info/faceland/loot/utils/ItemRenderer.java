@@ -14,6 +14,7 @@ import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.TRUE_WH
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.WHITE;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.YELLOW;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.i;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
@@ -277,7 +278,7 @@ public class ItemRenderer {
     ItemMeta meta = stack.getItemMeta();
     meta.displayName((color(Component.text("Item Essence (" + tier.getPlainName() + ")"), CYAN)));
     meta.lore(List.of(
-        noShadow(Component.text("\uF808万\uF808\uF801")),
+        fakeNoShadow(Component.text("\uF808万\uF808\uF801")),
         centerSmallText(color(Component.text("Item Type: "), WHITE)
             .append(color(Component.text(tier.getPlainName()), CYAN))),
         centerSmallText(color(Component.text("Essence Level: "), WHITE)
@@ -348,16 +349,16 @@ public class ItemRenderer {
       plus = ItemStyleUtil.upgradeNumbers.get(scaledPlus - 1);
     }
     // MAYBE CHECK FOR SMALL VS LARGE? Should always be large though
-    lore.add(noShadow(Component.text(plate + plus)));
+    lore.add(fakeNoShadow(Component.text(plate + plus)));
     lore.add(ItemStyleUtil.nameLoreLine(name, data.isNameEdited()));
     String subtitle = rarityName + " " + tier.getPlainName();
 
     lore.add(HALFWAY.append(Component.text(GUI.spacesOf(-countSubtitleSize(subtitle) / 2))
-        .append(noShadow(color(Component.text(doSuffix(subtitle) + "\uF80C"), color)))));
+        .append(fakeNoShadow(color(Component.text(doSuffix(subtitle) + "\uF80C"), color)))));
     TextComponent distortion = Component.empty();
     if (distorted) {
-      var start = noShadow(color(Component.text(GUI.spacesOf(-22) + CORRUPTION + GUI.spacesOf(-31)), TRUE_WHITE));
-      var grow = noShadow(color(Component.text("俽" + GUI.spacesOf(-162)), GROW));
+      var start = fakeNoShadow(color(Component.text(GUI.spacesOf(-22) + CORRUPTION + GUI.spacesOf(-31)), TRUE_WHITE));
+      var grow = fakeNoShadow(color(Component.text("俽" + GUI.spacesOf(-162)), GROW));
       distortion = start.append(grow);
     }
     TextComponent modified = Component.empty();
@@ -574,9 +575,8 @@ public class ItemRenderer {
     String title = "";
     if (!prefixThings.isEmpty()) {
       title = StringUtils.join(prefixThings, " ");
-      var spacing = Component.text(GUI.spacesOf(-countSubtitleSize(title) / 2));
-      lore.set(4, HALFWAY.append(spacing).append(
-          noShadow(color(Component.text(doPrefix(title)), color))).append(JUMP_BACK));
+      lore.set(4, HALFWAY.append(Component.text(GUI.spacesOf(-countSubtitleSize(title) / 2))
+          .append(fakeNoShadow(color(Component.text(doPrefix(title) + "\uF80C"), color)))));
     }
 
     applyUntradeable(stack, lore, true);
@@ -587,9 +587,6 @@ public class ItemRenderer {
     }
     if (!title.isBlank()) {
       nameBuilder.append(title).append(" ");
-    }
-    if (!prefixThings.isEmpty()) {
-      nameBuilder.append(data.getString("prefix"));
     }
     nameBuilder.append(name);
     if (!data.getString("suffix").isBlank()) {
@@ -606,7 +603,6 @@ public class ItemRenderer {
     stack.editMeta(m -> {
       m.displayName((color(Component.text(finalName), color)));
       m.lore(lore);
-
     });
 
     if (tier.getTrim() != null && tierNum != -1) {

@@ -20,6 +20,8 @@ package info.faceland.loot.menu.tomereader;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
+import info.faceland.loot.LootPlugin;
+import info.faceland.loot.items.prefabs.UnidEnchant;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import ninja.amp.ampmenus.events.ItemClickEvent;
 import ninja.amp.ampmenus.items.MenuItem;
@@ -30,13 +32,15 @@ import org.bukkit.inventory.ItemStack;
 
 public class TomeOptionIcon extends MenuItem {
 
+  private final LootPlugin plugin;
   private final ReaderMenu menu;
   private final int index;
 
-  TomeOptionIcon(ReaderMenu menu, int index) {
+  TomeOptionIcon(LootPlugin plugin, ReaderMenu menu, int index) {
     super(TextUtils.color("&cClick to cut a gem!"), ItemUtils.BLANK.clone());
     this.menu = menu;
     this.index = index;
+    this.plugin = plugin;
   }
 
   @Override
@@ -44,14 +48,14 @@ public class TomeOptionIcon extends MenuItem {
     var tomeOptions = ReaderMenu.TOME_OPTIONS.get(player.getUniqueId());
     switch (index) {
       case 0 -> {
-        return tomeOptions.size() == 4 ? tomeOptions.get(0).item() : new ItemStack(Material.AIR);
+        return tomeOptions.size() == 4 ? tomeOptions.getFirst().item() : new ItemStack(Material.AIR);
       }
       case 1 -> {
-        return tomeOptions.size() == 3 ? tomeOptions.get(0).item() : new ItemStack(Material.AIR);
+        return tomeOptions.size() == 3 ? tomeOptions.getFirst().item() : new ItemStack(Material.AIR);
       }
       case 2 -> {
         if (tomeOptions.size() == 2) {
-          return tomeOptions.get(0).item();
+          return tomeOptions.getFirst().item();
         }
         if (tomeOptions.size() == 4) {
           return tomeOptions.get(1).item();
@@ -60,7 +64,7 @@ public class TomeOptionIcon extends MenuItem {
       }
       case 3 -> {
         if (tomeOptions.size() == 1) {
-          return tomeOptions.get(0).item();
+          return tomeOptions.getFirst().item();
         }
         if (tomeOptions.size() == 3) {
           return tomeOptions.get(1).item();
@@ -141,6 +145,13 @@ public class TomeOptionIcon extends MenuItem {
           menu.rewardOptions(event.getPlayer(), 3);
         }
       }
+    }
+    var stack = event.getPlayer().getEquipment().getItemInMainHand();
+    if (event.getClickType().isRightClick() &&
+        UnidEnchant.matches(event.getPlayer().getEquipment().getItemInMainHand())) {
+      ReaderMenu.generateOptions(plugin, event.getPlayer());
+      stack.setAmount(stack.getAmount() - 1);
+      ReaderMenu.show(event.getPlayer());
     }
   }
 }

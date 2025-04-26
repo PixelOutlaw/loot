@@ -140,8 +140,10 @@ public class DropUtil implements Listener {
     }
 
     float normalBonus = (float) amountBonus;
-    float bonusWithCheesePenalty = normalBonus * event.getCheesePenaltyMult();
-    float bonusWithCheeseAndLevelPenalty = bonusWithCheesePenalty * event.getLevelPenaltyMult();
+    float cheesePenalty = event.getCheesePenaltyMult();
+    float levelPenalty = event.getLevelPenaltyMult();
+    float bonusWithCheesePenalty = normalBonus * cheesePenalty;
+    float bonusWithCheeseAndLevelPenalty = bonusWithCheesePenalty * levelPenalty;
 
     boolean normalDrop = bonusWithCheeseAndLevelPenalty * normalDropChance > LootPlugin.RNG.nextFloat();
     while (!bonusDrops.isEmpty() || normalDrop) {
@@ -193,7 +195,7 @@ public class DropUtil implements Listener {
           randomSound);
     }
 
-    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * socketDropChance) {
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheeseAndLevelPenalty * socketDropChance) {
       SocketGem sg = plugin.getSocketGemManager().getRandomSocketGemByLevel((int) mobLevel);
       assert sg != null;
       ItemStack his = sg.toItemStack(1);
@@ -202,7 +204,7 @@ public class DropUtil implements Listener {
           sg.isBroadcast() ? FaceColor.LIGHT_GREEN.getRawColor() : null,
           sg.isBroadcast() ? ChatColor.GREEN : null, rs);
     }
-    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * tomeDropChance) {
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheeseAndLevelPenalty * tomeDropChance) {
       EnchantmentTome es = plugin.getEnchantTomeManager().getRandomEnchantTome(rarityBonus);
       assert es != null;
       RandomSound rs = es.isBroadcast() ? tomeDropSound : null;
@@ -211,15 +213,15 @@ public class DropUtil implements Listener {
           es.isBroadcast() ? FaceColor.BLUE.getRawColor() : null,
           es.isBroadcast() ? ChatColor.BLUE : null, rs);
     }
-    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * unidTomeDropChance) {
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheeseAndLevelPenalty * unidTomeDropChance) {
       ItemStack his = UnidEnchant.item();
       dropItem(event.getLocation(), his, killer, 0, false, null, null, null);
     }
-    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * purityDropChance) {
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheeseAndLevelPenalty * purityDropChance) {
       dropItem(event.getLocation(), PurifyingScroll.get(), killer, 0, false,
           FaceColor.WHITE.getRawColor(), ChatColor.WHITE, purifyDropSound);
     }
-    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * soulGemDropChance) {
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheeseAndLevelPenalty * soulGemDropChance) {
       if (killer != null && killer.getLevel() > 25) {
         SoulGem gemb = SoulGem.getRandom();
         if (gemb != null) {
@@ -228,7 +230,7 @@ public class DropUtil implements Listener {
         }
       }
     }
-    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * scrollDropChance) {
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheeseAndLevelPenalty * scrollDropChance) {
       UpgradeScroll us = plugin.getScrollManager().getRandomScroll();
       ItemStack stack = us.item();
       RandomSound rs = us.isBroadcast() ? scrollDropSound : null;
@@ -236,7 +238,7 @@ public class DropUtil implements Listener {
           us.isBroadcast() ? FaceColor.GREEN.getRawColor() : null,
           us.isBroadcast() ? ChatColor.DARK_GREEN : null, rs);
     }
-    if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * plugin.getSettings()
+    if (LootPlugin.RNG.nextFloat() < bonusWithCheeseAndLevelPenalty * plugin.getSettings()
         .getDouble("config.drops.custom-item", 0D)) {
       NewCustomItem ci = plugin.getCustomItemManager().getRandomByLevel((int) mobLevel);
       try {
@@ -263,7 +265,7 @@ public class DropUtil implements Listener {
 
 
     // RARE LOOT TABLE
-    if (LootPlugin.RNG.nextDouble() < 0.01) {
+    if (LootPlugin.RNG.nextDouble() < 0.01 * levelPenalty) {
       if (LootPlugin.RNG.nextFloat() < bonusWithCheesePenalty * enhancerDropChance) {
         dropItem(event.getLocation(), ArcaneEnhancer.get(), killer, 0, true,
             FaceColor.PURPLE.getRawColor(), ChatColor.DARK_PURPLE, arcaneDropSound);

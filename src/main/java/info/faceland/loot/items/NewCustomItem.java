@@ -142,9 +142,9 @@ public class NewCustomItem {
     String name = ChatColor.stripColor(itemName);
     List<TextComponent> lore = new ArrayList<>();
     if (StringUtils.isNotBlank(plateString)) {
-      lore.add(noShadow(Component.text(plateString)));
+      lore.add(fakeNoShadow(Component.text(plateString)));
     } else {
-      lore.add(noShadow(Component.text("\uF808丄\uF808\uF801")));
+      lore.add(fakeNoShadow(Component.text("\uF808丄\uF808\uF801")));
     }
     if (printName) {
       lore.add(large ? ItemStyleUtil.nameLoreLine(name, false) : ItemStyleUtil.smallNameLoreLine(name));

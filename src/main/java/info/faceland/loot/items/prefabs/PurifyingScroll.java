@@ -68,6 +68,7 @@ public final class PurifyingScroll {
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
     pdc.set(ITEM_VERSION_KEY, PersistentDataType.INTEGER, ITEM_VERSION);
     pdc.set(ITEM_TYPE_KEY, PersistentDataType.STRING, TYPE_KEY);
+    
     item.setItemMeta(meta);
     ItemUtils.setCustomData(item, List.of("scroll", "purity"));
     ItemRenderer.applyCommonFlags(item);

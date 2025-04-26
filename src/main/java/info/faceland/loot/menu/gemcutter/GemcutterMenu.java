@@ -30,7 +30,6 @@ import land.face.strife.StrifePlugin;
 import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.data.champion.SkillRank;
 import land.face.strife.data.pojo.SkillLevelData;
-import land.face.strife.util.ItemUtil;
 import land.face.strife.util.PlayerDataUtil;
 import ninja.amp.ampmenus.menus.ItemMenu;
 import org.bukkit.Material;
@@ -86,7 +85,7 @@ public class GemcutterMenu extends ItemMenu {
     }
     int itemLevel = selectedMaterial.getItemLevel();
     if (itemLevel > maxLvl) {
-      MessageUtils.sendMessage(player, "&e[!] You need &fCrafting " + (itemLevel - 10) + " &eto do this!");
+      MessageUtils.sendMessage(player, "&e[!] You need &fCrafting " + maxLvl + " &eto do this!");
       player.playSound(player.getLocation(), Sound.BLOCK_GRINDSTONE_USE, 1, 0.8f);
       return;
     }

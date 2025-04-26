@@ -21,6 +21,7 @@ package info.faceland.loot.items.prefabs;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.BROWN;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.GREEN;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
@@ -28,6 +29,7 @@ import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.ItemStyleUtil;
@@ -49,11 +51,10 @@ public final class TraceOfTrash {
   private static ItemStack item;
 
   public static void rebuild() {
-    item = new ItemStack(Material.NETHER_STAR);
+    item = new ItemStack(Material.BRICK);
     ItemMeta meta = item.getItemMeta();
     String name = "Trace Of Trash";
-    meta.displayName((color(Component.text(name), BROWN)));
-    meta.setItemModel(NamespacedKey.fromString("faceland:trash"));
+    meta.displayName(fakeNoShadow((color(Component.text(name), BROWN))));
     meta.setMaxStackSize(99);
     List<TextComponent> lore = List.of(
         noShadow(Component.text("\uF808侾\uF808\uF801")),
@@ -78,6 +79,7 @@ public final class TraceOfTrash {
 
     item.setItemMeta(meta);
     ItemRenderer.applyCommonFlags(item);
+    ItemUtils.setCustomData(item, List.of(TYPE_KEY));
   }
 
   public static ItemStack item() {

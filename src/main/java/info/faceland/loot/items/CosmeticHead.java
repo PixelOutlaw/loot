@@ -29,6 +29,7 @@ import static info.faceland.loot.utils.ItemStyleUtil.JUMP_BACK;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.utils.ItemRenderer;
@@ -154,6 +155,7 @@ public final class CosmeticHead {
 
     builtItem.setItemMeta(meta);
     ItemRenderer.applyCommonFlags(builtItem);
+    ItemUtils.setCustomData(builtItem, List.of(TYPE_KEY));
   }
 
   public static void clear() {

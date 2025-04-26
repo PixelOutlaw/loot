@@ -29,6 +29,7 @@ import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 import static info.faceland.loot.utils.ItemStyleUtil.centerSmallText;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.ItemStyleUtil;
@@ -50,7 +51,7 @@ public final class OrbOfOscillation {
   private static ItemStack item;
 
   public static void rebuild() {
-    item = new ItemStack(Material.NETHER_STAR);
+    item = new ItemStack(Material.BRICK);
     ItemMeta meta = item.getItemMeta();
     String name = "Orb Of Oscillation";
     meta.displayName((color(Component.text(name), BLACK)));
@@ -82,6 +83,7 @@ public final class OrbOfOscillation {
 
     item.setItemMeta(meta);
     ItemRenderer.applyCommonFlags(item);
+    ItemUtils.setCustomData(item, List.of(TYPE_KEY));
   }
 
   public static ItemStack item() {

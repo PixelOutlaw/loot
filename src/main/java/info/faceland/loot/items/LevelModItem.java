@@ -33,6 +33,7 @@ import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.utils.ItemRenderer;
@@ -76,7 +77,6 @@ public final class LevelModItem {
   private final String id;
   private String name;
   private double weight;
-  private int modelData;
   private List<String> description;
   private List<String> modelTags;
   private int modificationAmount;
@@ -130,7 +130,6 @@ public final class LevelModItem {
     builtItem = new ItemStack(Material.SHULKER_SHELL);
     ItemMeta meta = builtItem.getItemMeta();
     meta.displayName((color(Component.text(name), DARK_ORANGE)));
-    meta.setCustomModelData(modelData);
     List<TextComponent> lore = new ArrayList<>();
     lore.add(fakeNoShadow(Component.text("\uF801\uF808俋\uF808\uF802")));
     lore.add(ItemStyleUtil.smallNameLoreLine(name));
@@ -148,6 +147,7 @@ public final class LevelModItem {
 
     builtItem.setItemMeta(meta);
     ItemRenderer.applyCommonFlags(builtItem);
+    ItemUtils.setCustomData(builtItem, List.of(TYPE_KEY, id));
   }
 
   public static void clear() {
@@ -178,7 +178,6 @@ public final class LevelModItem {
   public static LevelModItem loadFromConfig(String id, ConfigurationSection section) {
     var result = new LevelModItem(id);
     result.setName(section.getString("name", "CHANGEME"));
-    result.setModelData(section.getInt("model-data", 0));
     result.setModificationAmount(section.getInt("level-mod-amount", 0));
     result.setDescription(PaletteUtil.color(section.getStringList("description")));
     result.setModelTags(section.getStringList("model-tags"));

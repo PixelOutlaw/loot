@@ -2,6 +2,7 @@ package info.faceland.loot.items;
 
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.YELLOW;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.color;
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
@@ -210,7 +211,7 @@ public class CraftMaterial {
       case 4 -> "丄";
       default -> "丅";
     };
-    lore.add(noShadow(Component.text("\uF808" + symbol + "\uF808\uF801")));
+    lore.add(fakeNoShadow(Component.text("\uF808" + symbol + "\uF808\uF801")));
     lore.add(ItemStyleUtil.smallNameLoreLine(name));
     lore.add(Component.empty());
     if (itemLevel > 0) {

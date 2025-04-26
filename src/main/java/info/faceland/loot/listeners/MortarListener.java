@@ -48,7 +48,7 @@ public record MortarListener(LootPlugin plugin) implements Listener {
       if (stack.getType() == Material.AIR) {
         return;
       }
-      if (ItemUtils.checkCustomData(stack, "mortar", 0)) {
+      if (ItemUtils.checkCustomData(stack, "deco-mortar", 0)) {
         plugin.getMortarMenu().open(event.getPlayer());
         event.setCancelled(true);
       }

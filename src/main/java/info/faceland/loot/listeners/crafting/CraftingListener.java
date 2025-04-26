@@ -22,6 +22,7 @@ import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.send
 import static info.faceland.loot.items.Tier.TIER_BY_RESULT;
 
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.api.items.ItemGenerationReason;
 import info.faceland.loot.data.BuiltItem;
@@ -104,13 +105,23 @@ public final class CraftingListener implements Listener {
 
   @EventHandler(priority = EventPriority.LOWEST)
   public void onSpecialCraftEquipment(CraftItemEvent event) {
-    ItemStack resultStack = event.getCurrentItem();
-    if (Tier.get(resultStack) == null) {
+    Tier tier = null;
+    for (var entry : TIER_BY_RESULT.entrySet()) {
+      if (entry.getKey().isSimilar(event.getRecipe().getResult())) {
+        tier = entry.getValue();
+        break;
+      }
+    }
+    if (tier == null) {
       return;
     }
-
     Player player = (Player) event.getWhoClicked();
-
+    if (player.getItemOnCursor().getType() != Material.AIR) {
+      //sendMessage(player, plugin.getSettings().getString("language.craft.no-weird", ""));
+      sendMessage(player, plugin.getSettings().getString("language.craft.no-cursor", ""));
+      event.setCancelled(true);
+      return;
+    }
     if (event.getAction() == InventoryAction.NOTHING) {
       sendMessage(player, plugin.getSettings().getString("language.craft.no-weird", ""));
       event.setCancelled(true);
@@ -127,14 +138,12 @@ public final class CraftingListener implements Listener {
   public void onCraftEquipment(InventoryClickEvent event) {
     if (event.getRawSlot() == 0 && event.getSlot() == 0 && event.getSlotType() == SlotType.RESULT) {
       if (event.getClick() == ClickType.CONTROL_DROP || event.isShiftClick()) {
-        MessageUtils.sendMessage(event.getWhoClicked(),
-            "&e&oSorry, this crafting operation is blocked due to bugs! No items have been consumed, even if your game client may say they were until you close the crafting grid...");
+        MessageUtils.sendMessage(event.getWhoClicked(), "&e&oSorry, this crafting operation is blocked! Try again with a normal click!");
         event.setCancelled(true);
         return;
       }
       if (event.getAction() == InventoryAction.DROP_ONE_SLOT && event.getCursor().getType() != Material.AIR) {
-        MessageUtils.sendMessage(event.getWhoClicked(),
-            "&e&oSorry, this crafting operation is blocked due to bugs! No items have been consumed, even if your game client may say they were until you close the crafting grid...");
+        MessageUtils.sendMessage(event.getWhoClicked(), "&e&oSorry, this crafting operation is blocked! Try again with a normal click!");
         event.setCancelled(true);
       }
     }
@@ -178,6 +187,13 @@ public final class CraftingListener implements Listener {
       Bukkit.getLogger().warning("[Loot] Attempted to craft item with unknown tier... " + resultStack.getType());
       return;
     }
+
+    String name = ItemStackExtensionsKt.getDisplayName(event.getRecipe().getResult());
+    if (StringUtils.isBlank(name) || !org.bukkit.ChatColor.stripColor(name).contains("Equipment Crafting")) {
+      Bukkit.getLogger().warning("[Loot] Attempted to craft tiered item with wrong craft title... " + resultStack.getType());
+      return;
+    }
+
     SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
     SkillRank rank = SkillRank.getRank(plugin.getStrifePlugin().getChampionManager().getChampion(player), LifeSkillType.CRAFTING);
     CraftResultData crData = new CraftResultData(event.getInventory().getMatrix(), resultStack);
@@ -253,10 +269,10 @@ public final class CraftingListener implements Listener {
     if (event.isCancelled()) {
       return;
     }
-    if (TRANSMUTE_RECIPE == event.getRecipe()) {
-      Bukkit.getScheduler().runTaskLater(plugin, () -> plugin.getStrifePlugin().getSkillExperienceManager()
-          .addExperience((Player) event.getWhoClicked(), LifeSkillType.ALCHEMY,
-              event.getInventory().getResult().getAmount() * 0.7f, false, false), 0L);
+    if (event.getRecipe().getResult().getType() == Material.EMERALD) {
+      Bukkit.getScheduler().runTaskLater(plugin, () -> plugin.getStrifePlugin()
+          .getSkillExperienceManager().addExperience((Player) event.getWhoClicked(),
+              LifeSkillType.ALCHEMY, 0.75, false, false), 0L);
     }
   }
 

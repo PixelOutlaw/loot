@@ -73,7 +73,7 @@ public class SalvageManager {
       return null;
     }
 
-    double exp = 5;
+    double exp = 4;
     int stars = (int) Math.round(MaterialUtil.getRarity(selectedStack).getPower());
     stars += CraftingUtil.getStarBonus(effectiveLevelAdvantage, stars, tool.getQuality());
 
@@ -101,7 +101,9 @@ public class SalvageManager {
 
     ItemUtils.giveOrDrop(player, craftMaterial);
 
-    exp += itemLevel * 1.1;
+    exp += stars;
+    exp += (double) itemLevel / 2;
+    exp *= 1 + (stars * 0.2);
 
     plugin.getStrifePlugin().getSkillExperienceManager()
         .addExperience(player, LifeSkillType.CRAFTING, exp, false, false);

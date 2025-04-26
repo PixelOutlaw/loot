@@ -49,13 +49,13 @@ public class ReaderMenu extends ItemMenu {
     super(TextUtils.color(plugin.getSettings().getString("language.menu.reader-name","&0&lMortar")), Size.THREE_LINE, plugin);
     this.plugin = plugin;
 
-    setItem(10, new TomeOptionIcon(this, 0));
-    setItem(11, new TomeOptionIcon(this, 1));
-    setItem(12, new TomeOptionIcon(this, 2));
-    setItem(13, new TomeOptionIcon(this, 3));
-    setItem(14, new TomeOptionIcon(this, 4));
-    setItem(15, new TomeOptionIcon(this, 5));
-    setItem(16, new TomeOptionIcon(this, 6));
+    setItem(10, new TomeOptionIcon(plugin, this, 0));
+    setItem(11, new TomeOptionIcon(plugin, this, 1));
+    setItem(12, new TomeOptionIcon(plugin, this, 2));
+    setItem(13, new TomeOptionIcon(plugin, this, 3));
+    setItem(14, new TomeOptionIcon(plugin, this, 4));
+    setItem(15, new TomeOptionIcon(plugin, this, 5));
+    setItem(16, new TomeOptionIcon(plugin, this, 6));
 
     instance = this;
   }

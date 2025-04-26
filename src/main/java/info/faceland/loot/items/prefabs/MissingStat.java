@@ -33,6 +33,7 @@ import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.ItemStyleUtil;
@@ -54,7 +55,7 @@ public final class MissingStat {
   private static ItemStack item;
 
   public static void rebuild() {
-    item = new ItemStack(Material.NETHER_BRICK);
+    item = new ItemStack(Material.BRICK);
     ItemMeta meta = item.getItemMeta();
     String name = "Missing Stat";
     meta.displayName((color(Component.text(name), PURPLE)));
@@ -83,6 +84,7 @@ public final class MissingStat {
 
     item.setItemMeta(meta);
     ItemRenderer.applyCommonFlags(item);
+    ItemUtils.setCustomData(item, List.of(TYPE_KEY));
   }
 
   public static ItemStack item() {

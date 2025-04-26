@@ -29,6 +29,7 @@ import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.utils.ItemRenderer;
@@ -178,14 +179,19 @@ public final class SoulGem  {
     description.forEach(s -> lore.add(centerSmallText(s).append(JUMP_BACK)));
     meta.lore(lore);
     meta.setMaxStackSize(99);
+    String rarityStyle;
     if (weight <= 500) {
       meta.setTooltipStyle(NamespacedKey.fromString("item_epic"));
+      rarityStyle = "epic";
     } else if (weight <= 2000) {
       meta.setTooltipStyle(NamespacedKey.fromString("item_rare"));
+      rarityStyle = "rare";
     } else if (weight <= 6000) {
       meta.setTooltipStyle(NamespacedKey.fromString("item_uncommon"));
+      rarityStyle = "uncommon";
     } else {
       meta.setTooltipStyle(NamespacedKey.fromString("item_common"));
+      rarityStyle = "common";
     }
 
     PersistentDataContainer pdc = meta.getPersistentDataContainer();
@@ -195,6 +201,7 @@ public final class SoulGem  {
 
     builtItem.setItemMeta(meta);
     ItemRenderer.applyCommonFlags(builtItem);
+    ItemUtils.setCustomData(builtItem, List.of(TYPE_KEY, rarityStyle, id));
   }
 
   public static void clear() {

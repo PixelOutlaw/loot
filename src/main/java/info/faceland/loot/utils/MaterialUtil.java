@@ -357,7 +357,7 @@ public final class MaterialUtil {
       PaletteUtil.sendMessage(player, "|yellow|Only equipment can be rerolled!");
       return;
     }
-    data.reroll(0.12, 2.75);
+    data.reroll(0.12, 2.45);
     PersistHelper.setEquipmentData(equipmentItem, data);
     player.playSound(player.getEyeLocation(), Sound.ENTITY_EVOKER_PREPARE_WOLOLO, 1F, 1F);
     plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player,
@@ -372,7 +372,7 @@ public final class MaterialUtil {
       PaletteUtil.sendMessage(player, "|yellow|Only equipment can be rerolled!");
       return;
     }
-    data.reroll(0.5, 2.70);
+    data.reroll(0.5, 2.35);
     PersistHelper.setEquipmentData(equipmentItem, data);
     player.playSound(player.getEyeLocation(), Sound.ENTITY_EVOKER_PREPARE_WOLOLO, 1F, 1F);
     plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player,
@@ -387,7 +387,7 @@ public final class MaterialUtil {
       PaletteUtil.sendMessage(player, "|yellow|Only equipment can be rerolled!");
       return;
     }
-    data.reroll(0.2, 2.72);
+    data.reroll(0.2, 2.55);
     PersistHelper.setEquipmentData(equipmentItem, data);
     plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player,
         LifeSkillType.ENCHANTING, 200, false, false);

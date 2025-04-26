@@ -54,7 +54,7 @@ public final class ArcaneEnhancer {
   private static ItemStack item;
 
   public static void rebuild() {
-    item = new ItemStack(Material.MAGMA_CREAM);
+    item = new ItemStack(Material.BRICK);
     ItemMeta meta = item.getItemMeta();
     String name = "Arcane Enhancer";
     meta.displayName((color(Component.text(name), PURPLE)));
@@ -79,6 +79,7 @@ public final class ArcaneEnhancer {
 
     item.setItemMeta(meta);
     ItemRenderer.applyCommonFlags(item);
+    ItemUtils.setCustomData(item, List.of(TYPE_KEY));
   }
 
   public static ItemStack get() {

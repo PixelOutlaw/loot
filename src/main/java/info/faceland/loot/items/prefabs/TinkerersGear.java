@@ -32,6 +32,7 @@ import static info.faceland.loot.utils.ItemStyleUtil.doSmallNameThing;
 
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.ItemStyleUtil;
@@ -60,7 +61,6 @@ public final class TinkerersGear {
     ItemMeta meta = item.getItemMeta();
     String name = "Tinkerer's Gear";
     meta.displayName((color(Component.text(name), RED)));
-    meta.setItemModel(NamespacedKey.fromString("faceland:tinker_gear"));
     meta.setMaxStackSize(99);
     List<TextComponent> lore = List.of(
         fakeNoShadow(Component.text("\uF801\uF808丌\uF808\uF802")),
@@ -83,6 +83,7 @@ public final class TinkerersGear {
 
     item.setItemMeta(meta);
     ItemRenderer.applyCommonFlags(item);
+    ItemUtils.setCustomData(item, List.of(TYPE_KEY));
   }
 
   @Deprecated

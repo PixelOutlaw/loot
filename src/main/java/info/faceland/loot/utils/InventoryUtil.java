@@ -70,6 +70,18 @@ public final class InventoryUtil {
     return false;
   }
 
+  public static boolean checkItem(Player player, String itemId) {
+    for (ItemStack item : player.getInventory().getContents()) {
+      if (item == null) {
+        continue;
+      }
+      if (itemId.equals(PersistHelper.getItemId(item))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public static void sendToDiscord(Player player, ItemStack his, String format) {
     sendToDiscord(player, his, format, true);
   }

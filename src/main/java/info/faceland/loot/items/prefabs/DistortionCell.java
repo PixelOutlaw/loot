@@ -31,6 +31,7 @@ import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
 
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
+import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.ItemStyleUtil;
@@ -52,11 +53,10 @@ public final class DistortionCell {
   private static ItemStack item;
 
   public static void rebuild() {
-    item = new ItemStack(Material.NETHER_WART);
+    item = new ItemStack(Material.BRICK);
     ItemMeta meta = item.getItemMeta();
     String name = "Distortion Cell";
     meta.displayName((color(Component.text(name), RED)));
-    meta.setItemModel(NamespacedKey.fromString("faceland:distort_cell"));
     meta.setMaxStackSize(99);
     List<Component> lore = List.of(
         fakeNoShadow(Component.text("\uF801\uF808丌\uF808\uF802")),
@@ -82,6 +82,7 @@ public final class DistortionCell {
 
     item.setItemMeta(meta);
     ItemRenderer.applyCommonFlags(item);
+    ItemUtils.setCustomData(item, List.of(TYPE_KEY));
   }
 
   public static ItemStack item() {
