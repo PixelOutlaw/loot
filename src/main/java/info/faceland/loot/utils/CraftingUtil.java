@@ -41,4 +41,12 @@ public class CraftingUtil {
     };
   }
 
+  public static float levelPenaltyMult(float currentLevel, float targetLevel) {
+    float difference = currentLevel - (targetLevel + 10);
+    if (difference <= 0) {
+      return 1f;
+    }
+    return Math.max(0.15f, 1f - (difference * 0.02f));
+  }
+
 }

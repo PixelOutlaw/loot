@@ -64,26 +64,16 @@ public final class ItemBuilder {
   private ItemRarity rarity;
   private int level;
   private int plus;
+  private float emptySlotChance = 0;
   private Player creator;
-  private int highRateEmptySlots;
   private boolean distorted = false;
   private boolean soulbound = false;
-  private boolean enchantable = true;
-  private boolean alwaysEssence = false;
-  private boolean alwaysExtend = false;
-  private int craftBonusStats = 0;
-  private float socketChanceBonus = 0;
   private ItemGenerationReason generationReason = ItemGenerationReason.MONSTER;
   private Set<String> preferredStats = new HashSet<>();
   private boolean built = false;
 
   public ItemBuilder withRarity(ItemRarity r) {
     rarity = r;
-    return this;
-  }
-
-  public ItemBuilder withHighRateEmptySlots(int l) {
-    highRateEmptySlots = l;
     return this;
   }
 
@@ -97,8 +87,8 @@ public final class ItemBuilder {
     return this;
   }
 
-  public ItemBuilder withCraftBonusStats(int l) {
-    craftBonusStats = l;
+  public ItemBuilder withEmptyStatChance(float l) {
+    emptySlotChance = l;
     return this;
   }
 
@@ -117,28 +107,8 @@ public final class ItemBuilder {
     return this;
   }
 
-  public ItemBuilder withEnchantable(boolean b) {
-    enchantable = b;
-    return this;
-  }
-
-  public ItemBuilder withAlwaysEssence(boolean b) {
-    alwaysEssence = b;
-    return this;
-  }
-
-  public ItemBuilder withAlwaysExtend(boolean b) {
-    alwaysExtend = b;
-    return this;
-  }
-
   public ItemBuilder withTier(Tier t) {
     tier = t;
-    return this;
-  }
-
-  public ItemBuilder socketChanceBonus(float l) {
-    socketChanceBonus = l;
     return this;
   }
 
@@ -190,27 +160,17 @@ public final class ItemBuilder {
     bonusStatList.removeIf(stat -> preferredStatList.contains(stat) || level < stat.getMinimumItemLevel());
 
     int bonusStats = LootPlugin.RNG.nextInt(rarity.getMinimumBonusStats(), rarity.getMaximumBonusStats() + 1);
-    if (generationReason == ItemGenerationReason.CRAFTING) {
-      bonusStats += craftBonusStats;
-    }
 
     bonusStats = Math.max(1, bonusStats);
 
     int craftedStatSlots = 0;
+    double craftedStatOdds = emptySlotChance;
     if (crafted) {
-      int highRateTries = this.highRateEmptySlots;
       for (int i = 0; i <= bonusStats; i++) {
-        if (highRateTries > 0) {
-          craftedStatSlots += LootPlugin.RNG.nextDouble() < 0.25 ? 1 : 0;
-          highRateTries--;
-        } else {
-          craftedStatSlots += LootPlugin.RNG.nextDouble() < 0.04 ? 1 : 0;
+        if (LootPlugin.RNG.nextDouble() < craftedStatOdds) {
+          craftedStatSlots++;
         }
       }
-      if (craftedStatSlots == 0 && alwaysEssence) {
-        craftedStatSlots = 1;
-      }
-      craftedStatSlots = Math.min(craftedStatSlots, bonusStats);
     }
 
     Map<String, Integer> categoryCount = new HashMap<>();
@@ -245,30 +205,29 @@ public final class ItemBuilder {
     }
     data.sortBonusStats();
 
-    data.setEnchantable(enchantable);
+    data.setEnchantable(true);
 
     int extenders = 0;
     int sockets = 0;
     int maxSockets = tier.getMaxSockets(rarity.getId());
     if (maxSockets > 0) {
       sockets = tier.getMinSockets(rarity.getId());
-      double socketUpChance = crafted ? rarity.getSocketChance() / 2f : rarity.getSocketChance();
-      socketUpChance += socketChanceBonus;
       int failures = 0;
       while (failures + sockets + extenders < maxSockets) {
-        if (LootPlugin.RNG.nextFloat() < socketUpChance) {
-          if (LootPlugin.RNG.nextFloat() < rarity.getExtenderChance()) {
-            extenders++;
-          } else {
-            sockets++;
-          }
-        } else {
+        if (LootPlugin.RNG.nextFloat() > rarity.getSocketChance()) {
           failures++;
+          continue;
+        }
+        if (LootPlugin.RNG.nextFloat() < rarity.getExtenderChance()) {
+          extenders++;
+        } else {
+          sockets++;
         }
       }
     }
 
-    if (alwaysExtend && extenders < 1 && sockets + extenders < maxSockets) {
+    // bonus chance for an extend slot
+    if (sockets + extenders < maxSockets && extenders == 0 && LootPlugin.RNG.nextFloat() < rarity.getExtenderChance()) {
       extenders++;
     }
 

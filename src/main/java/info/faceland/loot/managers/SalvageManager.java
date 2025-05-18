@@ -3,11 +3,11 @@ package info.faceland.loot.managers;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
 import static info.faceland.loot.utils.MaterialUtil.getLevelRequirement;
 
+import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.items.CraftMaterial;
 import info.faceland.loot.items.NewCustomItem;
-import info.faceland.loot.items.Tier;
 import info.faceland.loot.items.prefabs.DistortionCell;
 import info.faceland.loot.utils.CraftingUtil;
 import info.faceland.loot.utils.EssenceUtil;
@@ -17,6 +17,7 @@ import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.data.champion.SkillRank;
 import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.PlayerDataUtil;
+import land.face.strife.util.StatUtil;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -37,16 +38,7 @@ public class SalvageManager {
     }
     int itemLevel = getLevelRequirement(selectedStack);
     SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
-
-    SkillRank rank = SkillRank.getRank(plugin.getStrifePlugin().getChampionManager().getChampion(player), LifeSkillType.CRAFTING);
-    int maxSalvageLevel = CraftingUtil.getMaxActionLevel(rank);
     int craftingLevel = data.getLevel();
-
-    if (itemLevel > maxSalvageLevel) {
-      sendMessage(player, plugin.getSettings().getString("language.craft.low-level", ""));
-      player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
-      return null;
-    }
 
     NewCustomItem tool = PersistHelper.getNonEquipmentUniqueItem(toolStack);
     if (tool == null) {
@@ -58,9 +50,19 @@ public class SalvageManager {
       player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
       return null;
     }
+    float energyCost = 15f + (float) Math.pow((double) (itemLevel + 15) / 15, 2);
+    var mob = plugin.getStrifePlugin().getStrifeMobManager().getStatMob(player);
+    if (!mob.isInCombat()) {
+      energyCost /= 3;
+    }
+    if (mob.getEnergy() < energyCost) {
+      sendMessage(player, FaceColor.YELLOW + "You don't have enough energy to do this!");
+      player.playSound(player.getLocation(), Sound.ENTITY_SHULKER_HURT, 1, 0.8f);
+      return null;
+    }
+    StatUtil.changeEnergy(plugin.getStrifePlugin().getStrifeMobManager().getStatMob(player), -energyCost);
 
     float effectiveCraftLevel = data.getLevelWithBonus();
-    // double levelAdvantage = Math.max(0, craftingLevel - itemLevel);
     float effectiveLevelAdvantage = Math.max(0f, effectiveCraftLevel - itemLevel);
 
     ItemStack materialDetectionItem = selectedStack.clone();
@@ -74,15 +76,18 @@ public class SalvageManager {
     }
 
     double exp = 4;
-    int stars = (int) Math.round(MaterialUtil.getRarity(selectedStack).getPower());
-    stars += CraftingUtil.getStarBonus(effectiveLevelAdvantage, stars, tool.getQuality());
+    int stars;
+    if (effectiveLevelAdvantage > 0) {
+      stars = (int) Math.round(MaterialUtil.getRarity(selectedStack).getPower());
+      stars += CraftingUtil.getStarBonus(effectiveLevelAdvantage, stars, tool.getQuality());
+    } else {
+      double penaltyStars = Math.min(tool.getQuality(), 1 + MaterialUtil.getRarity(selectedStack).getPower());
+      penaltyStars = 1 + penaltyStars * Math.pow(Math.random(), 3);
+      stars = (int) Math.floor(penaltyStars);
+    }
 
-    if (equipmentData.isDistorted() && LootPlugin.RNG.nextDouble() < (0.0025 * tool.getQuality())) {
-      try {
-        player.playSound(player.getEyeLocation(), Sound.BLOCK_SCULK_SHRIEKER_SHRIEK, 1F, 2.0F);
-        exp += 1000;
-        ItemUtils.giveOrDrop(player, DistortionCell.item());
-      } catch (Exception ignored) {}
+    if (SkillRank.check(SkillRank.JOURNEYMAN, data.getLevel())) {
+      stars = Math.max(2, stars);
     }
 
     ItemStack craftMaterial = CraftMaterial.get(material, itemLevel, stars).item();
@@ -101,12 +106,24 @@ public class SalvageManager {
 
     ItemUtils.giveOrDrop(player, craftMaterial);
 
+    int cappedItemLevel = Math.min(data.getLevel() + 10, itemLevel);
+
     exp += stars;
-    exp += (double) itemLevel / 2;
+    exp += (double) cappedItemLevel / 2;
     exp *= 1 + (stars * 0.2);
+    exp *= CraftingUtil.levelPenaltyMult(data.getLevel(), itemLevel);
+
+    if (equipmentData.isDistorted() && LootPlugin.RNG.nextDouble() < (0.0025 * tool.getQuality())) {
+      try {
+        player.playSound(player.getEyeLocation(), Sound.BLOCK_SCULK_SHRIEKER_SHRIEK, 1F, 2.0F);
+        exp += 1000;
+        ItemUtils.giveOrDrop(player, DistortionCell.item());
+      } catch (Exception ignored) {}
+    }
 
     plugin.getStrifePlugin().getSkillExperienceManager()
         .addExperience(player, LifeSkillType.CRAFTING, exp, false, false);
+
     return craftMaterial.clone();
   }
   

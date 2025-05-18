@@ -52,6 +52,7 @@ public class StoredStat implements Serializable {
 
   public void setStatRoll(double statRoll) {
     doubleData.put("statRoll", statRoll);
+    setIdentified(false);
   }
 
   public StoredStat setEssenceSlot(boolean val) {
@@ -79,6 +80,30 @@ public class StoredStat implements Serializable {
 
   public void setDistorted(boolean distorted) {
     setBoolean("distorted", distorted);
+  }
+
+  public boolean isIdentified() {
+    return getBoolean("identified");
+  }
+
+  public void setIdentified(boolean identified) {
+    if (identified) {
+      setBoolean("identified", true);
+    } else {
+      booleanData.remove("identified");
+    }
+  }
+
+  public boolean isShowOrigin() {
+    return getBoolean("showOrigin");
+  }
+
+  public void setShowOrigin(boolean identified) {
+    if (identified) {
+      setBoolean("showOrigin", true);
+    } else {
+      booleanData.remove("showOrigin");
+    }
   }
 
   public boolean isInverted() {

@@ -16,40 +16,22 @@
  */
 package info.faceland.loot.listeners.crafting;
 
-import static info.faceland.loot.items.Tier.RECIPES;
-import static info.faceland.loot.items.Tier.TIER_BY_RESULT;
-
-import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
-import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.ShaderStyle;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
-import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
-import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
-import info.faceland.loot.data.CraftResultData;
-import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.data.pdc.StoredStat;
-import info.faceland.loot.items.EnchantmentTome;
 import info.faceland.loot.items.LevelModItem;
 import info.faceland.loot.items.SocketGem;
-import info.faceland.loot.items.Tier;
-import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.utils.CraftingUtil;
 import info.faceland.loot.utils.EssenceUtil;
-import info.faceland.loot.utils.ItemRenderer;
-import info.faceland.loot.utils.MaterialUtil;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
-import java.util.ArrayList;
 import java.util.List;
 import land.face.strife.StrifePlugin;
 import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.data.champion.SkillRank;
-import land.face.strife.data.pojo.SkillLevelData;
-import land.face.strife.util.PlayerDataUtil;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -59,7 +41,6 @@ import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public final class PreCraftListener implements Listener {
@@ -68,15 +49,12 @@ public final class PreCraftListener implements Listener {
 
   public static String ESSENCE_SLOT_TEXT;
 
-  private final float MAX_QUALITY;
-
   private final ItemMeta dupeStatMeta, unstableStatMeta, powerfulEssenceMeta, lowLevelMeta, invalidItemMeta,
       wrongTypeMeta, noSlotsMeta, wrongLevelModType, alreadyAppliedMod, wrongTierMod, notSocketGemMeta, noTransmuteMeta;
 
   public PreCraftListener(LootPlugin plugin) {
     this.plugin = plugin;
 
-    MAX_QUALITY = (float) plugin.getSettings().getDouble("config.crafting.craft-max-rarity", 5);
     ESSENCE_SLOT_TEXT = plugin.getSettings()
         .getString("config.crafting.essence-text", "(Essence Slot)");
 
@@ -84,8 +62,6 @@ public final class PreCraftListener implements Listener {
         .getString("language.essence.invalid-title", "&cCannot Use Essence!"));
     String badLevelMod = PaletteUtil.color(plugin.getSettings()
         .getString("language.level-mod.invalid-title", "|red|Invalid Target Equipment!"));
-    String cantTransmute = PaletteUtil.color(plugin.getSettings()
-        .getString("language.transmute-create.invalid-title", "|red|Invalid Socket Gem!"));
 
     ItemStack failStack = new ItemStack(Material.BARRIER);
     ItemStackExtensionsKt.setDisplayName(failStack,
@@ -94,10 +70,6 @@ public final class PreCraftListener implements Listener {
     ItemStack failStack2 = new ItemStack(Material.BARRIER);
     ItemStackExtensionsKt.setDisplayName(failStack2,
         StringExtensionsKt.chatColorize(badLevelMod));
-
-    ItemStack failStack3 = new ItemStack(Material.BARRIER);
-    ItemStackExtensionsKt.setDisplayName(failStack2,
-        StringExtensionsKt.chatColorize(cantTransmute));
 
     dupeStatMeta = failStack.getItemMeta().clone();
     dupeStatMeta.setLore(ListExtensionsKt.chatColorize(
@@ -157,16 +129,6 @@ public final class PreCraftListener implements Listener {
   public void onnLevelModCraft(PrepareItemCraftEvent event) {
     if (event.getRecipe() != null && event.getRecipe().getResult().getType() == Material.SMITHING_TABLE) {
       updateLevelModInvy(event.getInventory(), (Player) event.getViewers().getFirst());
-    }
-  }
-
-  @EventHandler
-  public void onCraftEquipment(PrepareItemCraftEvent event) {
-    if (event.getRecipe() != null) {
-      String name = ItemStackExtensionsKt.getDisplayName(event.getRecipe().getResult());
-      if (StringUtils.isNotBlank(name) && ChatColor.stripColor(name).contains("Equipment Crafting")) {
-        updateEquipmentCraftInvy(event.getInventory(), event.getRecipe(), (Player) event.getViewers().getFirst());
-      }
     }
   }
 
@@ -360,161 +322,6 @@ public final class PreCraftListener implements Listener {
     PersistHelper.setEquipmentData(newResult, newData);
 
     craftingInventory.setResult(newResult);
-  }
-
-  private void updateEquipmentCraftInvy(CraftingInventory craftingInventory, Recipe recipe, Player player) {
-
-    for (ItemStack stack : craftingInventory.getMatrix()) {
-      if (stack == null) {
-        continue;
-      }
-      String name = ItemStackExtensionsKt.getDisplayName(stack);
-      if (StringUtils.isBlank(name)) {
-        continue;
-      }
-      if (SocketGem.get(stack) != null || EnchantmentTome.get(stack) != null || UpgradeScroll.get(stack) != null) {
-        craftingInventory.getResult().setType(Material.BARRIER);
-        craftingInventory.getResult().setItemMeta(invalidItemMeta);
-        return;
-      }
-    }
-
-    ItemStack result = recipe.getResult().clone();
-
-    SkillLevelData data = PlayerDataUtil.getSkillLevels(player, LifeSkillType.CRAFTING, true);
-    SkillRank rank = SkillRank.getRank(plugin.getStrifePlugin().getChampionManager().getChampion(player),
-        LifeSkillType.CRAFTING);
-    int craftingLevel = data.getLevel();
-    double effectiveCraftLevel = data.getLevelWithBonus();
-    CraftResultData crData = new CraftResultData(craftingInventory.getMatrix(), result);
-    int maxCraftLevel = CraftingUtil.getMaxActionLevel(rank);
-    int itemLevel = crData.getItemLevel() == -1 ? player.getLevel() : (int) crData.getItemLevel();
-    if (maxCraftLevel < itemLevel) {
-      craftingInventory.getResult().setType(Material.BARRIER);
-      //ItemStackExtensionsKt.setCustomModelData(craftingInventory.getResult(), 150);
-      ItemStackExtensionsKt.setDisplayName(craftingInventory.getResult(),
-          FaceColor.RED + FaceColor.BOLD.s() + FaceColor.UNDERLINE.s() + "Crafting Level Too Low!");
-      TextUtils.setLore(craftingInventory.getResult(), List.of(
-          FaceColor.WHITE + FaceColor.BOLD.s() + "Base Item Level: " + itemLevel,
-          "",
-          FaceColor.GRAY + "An item's level is determined by the",
-          FaceColor.GRAY + "average level of materials used to",
-          FaceColor.GRAY + "craft it. Use weaker materials or",
-          FaceColor.GRAY + "raise your craft level to do this.",
-          "",
-          FaceColor.YELLOW + "Check /skillS for more info!"
-      ), false);
-      return;
-    }
-
-    // TODO: more betterer
-    Tier tier = null;
-    for (var entry : TIER_BY_RESULT.entrySet()) {
-      if (entry.getKey().isSimilar(recipe.getResult())) {
-        tier = entry.getValue();
-        break;
-      }
-    }
-    if (tier == null) {
-      craftingInventory.getResult().setType(Material.BARRIER);
-      //ItemStackExtensionsKt.setCustomModelData(craftingInventory.getResult(), 150);
-      ItemStackExtensionsKt.setDisplayName(craftingInventory.getResult(),
-          FaceColor.RED + FaceColor.BOLD.s() + FaceColor.UNDERLINE.s() + "Something Went Wrong!");
-      TextUtils.setLore(craftingInventory.getResult(), List.of(
-          FaceColor.GRAY + "The server doesn't know how",
-          FaceColor.GRAY + "to craft this item! Please",
-          FaceColor.GRAY + "report this to staff!"
-      ), false);
-      return;
-    }
-
-    int minItemLevel = Math.max(1, itemLevel - 3);
-    int maxItemLevel = Math.max(1, Math.min(100, itemLevel));
-
-    float craftBonus = data.getLevelWithBonus() - data.getLevel();
-    float levelAdvantage = maxCraftLevel - itemLevel;
-    float effectiveLevelAdvantage = levelAdvantage + craftBonus;
-
-    float minRarity = CraftingUtil.getMinimumRarity(crData.getRarity(), rank, effectiveLevelAdvantage);
-
-    int maxSockets = tier.getMaxSockets("EPIC");
-
-    int slotScore = crData.highRateEmptySlots(minRarity, Math.max(0, effectiveLevelAdvantage), true);
-
-    List<String> newLore = new ArrayList<>();
-    newLore.add(FaceColor.WHITE + "Item Type: " + tier.getPlainName());
-    newLore.add(FaceColor.WHITE + "Item Level: " + minItemLevel + "⇒" + maxItemLevel);
-    newLore.add(FaceColor.WHITE + getRarityTag(minRarity) + "⇒" + "\uD86D\uDFE9");
-    newLore.add("");
-    newLore.add(FaceColor.LIGHT_GRAY + "+X Primary Stat");
-    for (ItemStat s : tier.getPrimaryStats()) {
-      newLore.add(FaceColor.GRAY + " +X" + (s.isPercentage() ? "% " : " ") + s.getStat().getName() + "?");
-    }
-    newLore.add(FaceColor.LIGHT_GRAY + "+X Secondary Stat");
-    for (ItemStat s : tier.getSecondaryStats()) {
-      newLore.add(FaceColor.GRAY + " +X" + (s.isPercentage() ? "% " : " ") + s.getStat().getName() + "?");
-    }
-    newLore.add("");
-    int certainStats = 3;
-    int maybeStats = 1;
-    if (craftingLevel > 45 && (effectiveCraftLevel - 20 >= minItemLevel)) {
-      certainStats++;
-    }
-    if (minRarity < 1) {
-      certainStats--;
-      maybeStats++;
-    }
-    if (minRarity < 2) {
-      certainStats--;
-      maybeStats++;
-    }
-    if (minRarity < 3) {
-      certainStats--;
-      maybeStats++;
-    }
-    newLore.add(FaceColor.RAINBOW + "Stat⇒Essence Slot: (" + Math.round((slotScore * 23f) / (certainStats + maybeStats)) + "%)");
-    certainStats = Math.max(1, certainStats);
-    while (certainStats > 0) {
-      newLore.add(FaceColor.CYAN + "+X Random Stat");
-      certainStats--;
-    }
-    while (maybeStats > 0) {
-      newLore.add(FaceColor.CYAN + "+X Random Stat " + FaceColor.LIGHT_GRAY.shaded(ShaderStyle.WAVE) + "(?)");
-      maybeStats--;
-    }
-    newLore.add("");
-    newLore.add(FaceColor.TRUE_WHITE + "傜" + FaceColor.BLUE +
-        (craftingLevel >= 20 ? " (100%)" : " (" + (20 + craftingLevel * 3) + "%)"));
-
-    if (maxSockets > 0) {
-      newLore.add("");
-      newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + " Socket Slot");
-    }
-    if (maxSockets > 1) {
-      newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + " Socket Slot " + FaceColor.LIGHT_GRAY.shaded(ShaderStyle.WAVE) + "(?)");
-    }
-    if (maxSockets > 2) {
-      newLore.add(FaceColor.TRUE_WHITE + "哀 " + FaceColor.ORANGE + " Socket Slot " + FaceColor.LIGHT_GRAY.shaded(ShaderStyle.WAVE) + "(?)");
-    }
-
-    newLore.add("");
-
-    newLore.add(FaceColor.YELLOW.shaded(ShaderStyle.BOUNCE) + "Use /skills for more info!");
-
-    TextUtils.setLore(craftingInventory.getResult(), newLore, false);
-  }
-
-  private String getRarityTag(float amount) {
-    if (amount < 1) {
-      return MaterialUtil.TAG_COMMON;
-    }
-    if (amount < 2) {
-      return MaterialUtil.TAG_UNCOMMON;
-    }
-    if (amount < 3) {
-      return MaterialUtil.TAG_RARE;
-    }
-    return MaterialUtil.TAG_EPIC;
   }
 
   @EventHandler(priority = EventPriority.LOWEST)

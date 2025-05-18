@@ -49,6 +49,15 @@ public class RarityManager {
     return null;
   }
 
+  public ItemRarity getRarityByPower(double power) {
+    for (ItemRarity rarity : getLoadedRarities().values()) {
+      if (power == rarity.getPower()) {
+        return rarity;
+      }
+    }
+    return null;
+  }
+
   private double getTotalRarityWeightWithBonus(double bonus, double minimum) {
     double weight = 0;
     for (ItemRarity rarity : getLoadedRarities().values()) {

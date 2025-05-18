@@ -26,9 +26,6 @@ import info.faceland.loot.data.pdc.StoredStat;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
-import land.face.strife.data.champion.Champion;
-import land.face.strife.data.champion.LifeSkillType;
-import land.face.strife.data.champion.SkillRank;
 import ninja.amp.ampmenus.events.ItemClickEvent;
 import ninja.amp.ampmenus.items.MenuItem;
 import org.bukkit.Material;
@@ -53,19 +50,15 @@ public class InspectIcon extends MenuItem {
       ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&7Select An Item To Inspect!"));
       return stack;
     }
-    Champion champion = plugin.getStrifePlugin().getChampionManager().getChampion(player);
-    SkillRank rank = SkillRank.getRank(champion, LifeSkillType.LOREMASTER);
-
     ItemStack stack = menu.getSelectedStack(player).clone();
-
     EquipmentData data = PersistHelper.getEquipmentData(stack);
     if (data != null) {
-      ItemRenderer.renderEquipmentItem(plugin, stack, data, rank);
+      ItemRenderer.renderEquipmentItem(plugin, stack, data, true);
       return stack;
     }
     StoredStat stat = PersistHelper.getEssenceStat(stack);
     if (stat != null) {
-      ItemRenderer.renderEssence(stack, stat, rank);
+      ItemRenderer.renderEssence(stack, stat);
       return stack;
     }
     return new ItemStack(Material.AIR);

@@ -16,8 +16,6 @@
  */
 package info.faceland.loot.menu.upgrade;
 
-import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
-
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
@@ -28,7 +26,6 @@ import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.StatResponse;
 import info.faceland.loot.data.pdc.EquipmentData;
 import info.faceland.loot.items.EnchantmentTome;
-import info.faceland.loot.items.LevelModItem;
 import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.ArcaneEnhancer;
@@ -52,12 +49,9 @@ import info.faceland.loot.managers.StatManager.RollStyle;
 import info.faceland.loot.utils.EnchantUtil;
 import info.faceland.loot.utils.MaterialUtil;
 import info.faceland.loot.utils.PersistHelper;
-import io.pixeloutlaw.minecraft.spigot.garbage.ListExtensionsKt;
 import io.pixeloutlaw.minecraft.spigot.garbage.StringExtensionsKt;
-import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import land.face.strife.data.champion.Champion;
 import land.face.strife.data.champion.LifeSkillType;
@@ -65,7 +59,6 @@ import land.face.strife.data.champion.SkillRank;
 import land.face.strife.data.pojo.SkillLevelData;
 import land.face.strife.util.PlayerDataUtil;
 import ninja.amp.ampmenus.menus.ItemMenu;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -103,91 +96,50 @@ public class EnchantMenu extends ItemMenu {
 
     this.plugin = plugin;
 
-    validEnchant = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.valid-enchant-name", "aaaa"));
-    validUpgrade = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.valid-upgrade-name", "aaaa"));
-    validExtend = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.valid-extend-name", "aaaa"));
-    invalidEnchant = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.invalid-enchant-name", "aaaa"));
-    invalidUpgrade = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.invalid-upgrade-name", "aaaa"));
-    invalidExtend = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.invalid-extend-name", "aaaa"));
-    itemNotEnchanted = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.not-enchanted-name", "aaaa"));
-    alreadyEnhanced = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.already-enhanced-name", "aaaa"));
-    noEnhanceLevel = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.no-enhance-level-name", "aaaa"));
-    validEnhance = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.valid-enhance-name", "aaaa"));
-    validPurity = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.valid-purity-name", "aaaa"));
-    cannotRefill = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.cannot-refill", "aaaa"));
-    validRefill = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.valid-refill", "aaaa"));
-    invalidSocket = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.invalid-socket", "aaaa"));
-    validSocket = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.valid-socket", "aaaa"));
-    validTinker = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.valid-tinker", "aaaa"));
-    invalidTinker = TextUtils.color(plugin.getSettings()
-        .getString("language.menu.invalid-tinker", "aaaa"));
+    var settings = plugin.getSettings();
+    validEnchant = TextUtils.color(settings.getString("language.menu.valid-enchant-name", "aaaa"));
+    validUpgrade = TextUtils.color(settings.getString("language.menu.valid-upgrade-name", "aaaa"));
+    validExtend = TextUtils.color(settings.getString("language.menu.valid-extend-name", "aaaa"));
+    invalidEnchant = TextUtils.color(settings.getString("language.menu.invalid-enchant-name", "aaaa"));
+    invalidUpgrade = TextUtils.color(settings.getString("language.menu.invalid-upgrade-name", "aaaa"));
+    invalidExtend = TextUtils.color(settings.getString("language.menu.invalid-extend-name", "aaaa"));
+    itemNotEnchanted = TextUtils.color(settings.getString("language.menu.not-enchanted-name", "aaaa"));
+    alreadyEnhanced = TextUtils.color(settings.getString("language.menu.already-enhanced-name", "aaaa"));
+    noEnhanceLevel = TextUtils.color(settings.getString("language.menu.no-enhance-level-name", "aaaa"));
+    validEnhance = TextUtils.color(settings.getString("language.menu.valid-enhance-name", "aaaa"));
+    validPurity = TextUtils.color(settings.getString("language.menu.valid-purity-name", "aaaa"));
+    cannotRefill = TextUtils.color(settings.getString("language.menu.cannot-refill", "aaaa"));
+    validRefill = TextUtils.color(settings.getString("language.menu.valid-refill", "aaaa"));
+    invalidSocket = TextUtils.color(settings.getString("language.menu.invalid-socket", "aaaa"));
+    validSocket = TextUtils.color(settings.getString("language.menu.valid-socket", "aaaa"));
+    validTinker = TextUtils.color(settings.getString("language.menu.valid-tinker", "aaaa"));
+    invalidTinker = TextUtils.color(settings.getString("language.menu.invalid-tinker", "aaaa"));
 
-    noEquipmentLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.no-equipment"));
-    noUpgradeItemLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.no-upgrade"));
-    validEnchantLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.valid-enchant-lore"));
-    noEnchantTagLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.no-tag-lore"));
-    badTomeTypeLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.type-mismatch-lore"));
-    invalidUpgradeLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.invalid-upgrade-lore"));
-    badScrollRangeLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.invalid-plus-range-lore"));
-    validUpgradeLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.valid-upgrade-lore"));
-    validExtendLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.valid-extend-lore"));
-    invalidExtendLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.invalid-extend-lore"));
-    itemNotEnchantedLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.not-enchanted-lore"));
-    alreadyEnhancedLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.already-enhanced-lore"));
-    noEnhanceLevelLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.no-enhance-level-lore"));
-    validEnhanceLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.valid-enhance-lore"));
-    validPurityLore = TextUtils.color(plugin.getSettings()
-        .getStringList("language.menu.valid-purity-lore"));
-    breakWarning = ListExtensionsKt.chatColorize(plugin.getSettings()
-        .getStringList("language.menu.break-warning"));
-    arcaneEnchanted = ListExtensionsKt.chatColorize(plugin.getSettings()
-        .getStringList("language.menu.arcane-enchanted"));
-    fullEnchantment = ListExtensionsKt.chatColorize(plugin.getSettings()
-        .getStringList("language.menu.full-enchantment"));
-    validRefillLore = ListExtensionsKt.chatColorize(plugin.getSettings()
-        .getStringList("language.menu.valid-refill-lore"));
-    noSocketSlotsLore = ListExtensionsKt.chatColorize(plugin.getSettings()
-        .getStringList("language.menu.no-socket-slot"));
-    invalidSocketTypeLore = ListExtensionsKt.chatColorize(plugin.getSettings()
-        .getStringList("language.menu.invalid-socket-type"));
-    validSocketLore = ListExtensionsKt.chatColorize(plugin.getSettings()
-        .getStringList("language.menu.valid-socket-lore"));
-    hasCraftStatLore = ListExtensionsKt.chatColorize(plugin.getSettings()
-        .getStringList("language.menu.no-craft-stats"));
-    noTinkerStatsLore = ListExtensionsKt.chatColorize(plugin.getSettings()
-        .getStringList("language.menu.no-tinker-stats"));
-    validTinkerLore = ListExtensionsKt.chatColorize(plugin.getSettings()
-        .getStringList("language.menu.valid-tinker-lore"));
+    noEquipmentLore = TextUtils.color(settings.getStringList("language.menu.no-equipment"));
+    noUpgradeItemLore = TextUtils.color(settings.getStringList("language.menu.no-upgrade"));
+    validEnchantLore = TextUtils.color(settings.getStringList("language.menu.valid-enchant-lore"));
+    noEnchantTagLore = TextUtils.color(settings.getStringList("language.menu.no-tag-lore"));
+    badTomeTypeLore = TextUtils.color(settings.getStringList("language.menu.type-mismatch-lore"));
+    invalidUpgradeLore = TextUtils.color(settings.getStringList("language.menu.invalid-upgrade-lore"));
+    badScrollRangeLore = TextUtils.color(settings.getStringList("language.menu.invalid-plus-range-lore"));
+    validUpgradeLore = TextUtils.color(settings.getStringList("language.menu.valid-upgrade-lore"));
+    validExtendLore = TextUtils.color(settings.getStringList("language.menu.valid-extend-lore"));
+    invalidExtendLore = TextUtils.color(settings.getStringList("language.menu.invalid-extend-lore"));
+    itemNotEnchantedLore = TextUtils.color(settings.getStringList("language.menu.not-enchanted-lore"));
+    alreadyEnhancedLore = TextUtils.color(settings.getStringList("language.menu.already-enhanced-lore"));
+    noEnhanceLevelLore = TextUtils.color(settings.getStringList("language.menu.no-enhance-level-lore"));
+    validEnhanceLore = TextUtils.color(settings.getStringList("language.menu.valid-enhance-lore"));
+    validPurityLore = TextUtils.color(settings.getStringList("language.menu.valid-purity-lore"));
+    breakWarning = TextUtils.color(settings.getStringList("language.menu.break-warning"));
+    arcaneEnchanted = TextUtils.color(settings.getStringList("language.menu.arcane-enchanted"));
+    fullEnchantment = TextUtils.color(settings.getStringList("language.menu.full-enchantment"));
+    validRefillLore = TextUtils.color(settings.getStringList("language.menu.valid-refill-lore"));
+    noSocketSlotsLore = TextUtils.color(settings.getStringList("language.menu.no-socket-slot"));
+    invalidSocketTypeLore = TextUtils.color(settings.getStringList("language.menu.invalid-socket-type"));
+    validSocketLore = TextUtils.color(settings.getStringList("language.menu.valid-socket-lore"));
+    hasCraftStatLore = TextUtils.color(settings.getStringList("language.menu.no-craft-stats"));
+    noTinkerStatsLore = TextUtils.color(settings.getStringList("language.menu.no-tinker-stats"));
+    validTinkerLore = TextUtils.color(settings.getStringList("language.menu.valid-tinker-lore"));
 
     blankItem = new ItemStack(Material.AIR);
 
@@ -230,7 +182,7 @@ public class EnchantMenu extends ItemMenu {
       return;
     }
     switch (PersistHelper.getItemType(selectedUpgradeItem)) {
-      case SocketGem.TYPE_KEY -> updateSocketDisplay(lore);
+      case SocketGem.TYPE_KEY -> updateSocketDisplay();
       case EnchantmentTome.TYPE_KEY -> updateEnchantDisplay(player, lore);
       case SocketExtender.TYPE_KEY -> updateExtenderDisplay();
       case TinkerersGear.TYPE_KEY -> updateTinkerDisplay();
@@ -293,7 +245,7 @@ public class EnchantMenu extends ItemMenu {
       lore.add(FaceColor.LIGHT_GRAY + " enchanting skill, applied");
       lore.add(FaceColor.LIGHT_GRAY + " after all other numbers!");
     }
-    updateConfirmDisplay(validEnchant, ListExtensionsKt.chatColorize(lore), "faceland:icons/enchant_ready");
+    updateConfirmDisplay(validEnchant, TextUtils.color(lore), "faceland:icons/enchant_ready");
   }
 
   private void updateExtenderDisplay() {
@@ -550,9 +502,9 @@ public class EnchantMenu extends ItemMenu {
     double successChance = Math.min(100, 100 * MaterialUtil.getSuccessChance(
         champion,
         newPlus,
-        selectedUpgradeItem,
-        scroll)
-    );
+        scroll,
+        data.getTier().getUpgradeScale()
+    ));
     double maxDura = ((Damageable) selectedEquipment.getItemMeta()).getMaxDamage();
     double damage;
     if (maxDura <= 1) {
@@ -610,7 +562,7 @@ public class EnchantMenu extends ItemMenu {
     lore.addAll(validRefillLore);
   }
 
-  private void updateSocketDisplay(List<String> lore) {
+  private void updateSocketDisplay() {
     SocketGem socketGem = SocketGem.get(selectedUpgradeItem);
     if (socketGem != null) {
       if (plugin.getSocketGemManager().getOpenSocketIndex(selectedEquipment) == -1) {

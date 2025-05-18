@@ -7,7 +7,6 @@ import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 
-import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang.StringUtils;
 import info.faceland.loot.LootPlugin;
@@ -17,7 +16,6 @@ import info.faceland.loot.items.EnchantmentTome;
 import info.faceland.loot.items.SocketGem;
 import info.faceland.loot.items.SoulGem;
 import info.faceland.loot.items.UpgradeScroll;
-import info.faceland.loot.items.prefabs.ArcaneEnhancer;
 import info.faceland.loot.items.prefabs.PurifyingScroll;
 import info.faceland.loot.items.prefabs.SocketExtender;
 import info.faceland.loot.items.prefabs.TinkerersGear;

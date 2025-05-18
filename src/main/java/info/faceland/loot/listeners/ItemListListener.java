@@ -116,10 +116,11 @@ public final class ItemListListener implements Listener {
         return;
       }
     }
-    if (CraftMaterial.VALID_MATS.contains(stack.getType()) && stack.hasItemMeta()) {
+    var material = CraftMaterial.get(stack);
+    if (material != null) {
       event.getListing().setCategory(Category.CATEGORY_4);
       event.getListing().setFlagA(FilterFlagA.FLAG_1);
-      int index = 1 + (ModifyEquipmentUtil.getItemLevel(stack) - 1) / 10;
+      int index = 1 + (material.getItemLevel() - 1) / 10;
       for (FilterFlagB b : MarketManager.FILTER_BS) {
         if (b.ordinal() == index) {
           event.getListing().setFlagB(b);

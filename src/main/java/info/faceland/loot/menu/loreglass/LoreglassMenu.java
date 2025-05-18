@@ -16,15 +16,19 @@
  */
 package info.faceland.loot.menu.loreglass;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.fakeNoShadow;
 import static com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor.noShadow;
 
 import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import info.faceland.loot.LootPlugin;
+import info.faceland.loot.utils.ModifyEquipmentUtil;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
+import land.face.strife.data.champion.LifeSkillType;
+import land.face.strife.data.champion.SkillRank;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import ninja.amp.ampmenus.menus.ItemMenu;
@@ -72,6 +76,15 @@ public class LoreglassMenu extends ItemMenu {
       return;
     }
     selectedStacks.put(player, item);
+    var mob = plugin.getStrifePlugin().getStrifeMobManager().getStatMob(player);
+    float points = ModifyEquipmentUtil.identify(item, SkillRank.getRank(mob.getChampion(), LifeSkillType.LOREMASTER));
+    if (points > 0) {
+      int xp = Math.max(1, (int) (0.5f * Math.pow(1.65f, points)));
+      //noinspection lossy-conversions
+      xp *= 1f + (float) ModifyEquipmentUtil.getItemLevel(item) / 100f;
+      plugin.getStrifePlugin().getSkillExperienceManager()
+          .addExperience(mob, LifeSkillType.LOREMASTER, xp, false, false);
+    }
     update(player);
   }
 
@@ -109,7 +122,7 @@ public class LoreglassMenu extends ItemMenu {
           .replaceAll("9", "\uF801懹");
       num += "\uF801懺";
       str += num;
-      sneed.put(i, noShadow(Component.text(str)));
+      sneed.put(i, fakeNoShadow(Component.text(str)));
     }
     return sneed;
   }

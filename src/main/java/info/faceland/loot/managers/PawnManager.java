@@ -2,10 +2,7 @@ package info.faceland.loot.managers;
 
 import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
-import static info.faceland.loot.LootPlugin.ITEM_VERSION;
-import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
 
-import com.tealcube.minecraft.bukkit.facecore.utilities.TextUtils;
 import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemRarity;
@@ -14,7 +11,6 @@ import info.faceland.loot.data.PriceData;
 import info.faceland.loot.data.pdc.StoredStat;
 import info.faceland.loot.items.EnchantmentTome;
 import info.faceland.loot.items.SocketGem;
-import info.faceland.loot.items.Tier;
 import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.menu.pawn.PawnMenu;
 import info.faceland.loot.utils.MaterialUtil;
@@ -22,14 +18,10 @@ import info.faceland.loot.utils.ModifyEquipmentUtil;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.Getter;
 import me.elsiff.morefish.MoreFish;
-import me.elsiff.morefish.pojo.CaughtFish;
-import me.elsiff.morefish.pojo.CustomFish;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -163,10 +155,12 @@ public class PawnManager {
     double rarity = 1 + ((ir == null) ? 0 : ir.getPower());
     double itemPrice = materialPrices.getOrDefault(stack.getType(), -1D);
     double itemLevel = ModifyEquipmentUtil.getItemLevel(stack);
+    double itemPlus = ModifyEquipmentUtil.getUpgradeLevel(stack);
     if (itemLevel >= 1) {
       itemPrice = Math.max(itemPrice, 1);
-      itemPrice *= 1 + (itemLevel / 25);
+      itemPrice *= 1 + (itemLevel / 35);
     }
+    itemPrice *= 1 + itemPlus * 0.1;
     switch ((int) rarity) {
       case 1 -> itemPrice = Math.max(0, itemPrice);
       case 2 -> itemPrice += 0.35;

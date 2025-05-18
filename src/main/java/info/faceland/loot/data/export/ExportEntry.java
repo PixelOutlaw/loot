@@ -15,6 +15,7 @@ public class ExportEntry {
   private String name;
   private String strippedName;
   private String tier;
+  private String imageId;
   private List<String> description = new ArrayList<>();
   private List<String> passives = new ArrayList<>();
   private List<String> flavorText = new ArrayList<>();
@@ -25,6 +26,9 @@ public class ExportEntry {
   private boolean enchantable = false;
   private int gemSlots = 0;
   private int extendSlots = 0;
+  private int level = -1;
+  private int dropBase = -1;
+  private int dropRange = -1;
 
   public void setName(String string) {
     name = string;

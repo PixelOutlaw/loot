@@ -59,8 +59,6 @@ public final class MaterialUtil {
   private static String upgradeItemDamageMsg;
   private static String upgradeSuccessMsg;
 
-  public static final String FAILURE_BONUS = ChatColor.RED + "Failure Bonus";
-
   public static final String TAG_COMMON = "\uD86D\uDFE6";
   public static final String TAG_UNCOMMON = "\uD86D\uDFE7";
   public static final String TAG_RARE = "\uD86D\uDFE8";
@@ -81,30 +79,18 @@ public final class MaterialUtil {
         .getString("language.upgrade.success", "");
   }
 
-  public static double getSuccessChance(Champion champion, int targetPlus, ItemStack scrollStack,
-      UpgradeScroll scroll) {
+  public static double getSuccessChance(Champion champion, int targetPlus, UpgradeScroll scroll, int upgradeScale) {
     double success = scroll.getBaseSuccess();
     success -= scroll.getFlatDecay() * targetPlus;
     success *= 1 - (scroll.getPercentDecay() * targetPlus);
     success = Math.pow(success, scroll.getExponent());
+    success *= switch (upgradeScale) {
+      case 3 -> 0.45f;
+      case 2 -> 0.79f;
+      default -> 1.0f;
+    };
     success += SkillRank.isRank(champion, LifeSkillType.ENCHANTING, SkillRank.EXPERT) ? 0.02 : 0;
-    if (success <= 1) {
-      success += (1 - success) * getFailureMod(getFailureBonus(scrollStack));
-    }
     return success;
-  }
-
-  public static int getFailureBonus(ItemStack scrollStack) {
-    for (String s : TextUtils.getLore(scrollStack)) {
-      if (s.startsWith(FAILURE_BONUS)) {
-        return MaterialUtil.getDigit(ChatColor.stripColor(s));
-      }
-    }
-    return 0;
-  }
-
-  public static double getFailureMod(double failBonus) {
-    return 1 - (300D / (300D + failBonus));
   }
 
   public static double getUpgradeFailureDamagePercent(UpgradeScroll scroll, int itemLevel, int itemPlus) {
@@ -124,18 +110,16 @@ public final class MaterialUtil {
       player.playSound(player.getEyeLocation(), Sound.BLOCK_LAVA_POP, 1F, 0.5F);
       return;
     }
-    String strippedName = stripColor(ItemStackExtensionsKt.getDisplayName(stack));
     UpgradeScroll scroll = UpgradeScroll.get(scrollStack);
 
     EquipmentData data = PersistHelper.getEquipmentData(stack);
     int itemUpgradeLevel = data.getUpgradeLevel() * data.getTier().getUpgradeScale();
     int targetLevel = itemUpgradeLevel;
-    int scrollShards = getFailureBonus(scrollStack);
     targetLevel += data.getTier().getUpgradeScale();
     targetLevel = Math.min(targetLevel, 15);
 
     Champion champion = LootPlugin.getInstance().getStrifePlugin().getChampionManager().getChampion(player);
-    double successChance = getSuccessChance(champion, targetLevel, scrollStack, scroll);
+    double successChance = getSuccessChance(champion, targetLevel, scroll, data.getTier().getUpgradeScale());
 
     scrollStack.setAmount(scrollStack.getAmount() - 1);
 
@@ -181,14 +165,10 @@ public final class MaterialUtil {
       } else {
         player.playSound(player.getEyeLocation(), Sound.ENTITY_ITEM_BREAK, 1F, 1F);
         sendMessage(player, upgradeItemDestroyMsg);
-        int newShards = rollShards(itemLevel, itemUpgradeLevel, (float) MaterialUtil.getRarity(stack).getPower());
         stack.setAmount(0);
-        distributeShards(player, scrollShards + newShards);
         return;
       }
     }
-    int newShards = rollShards(itemLevel, itemUpgradeLevel, (float) MaterialUtil.getRarity(stack).getPower());
-    distributeShards(player, scrollShards + newShards);
     int finalDamage = damage;
     stack.editMeta(m -> ((Damageable) m).setDamage(finalDamage));
     sendMessage(player, upgradeItemDamageMsg);
@@ -199,26 +179,6 @@ public final class MaterialUtil {
     newShards *= 1 + itemRarity / 4f;
     newShards *= 1 + itemLevel / 70f;
     return (int) Math.max(0, newShards);
-  }
-
-  private static void distributeShards(Player player, int amount) {
-    return;
-    /*
-    if (amount > 0) {
-      ItemStack shard = ShardOfFailure.build(player.getName());
-      while (amount > 0) {
-        ItemStack loopShard = shard.clone();
-        loopShard.setAmount(Math.min(amount, 64));
-        if (player.getInventory().firstEmpty() != -1) {
-          player.getInventory().addItem(loopShard);
-        } else {
-          Item item = player.getWorld().dropItem(player.getLocation(), loopShard);
-          item.setOwner(player.getUniqueId());
-        }
-        amount -= 64;
-      }
-    }
-     */
   }
 
   public static boolean meetsUpgradeRange(UpgradeScroll type, int itemPlus) {

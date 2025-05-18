@@ -21,14 +21,14 @@ public class CraftResultData {
   private final float rarity;
   private final Set<String> preferredStats;
 
-  public CraftResultData(ItemStack[] craftMatrix, ItemStack resultStack) {
+  public CraftResultData(ItemStack[] craftMatrix) {
     int numMaterials = 0;
     int xLevelMats = 0;
     float totalStars = 0;
     float totalItemLevel = 0;
     this.preferredStats = new HashSet<>();
     for (ItemStack is : craftMatrix) {
-      if (is == null || is.getType() == Material.AIR || is.getType() == resultStack.getType()) {
+      if (is == null || is.getType() == Material.AIR) {
         continue;
       }
       CraftMaterial cr = CraftMaterial.get(is);

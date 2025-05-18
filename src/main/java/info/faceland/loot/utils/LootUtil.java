@@ -39,22 +39,36 @@ public class LootUtil {
     if (split.length < 2) {
       // SINGLE PARAM FLOW
       ItemStack stack = null;
-      switch (split[0]) {
-        case "reroll" -> stack = OrbOfManyFaces.item();
-        case "reroll2", "hypercube" -> stack = PerfectSphere.item();
-        case "enhancer", "arcaneenhancer" -> stack = ArcaneEnhancer.get();
-        case "extender", "socketextender" -> stack = SocketExtender.item();
+      return switch (split[0]) {
+        case "reroll" ->  OrbOfManyFaces.item();
+        case "reroll2", "hypercube" -> PerfectSphere.item();
+        case "enhancer", "arcaneenhancer" -> ArcaneEnhancer.get();
+        case "extender", "socketextender" -> SocketExtender.item();
         default -> {
           var result = plugin.getCustomItemManager().getUnique(split[0]);
           if (result != null) {
-            stack = result.item();
+            yield result.item();
           }
+          CraftMaterial cr = CraftMaterial.get(id);
+          if (cr != null) {
+            yield cr.item();
+          }
+          SocketGem sg = SocketGem.get(id);
+          if (sg != null) {
+            yield sg.item();
+          }
+          EnchantmentTome et = EnchantmentTome.get(id);
+          if (et != null) {
+            yield et.item();
+          }
+          UpgradeScroll us = UpgradeScroll.get(id);
+          if (us != null) {
+            yield us.item();
+          }
+          Bukkit.getLogger().warning("[Loot] Plugin " + requester.getName() + " requested invalid item with id " + id);
+          yield null;
         }
-      }
-      if (stack == null) {
-        Bukkit.getLogger().warning("[Loot] Plugin " + requester.getName() + " requested invalid item with id " + id);
-      }
-      return stack;
+      };
     }
     ItemStack stack = null;
     switch (split[0]) {

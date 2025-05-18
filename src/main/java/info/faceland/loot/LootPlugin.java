@@ -48,7 +48,9 @@ import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.*;
 import info.faceland.loot.listeners.*;
 import info.faceland.loot.listeners.anticheat.AnticheatListener;
+import info.faceland.loot.listeners.crafting.CraftEquipmentListener;
 import info.faceland.loot.listeners.crafting.CraftingListener;
+import info.faceland.loot.listeners.crafting.PreCraftEquipmentListener;
 import info.faceland.loot.listeners.crafting.PreCraftListener;
 import info.faceland.loot.listeners.sockets.CombinerListener;
 import info.faceland.loot.managers.*;
@@ -318,8 +320,6 @@ public final class LootPlugin extends FacePlugin {
     AwakeningStone.rebuild();
     MissingStat.rebuild();
 
-    tradeMenuManager.loadVillagerTrades(defaultLoadConfig("trades.yml").getConfigurationSection("trades"));
-
     checkDealsTask = Bukkit.getScheduler().runTaskTimer(this, () ->
         getPawnManager().checkAll(), 200L, 60 * 20L);
 
@@ -346,6 +346,8 @@ public final class LootPlugin extends FacePlugin {
     Bukkit.getPluginManager().registerEvents(new CombinerListener(this), this);
     Bukkit.getPluginManager().registerEvents(new InteractListener(this), this);
     Bukkit.getPluginManager().registerEvents(new CraftingListener(this), this);
+    Bukkit.getPluginManager().registerEvents(new CraftEquipmentListener(this), this);
+    Bukkit.getPluginManager().registerEvents(new PreCraftEquipmentListener(this), this);
     Bukkit.getPluginManager().registerEvents(new PreCraftListener(this), this);
     Bukkit.getPluginManager().registerEvents(new AnticheatListener(this), this);
     Bukkit.getPluginManager().registerEvents(new EnchantDegradeListener(this), this);
@@ -388,6 +390,8 @@ public final class LootPlugin extends FacePlugin {
         .registerListener(new PacketCleaner(), PacketListenerPriority.NORMAL);
 
     LootUtil.refresh(this);
+
+    tradeMenuManager.loadVillagerTrades(defaultLoadConfig("trades.yml").getConfigurationSection("trades"));
 
     debug("v" + getDescription().getVersion() + " enabled");
   }

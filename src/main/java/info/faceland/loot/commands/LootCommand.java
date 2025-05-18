@@ -186,6 +186,7 @@ public class LootCommand extends BaseCommand {
         ExportEntry exportGem = new ExportEntry();
         exportGem.setTitle("Socket Gem");
         exportGem.setName("|lime|" + gem.getName());
+        exportGem.setImageId("socketGemImg");
         exportGem.setDescription(SocketGem.getExportLore(gem));
         exportGem.getGroupNames().add(gem.getItemGroup().getName());
         exportGem.getGroupNames().add("Upgrade");
@@ -216,6 +217,7 @@ public class LootCommand extends BaseCommand {
         ExportEntry exportTome = new ExportEntry();
         exportTome.setTitle("Enchantment Tome");
         exportTome.setName("|blue|" + tome.getName());
+        exportTome.setImageId("bookImg");
         List<String> lore = new ArrayList<>();
         lore.add(tome.getDescription());
         exportTome.setDescription(lore);
@@ -242,6 +244,7 @@ public class LootCommand extends BaseCommand {
         exportUnique.setTitle("Unique Item");
         exportUnique.setName("|orange|" + unique.getItemName());
         exportUnique.setTier(unique.getTier().getPlainName());
+        exportUnique.setImageId(unique.getTier().getId() + "-icon");
         List<String> lore = new ArrayList<>();
         if (unique.getTier().isSkillRequirement()) {
           lore.add("|white|Skill Requirement: " + unique.getItemLevel());
@@ -318,6 +321,8 @@ public class LootCommand extends BaseCommand {
           case "equipment_epic" -> "Epic";
           default -> "Rare";
         });
+        exportUnique.setDropRange(unique.getDropRange() < 100 ? unique.getDropRange() : -1);
+        exportUnique.setDropBase(unique.getDropLevel());
         var gs = new ArrayList<String>();
         for (var entry : ItemGroup.GROUPS.entrySet()) {
           if (entry.getValue().getValidTiers().contains(unique.getTier().getId())) {
@@ -337,6 +342,7 @@ public class LootCommand extends BaseCommand {
         ExportEntry exportScroll = new ExportEntry();
         exportScroll.setTitle("Upgrade Scroll");
         exportScroll.setName("|green|" + scroll.getPrefix() + " Upgrade Scroll");
+        exportScroll.setImageId(scroll.getId() + "-scroll");
         List<String> lore = new ArrayList<>(scroll.getLore());
         lore.removeFirst();
         lore.removeFirst();

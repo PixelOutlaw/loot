@@ -88,7 +88,7 @@ public final class EntityDeathListener implements Listener {
 
     UUID looter = killer.getUniqueId();
 
-    penaltyMult *= plugin.getStrifePlugin().getViolationManager().getSafespotViolationMult(killer);
+    penaltyMult *= plugin.getStrifePlugin().getViolationManager().fetchViolationMult(killer);
 
     double distance = event.getEntity().getLocation().distanceSquared(event.getEntity().getWorld()
         .getSpawnLocation());

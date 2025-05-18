@@ -88,17 +88,11 @@ public class SalvageConfirmIcon extends MenuItem {
       TextUtils.setLore(stack, lore, false);
       return stack;
     }
-    if (craftingLevel < tool.getItemLevel()) {
-      ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&e&lCraft Level Too Low!"));
-      lore.add(FaceColor.LIGHT_GRAY + "This tool requires Lvl " + tool.getItemLevel());
-      TextUtils.setLore(stack, lore, false);
-      return stack;
-    }
 
     Tier tier = PersistHelper.getEquipmentData(menu.getEquipment(player)).getTier();
     var mats = new ArrayList<>(tier.getCraftMaterials());
     Collections.shuffle(mats);
-    Material material = mats.get(0);
+    Material material = mats.getFirst();
     if (material == null) {
       ItemStackExtensionsKt.setDisplayName(stack, TextUtils.color("&e&lNo Known Materials"));
       lore.add(FaceColor.LIGHT_GRAY + "It appears as if this can't be salvaged...");

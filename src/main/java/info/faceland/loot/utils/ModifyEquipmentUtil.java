@@ -1,5 +1,6 @@
 package info.faceland.loot.utils;
 
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import info.faceland.loot.LootPlugin;
 import info.faceland.loot.data.ItemStat;
 import info.faceland.loot.data.pdc.EquipmentData;
@@ -61,7 +62,7 @@ public class ModifyEquipmentUtil {
 
   public static int getItemLevel(ItemStack stack) {
     EquipmentData data = PersistHelper.getEquipmentData(stack);
-    return data == null ? 0 : data.getUpgradeLevel();
+    return data == null ? 0 : data.getCustomLevel();
   }
 
   public static void enhance(ItemStack stack) {
@@ -152,6 +153,34 @@ public class ModifyEquipmentUtil {
       return true;
     }
     return false;
+  }
+
+  public static float identify(ItemStack stack, SkillRank loremasterRank) {
+    float idPoints = 0;
+    EquipmentData data = PersistHelper.getEquipmentData(stack);
+    if (data != null) {
+      if (SkillRank.check(loremasterRank, data.getCustomLevel())) {
+        for (var s : data.getBonusStats()) {
+          if (!s.isIdentified()) {
+            s.setIdentified(true);
+            idPoints++;
+            if (StringUtils.isNotBlank(s.getOriginUnique())) {
+              idPoints += 0.5f;
+              s.setShowOrigin(true);
+            }
+          }
+        }
+      }
+      var enchant = data.getEnchantment();
+      if (enchant != null && SkillRank.check(loremasterRank, enchant.getLevel() - 10)) {
+        if (!enchant.isIdentified()) {
+          enchant.setIdentified(true);
+          idPoints++;
+        }
+      }
+    }
+    PersistHelper.setEquipmentData(stack, data, true);
+    return idPoints;
   }
 
   public static void applyExtender(ItemStack stack) {
