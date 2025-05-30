@@ -27,6 +27,9 @@ import info.faceland.loot.menu.upgrade.EnchantMenu;
 import info.faceland.loot.utils.ItemRenderer;
 import info.faceland.loot.utils.PersistHelper;
 import io.pixeloutlaw.minecraft.spigot.hilt.ItemStackExtensionsKt;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import land.face.strife.StrifePlugin;
 import ninja.amp.ampmenus.menus.MenuHolder;
 import org.bukkit.Bukkit;
@@ -52,6 +55,7 @@ import org.bukkit.inventory.ItemStack;
 public final class InteractListener implements Listener {
 
   private final LootPlugin plugin;
+  public static Map<UUID, ItemStack> CACHED_CLICK = new HashMap<>();
 
   private final boolean customEnchantingEnabled;
 
@@ -98,13 +102,15 @@ public final class InteractListener implements Listener {
         return;
       }
       NewCustomItem nci = PersistHelper.getNonEquipmentUniqueItem(stack);
-      if (nci == null || nci.getRightClickActions().isEmpty()) {
+      if (nci == null || nci.getHeldRightClickActions().isEmpty()) {
         return;
       }
-      for (String s : nci.getRightClickActions()) {
+
+      event.setCancelled(true);
+
+      for (String s : nci.getHeldRightClickActions()) {
         Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), s.replace("@p", event.getPlayer().getName()));
       }
-      event.setCancelled(true);
     }
   }
 
@@ -126,12 +132,15 @@ public final class InteractListener implements Listener {
       return;
     }
     NewCustomItem nci = PersistHelper.getNonEquipmentUniqueItem(event.getCurrentItem());
-    if (nci == null || nci.getRightClickActions().isEmpty()) {
+    if (nci == null || nci.getInvyRightClickActions().isEmpty()) {
       return;
     }
-    for (String s : nci.getRightClickActions()) {
+
+    CACHED_CLICK.put(event.getWhoClicked().getUniqueId(), event.getCurrentItem());
+    for (String s : nci.getInvyRightClickActions()) {
       Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), s.replace("@p", event.getWhoClicked().getName()));
     }
+    CACHED_CLICK.remove(event.getWhoClicked().getUniqueId(), event.getCurrentItem());
     event.setCancelled(true);
   }
 

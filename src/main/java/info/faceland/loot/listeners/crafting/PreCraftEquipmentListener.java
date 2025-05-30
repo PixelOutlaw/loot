@@ -264,6 +264,16 @@ public final class PreCraftEquipmentListener implements Listener {
     } else {
       lore.add(FaceColor.WHITE + "Rarity: " + minRarityStr + FaceColor.LIGHT_GRAY + " to " + maxRarityStr);
     }
+    Tier t = TIER_BY_RESULT.get(stack);
+    if (t != null) {
+      lore.add("");
+      if (t.getPrimaryStats().size() > 1) {
+        lore.add(FaceColor.LIGHT_GRAY + "Core Stat: [Random Element] Damage");
+      } else {
+        lore.add(FaceColor.LIGHT_GRAY + "Core Stat: " + t.getPrimaryStats().getFirst().getStat().getName());
+      }
+      t.getSecondaryStats().forEach(s -> lore.add(FaceColor.GRAY + " and " + s.getStat().getName() + "?"));
+    }
 
     if (!SkillRank.check(SkillRank.APPRENTICE, craftLevel)) {
       float essMult = SkillRank.check(SkillRank.EXPERT, craftLevel) ? 2.0f : 1.0f;

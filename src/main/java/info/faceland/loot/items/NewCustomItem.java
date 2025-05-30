@@ -23,11 +23,8 @@ import static info.faceland.loot.LootPlugin.ITEM_EXTRA_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_TYPE_KEY;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION;
 import static info.faceland.loot.LootPlugin.ITEM_VERSION_KEY;
-import static info.faceland.loot.utils.ItemStyleUtil.HALFWAY;
 import static info.faceland.loot.utils.ItemStyleUtil.centerText;
-import static info.faceland.loot.utils.ItemStyleUtil.countTitleSize;
 
-import com.sentropic.guiapi.gui.GUI;
 import com.tealcube.minecraft.bukkit.facecore.utilities.FaceColor;
 import com.tealcube.minecraft.bukkit.facecore.utilities.ItemUtils;
 import com.tealcube.minecraft.bukkit.facecore.utilities.PaletteUtil;
@@ -109,7 +106,8 @@ public class NewCustomItem {
 
   private String mountId;
 
-  private List<String> rightClickActions = new ArrayList<>();
+  private List<String> invyRightClickActions = new ArrayList<>();
+  private List<String> heldRightClickActions = new ArrayList<>();
   private Map<StrifeStat, Float> overrideStats = new HashMap<>();
 
   private ItemStack cachedStack;
@@ -250,7 +248,8 @@ public class NewCustomItem {
 
     ci.setMountId(section.getString("mount-id", null));
 
-    ci.setRightClickActions(section.getStringList("rightclick-actions"));
+    ci.setInvyRightClickActions(section.getStringList("rightclick-actions"));
+    ci.setHeldRightClickActions(section.getStringList("rightclick-when-held-actions"));
     ci.setOverrideStats(StatUtil.getStatMapFromSection(section.getConfigurationSection("override-stats")));
 
     return ci;

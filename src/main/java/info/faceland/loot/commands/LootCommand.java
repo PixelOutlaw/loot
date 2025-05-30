@@ -51,6 +51,7 @@ import info.faceland.loot.items.SoulGem;
 import info.faceland.loot.items.Tier;
 import info.faceland.loot.items.UpgradeScroll;
 import info.faceland.loot.items.prefabs.*;
+import info.faceland.loot.listeners.InteractListener;
 import info.faceland.loot.menu.gemcutter.GemcutterMenu;
 import info.faceland.loot.menu.gemsmasher.GemSmashMenu;
 import info.faceland.loot.menu.pawn.PawnMenu;
@@ -885,7 +886,26 @@ public class LootCommand extends BaseCommand {
     menu.open(target.getPlayer());
   }
 
-  @Subcommand("salvage")
+  @Subcommand("salvage held")
+  @CommandCompletion("@players")
+  @CommandPermission("loot.upgrade")
+  public void salvageItemHeld(CommandSender sender, OnlinePlayer target, int levelReq) {
+    if (target == null || !target.getPlayer().isValid()) {
+      return;
+    }
+    if (levelReq > PlayerDataUtil.getLifeSkillLevel(target.getPlayer(), LifeSkillType.CRAFTING)) {
+      PaletteUtil.sendMessage(target.getPlayer(), "|yellow|Your crafting level is too low to use this!");
+      return;
+    }
+    plugin.getSalvageMenu().setEquipment(target.getPlayer(), null);
+    plugin.getSalvageMenu().setTool(target.getPlayer(), null);
+    plugin.getSalvageMenu().setResult(target.getPlayer(), null);
+
+    plugin.getSalvageMenu().open(target.getPlayer());
+    plugin.getSalvageMenu().setTool(target.getPlayer(), target.getPlayer().getEquipment().getItemInMainHand());
+  }
+
+  @Subcommand("salvage invy")
   @CommandCompletion("@players")
   @CommandPermission("loot.upgrade")
   public void salvageItem(CommandSender sender, OnlinePlayer target, int levelReq) {
@@ -899,12 +919,10 @@ public class LootCommand extends BaseCommand {
     plugin.getSalvageMenu().setEquipment(target.getPlayer(), null);
     plugin.getSalvageMenu().setTool(target.getPlayer(), null);
     plugin.getSalvageMenu().setResult(target.getPlayer(), null);
-    /*
-    if (target.getPlayer().getEquipment().getItemInMainHand().getType() == Material.NETHER_BRICK) {
-      plugin.getSalvageMenu().setTool(target.getPlayer(), target.getPlayer().getEquipment().getItemInMainHand());
-    }
-    */
+
     plugin.getSalvageMenu().open(target.getPlayer());
+    plugin.getSalvageMenu().setTool(target.getPlayer(),
+        InteractListener.CACHED_CLICK.get(target.getPlayer().getUniqueId()));
   }
 
   @Subcommand("dumb")

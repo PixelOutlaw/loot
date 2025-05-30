@@ -35,8 +35,8 @@ public class ToolIcon extends MenuItem {
   private final SalvageMenu menu;
 
   ToolIcon(SalvageMenu menu) {
-    super(PaletteUtil.color("|yellow_wave|Select a Salvage Kit!"), ItemUtils.BLANK.clone());
-    //ItemStackExtensionsKt.setDisplayName(getIcon(), TextUtils.color("&eSelect a Salvage Kit!"));
+    super("", ItemUtils.BLANK.clone());
+    ItemStackExtensionsKt.setDisplayName(getIcon(), PaletteUtil.color("|yellow_wave|Select a Salvage Kit!"));
     this.menu = menu;
   }
 
